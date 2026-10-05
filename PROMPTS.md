@@ -16,7 +16,15 @@ Create the repo layout from REQUIREMENTS.md with empty modules and docstrings, a
 
 ## Prompt 1: Model client and config
 ```
-Implement FR-1. Create config/models.yaml with these IDs: <paste IDs>. Create config/pricing.json from these prices: <paste prices>. Write backend/llm.py call_model() exactly as AGENTS.md describes (empty-content fallback to reasoning field, retries, semaphore, pydantic JSON validation with one repair retry, cost accounting). Write pytest tests against a fake local OpenAI-compatible server for each behaviour. Then add scripts/hello.py that calls Ultra, Super, Nano and Omni once each and prints role, model, latency, tokens and cost. Run it with my real key and show the output. Also append what happened to FEEDBACK.md.
+Implement FR-1. Create config/models.yaml with these IDs: "Create config/models.yaml with these roles and IDs:
+  ultra: nvidia/Nemotron-3-Ultra-550b-a55b      (recon, defender, clustering, report)
+  super: nvidia/nemotron-3-super-120b-a12b      (target agent brain, strategic attacks)
+  lightning: nvidia/Nemotron-3_5-Lightning      (bulk payload generation, swarm)
+  nano: nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B   (fallback for lightning)
+  vision: google/gemma-3-27b-it                 (optional image channel and screenshot QA; not NVIDIA)
+scripts/hello.py should call ultra, super, lightning and nano once each (skip vision for now).
+Prices: leave config/pricing.json with zeros and a TODO; I will fill it in from the Token Factory console."
+. Create config/pricing.json from these prices: <paste prices>. Write backend/llm.py call_model() exactly as AGENTS.md describes (empty-content fallback to reasoning field, retries, semaphore, pydantic JSON validation with one repair retry, cost accounting). Write pytest tests against a fake local OpenAI-compatible server for each behaviour. Then add scripts/hello.py that calls Ultra, Super, Nano and Omni once each and prints role, model, latency, tokens and cost. Run it with my real key and show the output. Also append what happened to FEEDBACK.md.
 ```
 
 ## Prompt 2: Target sandbox, oracle, benign suite

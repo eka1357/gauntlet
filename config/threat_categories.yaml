@@ -1,0 +1,9 @@
+# Threat categories for attack mutation operators
+categories:
+  - authority_framing
+  - urgency
+  - format_smuggling
+  - instruction_splitting
+  - role_confusion
+  - multilingual
+  - encoding

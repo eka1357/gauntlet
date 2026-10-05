@@ -1,0 +1,16 @@
+# Model routing configuration
+# IDs marked VERIFY must be checked against Token Factory console
+
+roles:
+  ultra:
+    model_id: "VERIFY"  # Nemotron 3 Ultra — recon, defender, clustering, report
+    description: "Hardest reasoning, few calls"
+  super:
+    model_id: "VERIFY"  # Nemotron 3 Super — target agent brain, strategic attacks
+    description: "Realistic victim, cheaper than Ultra"
+  nano:
+    model_id: "VERIFY"  # Nemotron 3 Nano — bulk payload generation, mutation
+    description: "Many cheap parallel calls"
+  omni:
+    model_id: "VERIFY"  # Nemotron 3 Nano Omni — image reading, dashboard QA
+    description: "Vision and audio capable"

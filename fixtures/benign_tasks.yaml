@@ -1,0 +1,4 @@
+# Benign task suite
+# 25-30 tasks with programmatic pass checks (FR-4)
+# Unhardened agent should pass at least 85%
+tasks: []

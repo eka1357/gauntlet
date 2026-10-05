@@ -1,0 +1,45 @@
+/* Design tokens from DESIGN.md
+   Components never use raw hex — always reference these variables.
+   Check contrast at realtimecolors.com before locking. */
+
+:root {
+  /* Surfaces */
+  --range-paper: #EAEEF0;
+  --panel: #F8FAFB;
+  --ink: #13232E;
+  --rule: #C9D3D9;
+
+  /* Semantic colours — reserved for meaning only */
+  --breach: #C4352A;
+  --cleared: #1E7A68;
+  --in-flight: #D9962B;
+
+  /* Radius scale by hierarchy */
+  --radius-sm: 2px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+
+  /* Type scale */
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 20px;
+  --text-xl: 28px;
+  --text-2xl: 44px;
+  --text-hero: 72px;
+}
+
+/* Optional dark theme */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --range-paper: #0F1A22;
+    --panel: #16252F;
+    --ink: #E8EDF0;
+    --rule: #2E3D47;
+
+    /* Semantic colours lightened for contrast */
+    --breach: #E05048;
+    --cleared: #2CA88E;
+    --in-flight: #F0B040;
+  }
+}
