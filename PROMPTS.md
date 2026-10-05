@@ -16,15 +16,28 @@ Create the repo layout from REQUIREMENTS.md with empty modules and docstrings, a
 
 ## Prompt 1: Model client and config
 ```
-Implement FR-1. Create config/models.yaml with these IDs: "Create config/models.yaml with these roles and IDs:
-  ultra: nvidia/Nemotron-3-Ultra-550b-a55b      (recon, defender, clustering, report)
-  super: nvidia/nemotron-3-super-120b-a12b      (target agent brain, strategic attacks)
-  lightning: nvidia/Nemotron-3_5-Lightning      (bulk payload generation, swarm)
-  nano: nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B   (fallback for lightning)
-  vision: google/gemma-3-27b-it                 (optional image channel and screenshot QA; not NVIDIA)
-scripts/hello.py should call ultra, super, lightning and nano once each (skip vision for now).
-Prices: leave config/pricing.json with zeros and a TODO; I will fill it in from the Token Factory console."
-. Create config/pricing.json from these prices: <paste prices>. Write backend/llm.py call_model() exactly as AGENTS.md describes (empty-content fallback to reasoning field, retries, semaphore, pydantic JSON validation with one repair retry, cost accounting). Write pytest tests against a fake local OpenAI-compatible server for each behaviour. Then add scripts/hello.py that calls Ultra, Super, Nano and Omni once each and prints role, model, latency, tokens and cost. Run it with my real key and show the output. Also append what happened to FEEDBACK.md.
+Implement FR-1 (model client and config).
+
+1. Create config/models.yaml with these roles and exact IDs (case matters):
+   ultra: nvidia/Nemotron-3-Ultra-550b-a55b       (recon, defender, clustering, report)
+   super: nvidia/nemotron-3-super-120b-a12b       (target agent brain, strategic attacks)
+   lightning: nvidia/Nemotron-3_5-Lightning       (bulk payload generation, swarm)
+   nano: nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B    (fallback for lightning)
+   vision: google/gemma-3-27b-it                  (optional, not NVIDIA; unused for now)
+
+2. Create config/pricing.json with an entry per role: input and output price per 1M tokens, all set to 0 with a "TODO: fill from Token Factory model catalog" note. Cost accounting must still work, and when a price is 0 it must print "price not set" instead of showing $0.00 as if it were real.
+
+3. Write backend/llm.py call_model() exactly as AGENTS.md describes: read NEBIUS_API_KEY and NEBIUS_BASE_URL from .env, return content and fall back to the reasoning field if content is empty (check the fields reasoning_content and reasoning), retry with backoff on 429 and 5xx, enforce a concurrency semaphore, validate JSON output against a pydantic schema with one repair retry, and record tokens, latency and cost per call.
+
+4. Write pytest tests against a fake local OpenAI-compatible server for each behaviour: empty-content fallback, retry, schema repair, cost accounting, price-not-set.
+
+5. Add scripts/hello.py. It calls ultra, super, lightning and nano once each with a tiny prompt ("Reply with the single word: ready") and max_tokens kept small. For each, print role, model ID, latency, prompt tokens, completion tokens, whether the answer came from content or the reasoning field, and the first 80 characters of the answer. Never print the API key.
+
+6. Run make test and make lint, then run scripts/hello.py with my real key and show me the full output. If a model call fails, show the exact error and do not substitute fake output.
+
+7. Append to FEEDBACK.md what happened: time taken, any errors, and which models returned reasoning-field output.
+
+Commit with a clear message when everything passes.
 ```
 
 ## Prompt 2: Target sandbox, oracle, benign suite

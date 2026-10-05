@@ -12,7 +12,7 @@ test:
 	python -m pytest tests/ -v
 
 lint:
-	python -m ruff check backend/ target/ jobs/ tests/
+	python -m ruff check backend/ target/ jobs/ tests/ scripts/
 	cd web && npx tsc --noEmit
 
 demo:

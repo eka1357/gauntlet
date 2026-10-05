@@ -1,16 +1,23 @@
 # Model routing configuration
-# IDs marked VERIFY must be checked against Token Factory console
+# IDs are exact — case matters. Verified against Token Factory console.
 
 roles:
   ultra:
-    model_id: "VERIFY"  # Nemotron 3 Ultra — recon, defender, clustering, report
-    description: "Hardest reasoning, few calls"
+    model_id: "nvidia/Nemotron-3-Ultra-550b-a55b"
+    description: "Recon, defender, clustering, report — hardest reasoning, few calls"
+
   super:
-    model_id: "VERIFY"  # Nemotron 3 Super — target agent brain, strategic attacks
-    description: "Realistic victim, cheaper than Ultra"
+    model_id: "nvidia/nemotron-3-super-120b-a12b"
+    description: "Target agent brain, strategic attacks — cheaper than Ultra"
+
+  lightning:
+    model_id: "nvidia/Nemotron-3_5-Lightning"
+    description: "Bulk payload generation, swarm — fast and cheap"
+
   nano:
-    model_id: "VERIFY"  # Nemotron 3 Nano — bulk payload generation, mutation
-    description: "Many cheap parallel calls"
-  omni:
-    model_id: "VERIFY"  # Nemotron 3 Nano Omni — image reading, dashboard QA
-    description: "Vision and audio capable"
+    model_id: "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B"
+    description: "Fallback for lightning"
+
+  vision:
+    model_id: "google/gemma-3-27b-it"
+    description: "Optional image channel and screenshot QA — not NVIDIA, unused for now"

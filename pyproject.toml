@@ -42,6 +42,9 @@ src = ["backend", "target", "jobs", "tests"]
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP"]
 
+[tool.ruff.lint.isort]
+known-first-party = ["backend", "target", "jobs"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"

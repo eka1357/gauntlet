@@ -1,4 +1,25 @@
 {
-  "_note": "Prices filled by human from Token Factory pricing page. Do not guess.",
-  "models": {}
+  "_note": "TODO: fill from Token Factory model catalog. Prices are per 1M tokens in USD. When price is 0 the system prints 'price not set' instead of $0.00.",
+  "models": {
+    "nvidia/Nemotron-3-Ultra-550b-a55b": {
+      "input_per_1m": 0,
+      "output_per_1m": 0
+    },
+    "nvidia/nemotron-3-super-120b-a12b": {
+      "input_per_1m": 0,
+      "output_per_1m": 0
+    },
+    "nvidia/Nemotron-3_5-Lightning": {
+      "input_per_1m": 0,
+      "output_per_1m": 0
+    },
+    "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B": {
+      "input_per_1m": 0,
+      "output_per_1m": 0
+    },
+    "google/gemma-3-27b-it": {
+      "input_per_1m": 0,
+      "output_per_1m": 0
+    }
+  }
 }
