@@ -334,6 +334,9 @@ def validate_json(text: str, schema: type[T]) -> T:  # noqa: UP047
         cleaned = "\n".join(lines)
 
     data = json.loads(cleaned)
+    if isinstance(data, list) and len(schema.model_fields) == 1:
+        field_name = next(iter(schema.model_fields))
+        data = {field_name: data}
     return schema.model_validate(data)
 
 

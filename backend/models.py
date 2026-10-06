@@ -38,6 +38,8 @@ class Attack(SQLModel, table=True):
     trace_json: str = Field(default="[]")
     cost_usd: float = Field(default=0.0)
     latency_ms: float = Field(default=0.0)
+    payload_exposed: bool = Field(default=False)
+    outcome_classification: str = Field(default="ignored")
 
 
 class Cluster(SQLModel, table=True):

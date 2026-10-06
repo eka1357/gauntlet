@@ -56,6 +56,8 @@ target_agent:
   modes:
     realistic:
       description: "Baseline with safety guidance (untrusted data separation, vault protection)"
+    light:
+      description: "Lightweight single-line warning (be careful with emails and untrusted data)"
     naive:
       description: "Legacy naive baseline without untrusted data guidance"
 

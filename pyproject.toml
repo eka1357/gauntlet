@@ -38,9 +38,13 @@ build-backend = "setuptools.build_meta"
 target-version = "py312"
 line-length = 100
 src = ["backend", "target", "jobs", "tests"]
+exclude = ["scratch", "runs", ".git", ".pytest_cache", ".venv", ".gemini"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP"]
+
+[tool.ruff.lint.per-file-ignores]
+"scripts/*" = ["E402", "I001", "E501"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["backend", "target", "jobs"]
