@@ -1,362 +1,362 @@
 [
   {
     "id": "msg_001",
-    "thread_id": "thread_001",
+    "thread_id": "thread_reefer_4091",
     "from": "Carlos Mendez <carlos.mendez@meridianfreight.com>",
     "to": "Marcus Vance <marcus.vance@meridianfreight.com>",
-    "date": "2026-10-01 09:00",
+    "date": "2026-10-01 08:42",
     "subject": "Reefer RF-4091 temperature deviation alert",
-    "body": "Unit RF-4091 in Warehouse Bay 3 showing +4.2\u00b0C \u2014 above setpoint by 0.7\u00b0C. Power cycle attempted; temp stabilizing but not yet nominal. Requesting tech dispatch within 2 hours to avoid cargo risk."
-  },
-  {
-    "id": "msg_002",
-    "thread_id": "thread_002",
-    "from": "Helena Chen <helena.chen@meridianfreight.com>",
-    "to": "David Ross <david.ross@meridianfreight.com>, Sarah Al-Mansoor <sarah.almansoor@meridianfreight.com>",
-    "date": "2026-10-01 09:00",
-    "subject": "Rotterdam customs hold on shipment MM-8492",
-    "body": "Pharma consignment MM-8492 detained due to missing COA batch reference. Customs requires corrected docs by EOD today. Please coordinate with shipper and resubmit via ATLAS portal immediately to avoid storage fees."
-  },
-  {
-    "id": "msg_003",
-    "thread_id": "thread_003",
-    "from": "Sarah Al-Mansoor <sarah.almansoor@meridianfreight.com>",
-    "to": "Helena Chen <helena.chen@meridianfreight.com>, Marcus Vance <marcus.vance@meridianfreight.com>",
-    "date": "2026-10-01 09:00",
-    "subject": "Bill of lading correction required: BL-MM-9931",
-    "body": "Consignee notified discrepancy in HS code on BL-MM-9931 \u2014 currently listed as 3004.90, should be 3004.90.10 for antiviral compound. Please revise and reissue BL before vessel departure Rotterdam 1400Z."
-  },
-  {
-    "id": "msg_004",
-    "thread_id": "thread_004",
-    "from": "David Ross <david.ross@meridianfreight.com>",
-    "to": "Marcus Vance <marcus.vance@meridianfreight.com>",
-    "date": "2026-10-01 09:00",
-    "subject": "Bremerhaven demurrage dispute \u2014 $1,450 charge",
-    "body": "Terminal invoicing $1,450 demurrage for container TCNU7890123, claiming late pickup. Our records show release approved 08:15 local, gate out 08:47. Attaching gate logs \u2014 request dispute submission by 17:00 CET today."
-  },
-  {
-    "id": "msg_005",
-    "thread_id": "thread_005",
-    "from": "Liam O'Connor <liam.oconnor@meridianfreight.com>",
-    "to": "Captain Erik Lindholm <capt.lindholm@meridianfreight.com>, Priya Patel <priya.patel@meridianfreight.com>",
-    "date": "2026-10-01 09:00",
-    "subject": "Algeciras bunkering slot confirmed for MV Meridian Voyager",
-    "body": "Bunker slot secured at Algeciras West Dock, berth 12, ETA 06:00Z tomorrow. 380 MT VLSFO at $682/MT. Confirm ETA and prepare manifolds. Pilot boarding at 05:45Z. No changes permitted without ops approval."
-  },
-  {
-    "id": "msg_006",
-    "thread_id": "thread_006",
-    "from": "david.ross@meridianfreight.com",
-    "to": "carlos.mendez@meridianfreight.com; priya.patel@meridianfreight.com",
-    "date": "2026-10-01 09:00",
-    "subject": "Felixstowe Chassis Shortage Alert - Immediate Action Required",
-    "body": "Urgent: Felixstowe terminal reports critical chassis shortage affecting outbound bookings after 1400 today. Prioritize Antwerp and Rotterdam loads for rail swap. Confirm alternate routing by 1000. Do not dispatch without chassis pre-allocation."
-  },
-  {
-    "id": "msg_007",
-    "thread_id": "thread_007",
-    "from": "carlos.mendez@meridianfreight.com",
-    "to": "helena.chen@meridianfreight.com; sarah.almansoor@meridianfreight.com",
-    "date": "2026-10-01 09:00",
-    "subject": "Antwerp Cold Storage Gate Slot Confirmation - RFQ-7741",
-    "body": "Confirmed: Cold storage gate slot secured for 08-10 June, 0600-1400 daily at Antwerp DC Zone 3. Temp range -18\u00b0C to -22\u00b0C. Documentation pre-submitted. Awaiting your approval to finalize carrier notification for RFQ-7741."
-  },
-  {
-    "id": "msg_008",
-    "thread_id": "thread_008",
-    "from": "helena.chen@meridianfreight.com",
-    "to": "capt.lindholm@meridianfreight.com; david.ross@meridianfreight.com",
-    "date": "2026-10-01 09:00",
-    "subject": "IMDG Class 3 Flammables Stowage Check - MV Nordic Pioneer",
-    "body": "Pre-load audit complete for IMDG Class 3 units on MV Nordic Pioneer (Voyage NP224). All 12 drums properly segregated, grounded, and labeled per MSC.1/Circ.1429. Stowage plan approved. Sign off required before 1600 today."
-  },
-  {
-    "id": "msg_009",
-    "thread_id": "thread_009",
-    "from": "priya.patel@meridianfreight.com",
-    "to": "liam.oconnor@meridianfreight.com; marcus.vance@meridianfreight.com",
-    "date": "2026-10-01 09:00",
-    "subject": "Reefer Setpoint Audit Request - Unit RF-8820",
-    "body": "Requesting bunkering log cross-check for reefer unit RF-8820 during last voyage (MV Meridian Voyager, V105). Suspected setpoint drift from -25\u00b0C to -21\u00b0C. Provide fuel temp logs and generator runtime for period 22-28 May. Audit deadline EOD Friday."
-  },
-  {
-    "id": "msg_010",
-    "thread_id": "thread_010",
-    "from": "sarah.almansoor@meridianfreight.com",
-    "to": "marcus.vance@meridianfreight.com; helena.chen@meridianfreight.com",
-    "date": "2026-10-01 09:00",
-    "subject": "Lloyd's Cargo Surveyor Appointment - Hamburg Perishables",
-    "body": "Lloyd's surveyor confirmed for Hamburg discharge 12 June, 0900, for perishable consignment HS-9901 (pharmaceuticals). Ensure temp logs and phytosanitary certs ready. Attend briefing 0830. Delay risks rejection."
-  },
-  {
-    "id": "msg_011",
-    "thread_id": "thread_011",
-    "from": "David Ross <david.ross@meridianfreight.com>",
-    "to": "Marcus Vance <marcus.vance@meridianfreight.com>",
-    "date": "2026-10-01 09:00",
-    "subject": "Duisburg barge delay update",
-    "body": "Barge Rhine Star delayed at Duisburg lock due to low water levels. ETA pushed to 14:00 tomorrow. Impacting container MRDU-881290 transfer. Monitoring closely and will advise if reroute needed."
-  },
-  {
-    "id": "msg_012",
-    "thread_id": "thread_012",
-    "from": "Captain Erik Lindholm <capt.lindholm@meridianfreight.com>",
-    "to": "Priya Patel <priya.patel@meridianfreight.com>, Liam O'Connor <liam.oconnor@meridianfreight.com>",
-    "date": "2026-10-01 09:00",
-    "subject": "Vessel drydock revision in Brest",
-    "body": "MV Meridian Voyager drydock in Brest moved from 05-Jun to 08-Jun due to slot conflict. Fuel bunkering rescheduled accordingly. No impact on next voyage schedule. Confirming revised timeline with yard."
-  },
-  {
-    "id": "msg_013",
-    "thread_id": "thread_013",
-    "from": "Helena Chen <helena.chen@meridianfreight.com>",
-    "to": "Sarah Al-Mansoor <sarah.almansoor@meridianfreight.com>",
-    "date": "2026-10-01 09:00",
-    "subject": "Overweight surcharge dispute container MRDU-881290",
-    "body": "Customer disputes overweight surcharge for MRDU-881290, claiming tare weight error. Attached scale ticket shows 28.4t gross vs 22t limit. Surcharge stands per tariff 7.3. Advise if you want escalation to finance."
-  },
-  {
-    "id": "msg_014",
-    "thread_id": "thread_014",
-    "from": "Helena Chen <helena.chen@meridianfreight.com>",
-    "to": "Marcus Vance <marcus.vance@meridianfreight.com>",
-    "date": "2026-10-01 09:00",
-    "subject": "Chemical tariff HS code 2905.11 dispute",
-    "body": "Customs challenged HS 2905.11 classification for methanol shipment to Rotterdam. They propose 2905.12, adding 4.2% duty. We maintain 2905.11 is correct per purity spec. Submitting rebuttal with lab cert by EOD."
-  },
-  {
-    "id": "msg_015",
-    "thread_id": "thread_015",
-    "from": "Carlos Mendez <carlos.mendez@meridianfreight.com>",
-    "to": "David Ross <david.ross@meridianfreight.com>, Priya Patel <priya.patel@meridianfreight.com>",
-    "date": "2026-10-01 09:00",
-    "subject": "Le Havre tugboat strike notice",
-    "body": "Le Havre port authority notified of 24hr tugboat strike starting 0600 tomorrow. May delay vessel berthing and bunkering. Advising all inbound vessels to monitor VHF Channel 16 and prepare for possible anchorage delay."
-  },
-  {
-    "id": "msg_016",
-    "thread_id": "thread_016",
-    "from": "carlos.mendez@meridianfreight.com",
-    "to": "priya.patel@meridianfreight.com",
-    "date": "2026-10-01 09:00",
-    "subject": "Reefer RF-9104 data logger download required",
-    "body": "Hi Priya, please arrange immediate download of data logger from reefer unit RF-9104 currently staged at Antwerp Warehouse B3. Need temp logs for customs clearance on shipment to Lagos. Unit is powered and accessible. Confirm when done so I can release for loading. Thanks, Carlos"
-  },
-  {
-    "id": "msg_017",
-    "thread_id": "thread_017",
-    "from": "david.ross@meridianfreight.com",
-    "to": "capt.lindholm@meridianfreight.com",
-    "date": "2026-10-01 09:05",
-    "subject": "Bay of Biscay heavy weather route diversion advised",
-    "body": "Erik, METFRANCE forecasts force 8-9 winds in Bay of Biscay tomorrow. Advise diverting south via Porto to avoid worst seas. ETA delay ~12hrs but safer for cargo and crew. Confirm receipt and new waypoints. Will update agents. Stay safe, David"
-  },
-  {
-    "id": "msg_018",
-    "thread_id": "thread_018",
-    "from": "marcus.vance@meridianfreight.com",
-    "to": "carlos.mendez@meridianfreight.com",
-    "date": "2026-10-01 09:10",
-    "subject": "Empty container repositioning from Munich urgent",
-    "body": "Carlos, need 4x 40ft high cubes repositioned from Munich terminal to Duisburg rail hub by EOD Thursday for Friday barge load. Prioritize over Antwerp returns. Coordinate with rail partner RailCare. Confirm truck allocation by 1000 today. Marcus"
-  },
-  {
-    "id": "msg_019",
-    "thread_id": "thread_019",
-    "from": "priya.patel@meridianfreight.com",
-    "to": "carlos.mendez@meridianfreight.com",
-    "date": "2026-10-01 09:15",
-    "subject": "Rhine barge connection delay notification",
-    "body": "Carlos, barge Rhine Express delayed due to low water levels near Kaub. New arrival at Duisburg now 0800 Fri instead of 1800 Thu. Adjust grounder schedule accordingly. Hold containers until further notice. Will monitor and update. Priya"
-  },
-  {
-    "id": "msg_020",
-    "thread_id": "thread_020",
-    "from": "helena.chen@meridianfreight.com",
-    "to": "sarah.almansoor@meridianfreight.com",
-    "date": "2026-10-01 09:20",
-    "subject": "Gate congestion surcharge at Rotterdam effective immediately",
-    "body": "Sarah, PSA Rotterdam just implemented gate congestion surcharge of EUR 45 per box effective 1400 today due to strike-related backlog. Applies to all inbound/outbound lifts. Need to adjust customer invoices for Rotterdam moves. Advise if you want absorbing or passing through. Helena"
-  },
-  {
-    "id": "msg_021",
-    "thread_id": "thread_021",
-    "from": "carlos.mendez@meridianfreight.com",
-    "to": "helena.chen@meridianfreight.com",
-    "date": "2026-10-01 09:00",
-    "subject": "Damaged pallet DR-331 requires customs survey before disposal",
-    "body": "Pallet DR-331 arrived with crushed corner and water damage during unloading in Antwerp. Need customs compliance officer to inspect prior to bonded warehouse disposal per T1 protocol. Photos attached. Please advise if survey can be done today."
+    "body": "Marcus, unit RF-4091 in Warehouse Bay 3 is showing +4.2\u00b0C \u2014 0.7\u00b0C above setpoint. Power cycle was attempted at 08:15; temperature is stabilizing slowly but not yet nominal. Requesting urgent technician dispatch within 2 hours to avoid cold chain cargo risk.\n\nCarlos Mendez\nWarehouse Bay & Logistics Manager, Antwerp"
   },
   {
     "id": "msg_022",
-    "thread_id": "thread_022",
-    "from": "david.ross@meridianfreight.com",
-    "to": "sarah.almansoor@meridianfreight.com",
-    "date": "2026-10-01 09:00",
-    "subject": "High-cube container release approved for automotive parts consignee",
-    "body": "High-cube container MSCU8765432 cleared by Rotterdam customs. Automotive parts consignee authorized for release today at 1400 hrs. Release docs emailed to your team. Confirm receipt and arrange truck pickup with client."
-  },
-  {
-    "id": "msg_023",
-    "thread_id": "thread_023",
-    "from": "priya.patel@meridianfreight.com",
-    "to": "liam.oconnor@meridianfreight.com",
-    "date": "2026-10-01 09:00",
-    "subject": "Speed optimization order issued for Baltic route voyage",
-    "body": "Fleet scheduling has issued speed optimization order for MV Meridian Voyager on Baltic route due to fuel cost surge. Reduce speed to 18 knots effective 0600 UTC tomorrow. Monitor consumption and report daily savings to ops lead."
-  },
-  {
-    "id": "msg_024",
-    "thread_id": "thread_024",
-    "from": "helena.chen@meridianfreight.com",
-    "to": "carlos.mendez@meridianfreight.com",
-    "date": "2026-10-01 09:00",
-    "subject": "Bonded warehouse T1 transit code validation required for DR-331",
-    "body": "For damaged pallet DR-331, T1 transit code must be validated before any removal or disposal from bonded zone. Do not move pallet until customs confirms code status. Awaiting your confirmation of hold in place."
-  },
-  {
-    "id": "msg_025",
-    "thread_id": "thread_025",
-    "from": "capt.lindholm@meridianfreight.com",
-    "to": "david.ross@meridianfreight.com",
-    "date": "2026-10-01 09:00",
-    "subject": "Bremerhaven rail ramp delay affects cargo handover schedule",
-    "body": "Bremerhaven terminal reports 4-hour rail ramp delay due to congestion. Our cargo handover scheduled for 0800 now pushed to 1200. Advise if we should hold position or proceed to anchorage. Standby for further updates."
-  },
-  {
-    "id": "msg_026",
-    "thread_id": "thread_026",
-    "from": "capt.lindholm@meridianfreight.com",
-    "to": "marcus.vance@meridianfreight.com",
-    "date": "2026-10-01 09:00",
-    "subject": "MV Meridian Voyager Engine Maintenance Report - Q2",
-    "body": "Engine overhaul completed on schedule. All cylinders inspected, injectors serviced, and turbochargers balanced. No critical wear detected. Full report attached. Ready for next voyage deployment."
-  },
-  {
-    "id": "msg_027",
-    "thread_id": "thread_027",
-    "from": "helena.chen@meridianfreight.com",
-    "to": "david.ross@meridianfreight.com",
-    "date": "2026-10-01 09:00",
-    "subject": "Hazardous Tank Container Washing Certificate Required",
-    "body": "Please ensure all UN 1202 diesel tanks arriving Rotterdam tomorrow have valid washing certificates per IMDG 4.2.3. No release without signed form. I\u2019ll audit at gate. Confirm receipt."
-  },
-  {
-    "id": "msg_028",
-    "thread_id": "thread_028",
-    "from": "david.ross@meridianfreight.com",
-    "to": "helena.chen@meridianfreight.com",
-    "date": "2026-10-01 09:00",
-    "subject": "Customs Release Code 44B Inspection Update",
-    "body": "Container MSCU8765432 cleared under code 44B after secondary inspection. No discrepancies found. Documentation updated in Portbase. Release authorized for onward trucking to Duisburg. Thanks for the heads-up."
-  },
-  {
-    "id": "msg_029",
-    "thread_id": "thread_029",
-    "from": "sarah.almansoor@meridianfreight.com",
-    "to": "priya.patel@meridianfreight.com",
-    "date": "2026-10-01 09:00",
-    "subject": "Cold Chain Temperature Validation for EuroFresh Shipment",
-    "body": "EuroFresh pallets (ref: EF-2024-088) must maintain 0\u20132\u00b0C throughout transit. Validate reefer logs hourly and alert if deviation >0.5\u00b0C. Priority load \u2014 customer penalty applies. Confirm monitoring protocol by 1000."
-  },
-  {
-    "id": "msg_030",
-    "thread_id": "thread_030",
-    "from": "liam.oconnor@meridianfreight.com",
-    "to": "marcus.vance@meridianfreight.com",
-    "date": "2026-10-01 09:00",
-    "subject": "BAF Bunker Adjustment Calculation - July",
-    "body": "July BAF adjusted to $48.50/ton based on MGO Platts Singapore average. Applied to all active voyages effective 1st. Updated rates circulated to billing. No retroactive changes. Let me know if variances arise."
-  },
-  {
-    "id": "msg_031",
-    "thread_id": "thread_031",
-    "from": "david.ross@meridianfreight.com",
-    "to": "carlos.mendez@meridianfreight.com",
-    "date": "2026-10-01 09:00",
-    "subject": "Terminal 42 Night Gate Reservation Confirmed",
-    "body": "Night gate access at Terminal 42 confirmed for vessel MV Meridian Voyager on 2024-06-15 between 22:00\u201302:00 local time. Please stage containers by 21:30. Security clearance required. Notify if delays expected."
-  },
-  {
-    "id": "msg_032",
-    "thread_id": "thread_032",
-    "from": "helena.chen@meridianfreight.com",
-    "to": "marcus.vance@meridianfreight.com",
-    "date": "2026-10-01 09:00",
-    "subject": "Chassis Repair Billing Dispute - Requires Review",
-    "body": "Third-party vendor invoice #CHASS-8821 shows $1,200 for axle realignment not pre-approved. Discrepancy in labor hours vs work order. Please review attached docs and advise on payment hold or escalation by EOD."
+    "thread_id": "thread_reefer_4091",
+    "from": "Marcus Vance <marcus.vance@meridianfreight.com>",
+    "to": "Carlos Mendez <carlos.mendez@meridianfreight.com>",
+    "date": "2026-10-01 09:15",
+    "subject": "Re: Reefer RF-4091 temperature deviation alert",
+    "body": "Carlos, technician Hendrik from Carrier Transicold is en route, ETA 10:00. Keep the unit plugged in and log readings every 15 minutes as per SOP-LOG-044.\n\nMarcus"
   },
   {
     "id": "msg_033",
-    "thread_id": "thread_033",
-    "from": "priya.patel@meridianfreight.com",
-    "to": "capt.lindholm@meridianfreight.com",
-    "date": "2026-10-01 09:00",
-    "subject": "Valencia Port Call Schedule Change - ETA Updated",
-    "body": "MV Meridian Voyager Valencia call moved from 06-18 08:00 to 06-19 03:00 due to berth congestion. Pilot and tugs rebooked. Adjust bunkering plan accordingly. Confirm receipt and update voyage plan."
+    "thread_id": "thread_reefer_4091",
+    "from": "Carlos Mendez <carlos.mendez@meridianfreight.com>",
+    "to": "Marcus Vance <marcus.vance@meridianfreight.com>",
+    "date": "2026-10-01 11:30",
+    "subject": "Re: Reefer RF-4091 temperature deviation alert",
+    "body": "Hendrik replaced the evaporator thermistor and verified compressor head pressure. Internal core temperature has dropped back to +1.8\u00b0C nominal. Cold chain breach avoided. PTI ticket closed.\n\nBest regards,\nCarlos"
+  },
+  {
+    "id": "msg_002",
+    "thread_id": "thread_customs_pharma",
+    "from": "Helena Chen <helena.chen@meridianfreight.com>",
+    "to": "David Ross <david.ross@meridianfreight.com>, Sarah Al-Mansoor <sarah.almansoor@meridianfreight.com>",
+    "date": "2026-10-02 10:15",
+    "subject": "Rotterdam customs hold on shipment MM-8492",
+    "body": "David / Sarah: Pharma consignment MM-8492 has been flagged for customs detention at Maasvlakte due to a missing Certificate of Analysis batch reference. Customs demands corrected documents by EOD today. Please obtain the revised COA from the shipper and submit through the ATLAS portal immediately.\n\nHelena Chen\nCustoms Compliance Officer"
+  },
+  {
+    "id": "msg_023",
+    "thread_id": "thread_customs_pharma",
+    "from": "David Ross <david.ross@meridianfreight.com>",
+    "to": "Helena Chen <helena.chen@meridianfreight.com>",
+    "date": "2026-10-02 11:35",
+    "subject": "Re: Rotterdam customs hold on shipment MM-8492",
+    "body": "Helena, shipper Novartis confirmed and just transmitted the signed COA addendum. Uploaded to ATLAS under dossier reference TR-9941. Awaiting customs clearance.\n\nDavid Ross\nPort Dispatch Coordinator"
   },
   {
     "id": "msg_034",
-    "thread_id": "thread_034",
-    "from": "sarah.almansoor@meridianfreight.com",
-    "to": "helena.chen@meridianfreight.com",
-    "date": "2026-10-01 09:00",
-    "subject": "Pharma Shipment Tamper-Evident Seal Verification Required",
-    "body": "Consignee for pharma load MSL-7742 requests seal integrity proof before acceptance. Provide photos of seals at loading and transit points. Urgent \u2014 delay risks rejection. Coordinate with warehouse team for documentation."
+    "thread_id": "thread_customs_pharma",
+    "from": "Helena Chen <helena.chen@meridianfreight.com>",
+    "to": "David Ross <david.ross@meridianfreight.com>, Sarah Al-Mansoor <sarah.almansoor@meridianfreight.com>",
+    "date": "2026-10-02 14:10",
+    "subject": "Re: Rotterdam customs hold on shipment MM-8492",
+    "body": "Customs Officer Van Dijk processed the addendum under release code 12A. Hold lifted; container cleared for drayage to terminal.\n\nHelena"
+  },
+  {
+    "id": "msg_003",
+    "thread_id": "thread_bl_med_citrus",
+    "from": "Sarah Al-Mansoor <sarah.almansoor@meridianfreight.com>",
+    "to": "Helena Chen <helena.chen@meridianfreight.com>, Marcus Vance <marcus.vance@meridianfreight.com>",
+    "date": "2026-10-02 14:45",
+    "subject": "Bill of lading correction required: BL-MM-9931",
+    "body": "Consignee noted an HS code discrepancy on Bill of Lading BL-MM-9931: currently listed as 3004.90, but should be 3004.90.10 for antiviral compound formulations. Please revise and reissue the BL before vessel departure from Rotterdam at 1400Z.\n\nSarah Al-Mansoor\nKey Accounts Director"
+  },
+  {
+    "id": "msg_024",
+    "thread_id": "thread_bl_med_citrus",
+    "from": "Helena Chen <helena.chen@meridianfreight.com>",
+    "to": "Sarah Al-Mansoor <sarah.almansoor@meridianfreight.com>",
+    "date": "2026-10-02 16:10",
+    "subject": "Re: Bill of lading correction required: BL-MM-9931",
+    "body": "Amended BL-MM-9931 reissued with sub-heading 3004.90.10 and transmitted to terminal documentation desk. Manifest updated.\n\nHelena"
+  },
+  {
+    "id": "msg_004",
+    "thread_id": "thread_bremerhaven_demurrage",
+    "from": "David Ross <david.ross@meridianfreight.com>",
+    "to": "Marcus Vance <marcus.vance@meridianfreight.com>",
+    "date": "2026-10-03 08:20",
+    "subject": "Bremerhaven demurrage dispute \u2014 $1,450 charge",
+    "body": "Terminal invoiced $1,450 demurrage for container TCNU7890123 alleging late pickup. Gate telemetry confirms customs release at 08:15 local and gate-out at 08:47. Attaching terminal interchange receipts. Requesting formal dispute filing before 17:00 CET today.\n\nDavid Ross\nRotterdam Dispatch"
+  },
+  {
+    "id": "msg_025",
+    "thread_id": "thread_bremerhaven_demurrage",
+    "from": "Marcus Vance <marcus.vance@meridianfreight.com>",
+    "to": "David Ross <david.ross@meridianfreight.com>",
+    "date": "2026-10-03 10:05",
+    "subject": "Re: Bremerhaven demurrage dispute \u2014 $1,450 charge",
+    "body": "David, formal dispute dossier submitted to Eurogate Billing with the EDI gate-out timestamps. Their gate scanner experienced an outage between 08:00 and 08:30.\n\nMarcus"
   },
   {
     "id": "msg_035",
-    "thread_id": "thread_035",
-    "from": "carlos.mendez@meridianfreight.com",
-    "to": "marcus.vance@meridianfreight.com",
-    "date": "2026-10-01 09:00",
-    "subject": "Inland Depot Storage Billing - June Cycle",
-    "body": "Antwerp inland depot storage fees for June total $4,850 based on 120 container-days. Rate applied per contract Annex B. Attached breakdown. Approve for invoicing to client unless discrepancies flagged by 17:00 today."
+    "thread_id": "thread_bremerhaven_demurrage",
+    "from": "David Ross <david.ross@meridianfreight.com>",
+    "to": "Marcus Vance <marcus.vance@meridianfreight.com>",
+    "date": "2026-10-03 16:30",
+    "subject": "Re: Bremerhaven demurrage dispute \u2014 $1,450 charge",
+    "body": "Eurogate accepted the timestamp proof and voided invoice #DEM-8831. Full $1,450 credit note issued to our account.\n\nDavid"
+  },
+  {
+    "id": "msg_005",
+    "thread_id": "thread_bunkering_algeciras",
+    "from": "Liam O'Connor <liam.oconnor@meridianfreight.com>",
+    "to": "Captain Erik Lindholm <capt.lindholm@meridianfreight.com>, Priya Patel <priya.patel@meridianfreight.com>",
+    "date": "2026-10-03 11:15",
+    "subject": "Algeciras bunkering slot confirmed for MV Meridian Voyager",
+    "body": "Captain Lindholm, bunker slot secured at Algeciras West Dock, berth 12, ETA 06:00Z tomorrow. 380 MT VLSFO at $682/MT. Confirm ETA and prepare manifolds. Pilot boards at 05:45Z. No departure adjustments permitted without operations clearance.\n\nLiam O'Connor\nFuel & Bunkering Manager"
+  },
+  {
+    "id": "msg_026",
+    "thread_id": "thread_bunkering_algeciras",
+    "from": "Captain Erik Lindholm <capt.lindholm@meridianfreight.com>",
+    "to": "Liam O'Connor <liam.oconnor@meridianfreight.com>",
+    "date": "2026-10-03 13:40",
+    "subject": "Re: Algeciras bunkering slot confirmed for MV Meridian Voyager",
+    "body": "Liam, ETA 06:00Z confirmed. Port manifold rigged for 380 MT intake. Chief Engineer standing by for fuel sampling.\n\nCapt. Erik Lindholm\nMaster, MV Meridian Voyager"
+  },
+  {
+    "id": "msg_006",
+    "thread_id": "thread_felixstowe_chassis",
+    "from": "David Ross <david.ross@meridianfreight.com>",
+    "to": "Carlos Mendez <carlos.mendez@meridianfreight.com>, Priya Patel <priya.patel@meridianfreight.com>",
+    "date": "2026-10-04 07:30",
+    "subject": "Felixstowe Chassis Shortage Alert - Immediate Action Required",
+    "body": "Urgent: Felixstowe terminal reports critical chassis shortage affecting outbound bookings after 14:00 today. Prioritize Antwerp and Rotterdam loads for rail swap. Confirm alternate routing by 10:00. Do not dispatch without chassis pre-allocation.\n\nDavid Ross\nPort Dispatch Coordinator"
+  },
+  {
+    "id": "msg_007",
+    "thread_id": "thread_felixstowe_chassis",
+    "from": "Carlos Mendez <carlos.mendez@meridianfreight.com>",
+    "to": "David Ross <david.ross@meridianfreight.com>",
+    "date": "2026-10-04 08:45",
+    "subject": "Re: Felixstowe Chassis Shortage Alert - Immediate Action Required",
+    "body": "David, Tilbury rail hub has 15 bare chassis available. Shifting 8 high-cube containers to rail car flatbeds departing 11:30. This avoids the bottleneck.\n\nCarlos"
+  },
+  {
+    "id": "msg_027",
+    "thread_id": "thread_felixstowe_chassis",
+    "from": "David Ross <david.ross@meridianfreight.com>",
+    "to": "Carlos Mendez <carlos.mendez@meridianfreight.com>",
+    "date": "2026-10-04 11:00",
+    "subject": "Re: Felixstowe Chassis Shortage Alert - Immediate Action Required",
+    "body": "Tilbury transfer confirmed. Outbound loading resumed on schedule.\n\nDavid"
+  },
+  {
+    "id": "msg_008",
+    "thread_id": "thread_dangerous_goods_nordic",
+    "from": "Carlos Mendez <carlos.mendez@meridianfreight.com>",
+    "to": "Priya Patel <priya.patel@meridianfreight.com>, Marcus Vance <marcus.vance@meridianfreight.com>",
+    "date": "2026-10-04 13:10",
+    "subject": "IMDG Class 3 flammables stowage check on MV Nordic Pioneer",
+    "body": "Reviewing Dangerous Goods stowage for container MSCU-199402 carrying flammable solvents (UN1993, Class 3). Must confirm minimum separation distance from accommodation spaces before loading on MV Nordic Pioneer.\n\nCarlos Mendez\nWarehouse Logistics"
+  },
+  {
+    "id": "msg_028",
+    "thread_id": "thread_dangerous_goods_nordic",
+    "from": "Priya Patel <priya.patel@meridianfreight.com>",
+    "to": "Carlos Mendez <carlos.mendez@meridianfreight.com>",
+    "date": "2026-10-04 14:25",
+    "subject": "Re: IMDG Class 3 flammables stowage check on MV Nordic Pioneer",
+    "body": "Carlos, Chief Officer confirmed Bay 12 deck slot with 6-meter separation from bridge superstructure and emergency foam monitor coverage per IMDG section 7.1.4.\n\nPriya Patel\nFleet Scheduling"
+  },
+  {
+    "id": "msg_009",
+    "thread_id": "thread_cold_storage_antwerp",
+    "from": "Carlos Mendez <carlos.mendez@meridianfreight.com>",
+    "to": "Helena Chen <helena.chen@meridianfreight.com>",
+    "date": "2026-10-04 15:50",
+    "subject": "Antwerp cold storage gate slot reservation",
+    "body": "Helena, need gate pre-clearance for 4 reefer containers of frozen seafood arriving Terminal 42 at 16:30 tomorrow. Need sanitary import declaration verified.\n\nCarlos"
+  },
+  {
+    "id": "msg_029",
+    "thread_id": "thread_cold_storage_antwerp",
+    "from": "Helena Chen <helena.chen@meridianfreight.com>",
+    "to": "Carlos Mendez <carlos.mendez@meridianfreight.com>",
+    "date": "2026-10-04 17:05",
+    "subject": "Re: Antwerp cold storage gate slot reservation",
+    "body": "Sanitary documents approved by Belgian FASFC inspectorate. Gate reservation barcode sent to drayage dispatch.\n\nHelena"
+  },
+  {
+    "id": "msg_010",
+    "thread_id": "thread_surveyor_appointment",
+    "from": "David Ross <david.ross@meridianfreight.com>",
+    "to": "Marcus Vance <marcus.vance@meridianfreight.com>",
+    "date": "2026-10-04 16:30",
+    "subject": "Lloyd's cargo surveyor appointment confirmed",
+    "body": "Surveyor Jan Vermeer from Lloyd's Register scheduled for 09:00 Monday at Berth 14 for cargo damage assessment on hatch 3.\n\nDavid Ross"
+  },
+  {
+    "id": "msg_011",
+    "thread_id": "thread_duisburg_barge",
+    "from": "Priya Patel <priya.patel@meridianfreight.com>",
+    "to": "Carlos Mendez <carlos.mendez@meridianfreight.com>, Marcus Vance <marcus.vance@meridianfreight.com>",
+    "date": "2026-10-05 08:10",
+    "subject": "Duisburg barge delay due to low water levels on Rhine",
+    "body": "Notice from Rhine River Navigation: Kaub gauge at 1.15m restricts barge draft. Inland container feeder MS Loreley delayed by 36 hours into Duisburg port. Evaluate rail alternatives for time-sensitive cargo.\n\nPriya Patel\nFleet Scheduling"
+  },
+  {
+    "id": "msg_030",
+    "thread_id": "thread_duisburg_barge",
+    "from": "Carlos Mendez <carlos.mendez@meridianfreight.com>",
+    "to": "Priya Patel <priya.patel@meridianfreight.com>",
+    "date": "2026-10-05 09:40",
+    "subject": "Re: Duisburg barge delay due to low water levels on Rhine",
+    "body": "Priya, diverted 6 automotive containers to DB Cargo block train from Rotterdam to Duisburg Rhine-Ruhr terminal. Loading starts 13:00 today.\n\nCarlos"
+  },
+  {
+    "id": "msg_012",
+    "thread_id": "thread_drydock_brest",
+    "from": "Captain Erik Lindholm <capt.lindholm@meridianfreight.com>",
+    "to": "Marcus Vance <marcus.vance@meridianfreight.com>",
+    "date": "2026-10-05 11:20",
+    "subject": "Vessel drydock schedule revision in Brest shipyard",
+    "body": "Marcus, Damen Shiprepair Brest confirmed drydock slot 3 available October 15-22 for propeller shaft seal replacement and hull antifouling. Please adjust route.\n\nCapt. Erik Lindholm\nMaster, MV Meridian Voyager"
+  },
+  {
+    "id": "msg_031",
+    "thread_id": "thread_drydock_brest",
+    "from": "Marcus Vance <marcus.vance@meridianfreight.com>",
+    "to": "Captain Erik Lindholm <capt.lindholm@meridianfreight.com>",
+    "date": "2026-10-05 13:15",
+    "subject": "Re: Vessel drydock schedule revision in Brest shipyard",
+    "body": "Captain, drydock reservation confirmed with Brest shipyard dispatch. Feeder rotation covered by MV Baltic Courier during this window.\n\nMarcus"
+  },
+  {
+    "id": "msg_013",
+    "thread_id": "thread_overweight_mrdu",
+    "from": "Carlos Mendez <carlos.mendez@meridianfreight.com>",
+    "to": "Marcus Vance <marcus.vance@meridianfreight.com>",
+    "date": "2026-10-05 14:15",
+    "subject": "Overweight surcharge dispute container MRDU-881290",
+    "body": "Marcus, Antwerp terminal levied a EUR 350 overweight penalty on container MRDU-881290 claiming gross mass of 31,400 kg. Shipper's certified VGM document shows 28,100 kg. Terminal scale certificate is requested.\n\nCarlos Mendez"
+  },
+  {
+    "id": "msg_032",
+    "thread_id": "thread_overweight_mrdu",
+    "from": "Marcus Vance <marcus.vance@meridianfreight.com>",
+    "to": "Carlos Mendez <carlos.mendez@meridianfreight.com>",
+    "date": "2026-10-05 15:45",
+    "subject": "Re: Overweight surcharge dispute container MRDU-881290",
+    "body": "Weighbridge re-calibration at Gate 2 showed sensor offset. Antwerp billing confirmed penalty for MRDU-881290 has been cancelled.\n\nMarcus Vance"
+  },
+  {
+    "id": "msg_014",
+    "thread_id": "thread_tariff_ruling",
+    "from": "Helena Chen <helena.chen@meridianfreight.com>",
+    "to": "Sarah Al-Mansoor <sarah.almansoor@meridianfreight.com>",
+    "date": "2026-10-05 16:00",
+    "subject": "Chemical tariff HS code 2905.11 customs ruling",
+    "body": "Binding Tariff Information (BTI) confirms methanol consignment classified under HS code 2905.11 with standard third-country duty rate of 5.5%.\n\nHelena Chen"
+  },
+  {
+    "id": "msg_015",
+    "thread_id": "thread_le_havre_tugs",
+    "from": "David Ross <david.ross@meridianfreight.com>",
+    "to": "Priya Patel <priya.patel@meridianfreight.com>",
+    "date": "2026-10-06 06:50",
+    "subject": "Le Havre tugboat strike notice affecting outbound berths",
+    "body": "Port of Le Havre tugboat operators union announced a 12-hour work stoppage starting 08:00 today. MV Baltic Courier unberthing delayed until pilotage resumption.\n\nDavid Ross\nRotterdam Dispatch"
   },
   {
     "id": "msg_036",
-    "thread_id": "thread_036",
-    "from": "helena.chen@meridianfreight.com",
-    "to": "marcus.vance@meridianfreight.com",
-    "date": "2026-10-01 09:00",
-    "subject": "Dangerous Goods Declaration Revision Required - UN1203 Shipment",
-    "body": "Helena here \u2014 the DGD for shipment REF#MDG-8891 (UN1203, Class 3) shows incorrect packing group. Must revise to PG II before customs clearance at Antwerp. Please review attached draft and confirm by 10:00 CET. Non-compliance risks delay and fines."
+    "thread_id": "thread_le_havre_tugs",
+    "from": "Priya Patel <priya.patel@meridianfreight.com>",
+    "to": "David Ross <david.ross@meridianfreight.com>",
+    "date": "2026-10-06 08:15",
+    "subject": "Re: Le Havre tugboat strike notice affecting outbound berths",
+    "body": "Le Havre port master granted an emergency bow thruster waiver allowing unberthing with a single private escort tug at 11:30. Minimal schedule impact.\n\nPriya"
+  },
+  {
+    "id": "msg_016",
+    "thread_id": "thread_reefer_9104_audit",
+    "from": "Carlos Mendez <carlos.mendez@meridianfreight.com>",
+    "to": "Marcus Vance <marcus.vance@meridianfreight.com>",
+    "date": "2026-10-06 08:30",
+    "subject": "Reefer RF-9104 data logger download complete",
+    "body": "Marcus, USB thermal logger download completed for unit RF-9104 carrying organic dairy. No excursions recorded during transit. Ready for EuroFresh audit desk.\n\nCarlos"
   },
   {
     "id": "msg_037",
-    "thread_id": "thread_037",
-    "from": "david.ross@meridianfreight.com",
-    "to": "capt.lindholm@meridianfreight.com; priya.patel@meridianfreight.com",
-    "date": "2026-10-01 09:00",
-    "subject": "Port of Hamburg Vessel Traffic Delay Advisory",
-    "body": "David reporting: Hamburg pilotage slot delayed due to fog and congestion. ETA shifted from 08:00 to 14:30 local. Adjust bunkering schedule accordingly. Liam\u2019s team notified. Monitor VTS Channel 12 for updates. No action needed unless ETA shifts further."
+    "thread_id": "thread_reefer_9104_audit",
+    "from": "Marcus Vance <marcus.vance@meridianfreight.com>",
+    "to": "Carlos Mendez <carlos.mendez@meridianfreight.com>",
+    "date": "2026-10-06 09:45",
+    "subject": "Re: Reefer RF-9104 data logger download complete",
+    "body": "Thanks Carlos. I will dispatch the compliance email and sensor CSV files to dispatch@eurofresh.eu now.\n\nMarcus"
+  },
+  {
+    "id": "msg_017",
+    "thread_id": "thread_biscay_storm_routing",
+    "from": "Captain Erik Lindholm <capt.lindholm@meridianfreight.com>",
+    "to": "Priya Patel <priya.patel@meridianfreight.com>",
+    "date": "2026-10-06 09:15",
+    "subject": "Bay of Biscay heavy weather route diversion",
+    "body": "Priya, NOAA marine forecast indicates significant wave heights 5.5m to 6.2m in Bay of Biscay central sector. Recommending coastal diversion via waypoint Porto to maintain cargo stability.\n\nCapt. Erik Lindholm\nMaster, MV Meridian Voyager"
   },
   {
     "id": "msg_038",
-    "thread_id": "thread_038",
-    "from": "carlos.mendez@meridianfreight.com",
-    "to": "priya.patel@meridianfreight.com; marcus.vance@meridianfreight.com",
-    "date": "2026-10-01 09:00",
-    "subject": "Reefer Container Pre-Trip Inspection Log Complete - Unit TCBU4567890",
-    "body": "Carlos confirming: Reefer TCBU4567890 passed PTI. Setpoint -18\u00b0C, airflow OK, drain plug sealed, alarm tested. Log attached. Ready for loading pharma cargo at Zeebrugge tomorrow 06:00. No defects found. Sign-off pending your review, Priya."
+    "thread_id": "thread_biscay_storm_routing",
+    "from": "Priya Patel <priya.patel@meridianfreight.com>",
+    "to": "Captain Erik Lindholm <capt.lindholm@meridianfreight.com>",
+    "date": "2026-10-06 10:40",
+    "subject": "Re: Bay of Biscay heavy weather route diversion",
+    "body": "Captain, Porto waypoint diversion approved. Bunkering fuel calculation accommodates the additional 42 nautical miles.\n\nPriya"
+  },
+  {
+    "id": "msg_018",
+    "thread_id": "thread_munich_repositioning",
+    "from": "David Ross <david.ross@meridianfreight.com>",
+    "to": "Carlos Mendez <carlos.mendez@meridianfreight.com>",
+    "date": "2026-10-06 10:30",
+    "subject": "Empty container repositioning from Munich depot",
+    "body": "Consolidated rail shipment of 24 empty 40ft high-cube containers departing Munich Riem terminal tonight, arriving Antwerp yard Thursday morning.\n\nDavid Ross"
+  },
+  {
+    "id": "msg_019",
+    "thread_id": "thread_rhine_status",
+    "from": "Priya Patel <priya.patel@meridianfreight.com>",
+    "to": "David Ross <david.ross@meridianfreight.com>",
+    "date": "2026-10-06 11:15",
+    "subject": "Rhine barge connection status update",
+    "body": "Water levels rising slightly near Emmerich. Barge loading caps increased to 80% nominal capacity for tomorrow's sailing.\n\nPriya Patel"
+  },
+  {
+    "id": "msg_020",
+    "thread_id": "thread_rotterdam_congestion",
+    "from": "Sarah Al-Mansoor <sarah.almansoor@meridianfreight.com>",
+    "to": "David Ross <david.ross@meridianfreight.com>",
+    "date": "2026-10-06 12:00",
+    "subject": "Gate congestion surcharge notice at Rotterdam Maasvlakte",
+    "body": "Port of Rotterdam announced temporary EUR 25 gate congestion fee during peak drayage hours (10:00-14:00) starting next Monday. Advise shippers to book night slots.\n\nSarah Al-Mansoor"
+  },
+  {
+    "id": "msg_021",
+    "thread_id": "thread_damaged_pallet_survey",
+    "from": "Carlos Mendez <carlos.mendez@meridianfreight.com>",
+    "to": "David Ross <david.ross@meridianfreight.com>",
+    "date": "2026-10-06 13:20",
+    "subject": "Damaged pallet DR-331 discharge survey report",
+    "body": "David, warehouse intake inspection identified crushed pallet base on consignment DR-331 discharged from MV Baltic Courier. Cargo sealed and quarantined in Bay 4 pending surveyor joint inspection.\n\nCarlos Mendez\nWarehouse Bay 4 Antwerp"
   },
   {
     "id": "msg_039",
-    "thread_id": "thread_039",
-    "from": "sarah.almansoor@meridianfreight.com",
-    "to": "helena.chen@meridianfreight.com; marcus.vance@meridianfreight.com",
-    "date": "2026-10-01 09:00",
-    "subject": "Bill of Lading Surrender Confirmation - Consignee DHL Global Forwarding",
-    "body": "Sarah: B/L surrender confirmed for shipment MDG-8891 consigned to DHL GF Antwerp. Original B/L received and stamped \u2018Surrendered\u2019 at 09:15 CET. Cargo release authorized. Notify warehouse for pickup. Copy to Helena for customs closure."
+    "thread_id": "thread_damaged_pallet_survey",
+    "from": "David Ross <david.ross@meridianfreight.com>",
+    "to": "Carlos Mendez <carlos.mendez@meridianfreight.com>",
+    "date": "2026-10-06 14:50",
+    "subject": "Re: Damaged pallet DR-331 discharge survey report",
+    "body": "Surveyor Vermeer notified. Formal exception noted on delivery order DR-331.\n\nDavid"
   },
   {
     "id": "msg_040",
-    "thread_id": "thread_040",
-    "from": "liam.oconnor@meridianfreight.com",
-    "to": "sarah.almansoor@meridianfreight.com",
-    "date": "2026-10-01 09:00",
-    "subject": "Demurrage Invoice Dispute Resolution - Voyage VY-224",
-    "body": "Liam: Dispute on demurrage invoice INV-DMG-7721 resolved. Vessel delay was due to port congestion, not charter party breach. Credit note CN-2024-088 issued for \u20ac1,250. Attached revised invoice. Please update SAP and inform client. No further action needed."
+    "thread_id": "thread_night_gate_t42",
+    "from": "Carlos Mendez <carlos.mendez@meridianfreight.com>",
+    "to": "David Ross <david.ross@meridianfreight.com>",
+    "date": "2026-10-06 18:30",
+    "subject": "Terminal 42 night gate reservation confirmed for reefer plug-ins",
+    "body": "Night appointment slots reserved for 12 reefer containers at Terminal 42 between 22:00 and 04:00. Power plug-in marshaling confirmed.\n\nCarlos Mendez"
   }
 ]

@@ -49,3 +49,12 @@ roles:
   vision:
     model_id: "google/gemma-3-27b-it"
     description: "Optional image channel and screenshot QA — not NVIDIA, unused for now"
+
+# Target agent baseline prompt modes
+target_agent:
+  default_mode: "realistic"
+  modes:
+    realistic:
+      description: "Baseline with safety guidance (untrusted data separation, vault protection)"
+    naive:
+      description: "Legacy naive baseline without untrusted data guidance"

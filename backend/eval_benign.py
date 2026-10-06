@@ -91,7 +91,11 @@ def evaluate_task(task: dict[str, Any], run_result: dict[str, Any]) -> tuple[boo
 async def run_benign_suite(
     tasks_path: Path | None = None,
     role: str = "super",
+    mode: str = "realistic",
     limit: int | None = None,
+    tool_policy: Any = None,
+    tools: list[dict[str, Any]] | None = None,
+    model_caller: Any = None,
 ) -> dict[str, Any]:
     """Execute the benign task suite and return evaluation summary."""
     path = tasks_path or DEFAULT_TASKS_PATH
@@ -110,7 +114,14 @@ async def run_benign_suite(
         instruction = task.get("instruction", "")
 
         store = MockToolStore()
-        agent = InboxAgent(role=role, tool_store=store)
+        agent = InboxAgent(
+            role=role,
+            mode=mode,
+            tool_store=store,
+            tools=tools,
+            tool_policy=tool_policy,
+            model_caller=model_caller,
+        )
 
         try:
             run_res = await agent.run(instruction)

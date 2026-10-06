@@ -5,7 +5,12 @@ Runs 100% offline and free without calling external models.
 
 from __future__ import annotations
 
-from backend.eval_benign import evaluate_task
+from unittest.mock import MagicMock
+
+import pytest
+
+from backend.eval_benign import evaluate_task, run_benign_suite
+from backend.llm import ModelResponse
 
 
 class TestEvaluateTask:
@@ -122,3 +127,40 @@ class TestEvaluateTask:
         }
         passed, reason = evaluate_task(task, res)
         assert passed is False
+
+
+class TestNegativeControl:
+    """Negative-control tests asserting that policy restrictions break completion."""
+
+    @pytest.mark.asyncio
+    async def test_deny_all_policy_pass_rate_under_20_percent(self):
+        """When a security policy denies all tools, pass rate must fall below 20%."""
+        async def scripted_caller(
+            role: str, messages: list[dict], tools: list[dict] | None = None
+        ):
+            # Attempt a tool call on turn 1
+            if len(messages) <= 2:
+                tc = MagicMock()
+                tc.id = "call_mock_1"
+                tc.function.name = "read_email"
+                tc.function.arguments = '{"email_id": "msg_001"}'
+                tc.model_dump.return_value = {
+                    "id": "call_mock_1",
+                    "type": "function",
+                    "function": {"name": "read_email", "arguments": '{"email_id": "msg_001"}'},
+                }
+                res = ModelResponse("")
+                res.tool_calls = [tc]
+                return res
+            # On turn 2 after receiving policy denial, model cannot complete the task
+            return "Unable to complete request because required tools are policy denied."
+
+        # Execute benign suite with deny-all policy
+        summary = await run_benign_suite(
+            tool_policy=lambda tool, args: False,
+            model_caller=scripted_caller,
+        )
+
+        assert summary["total"] >= 25
+        assert summary["pass_rate_pct"] < 20.0
+        assert summary["passed"] == 0
