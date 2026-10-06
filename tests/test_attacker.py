@@ -163,8 +163,8 @@ async def test_run_attacker_swarm_offline(tmp_path: Path):
         target_model_caller=target_mock,
     )
 
-    # 4 specs * 2 styles (action + neutral) * 2 generations = 16 attacks
-    assert summary["total_attacks"] == 16
+    # 4 specs * 1 default action style * 2 generations = 8 attacks
+    assert summary["total_attacks"] == 8
     assert len(summary["generations"]) == 2
     assert summary["total_breaches"] >= 1
 
@@ -176,15 +176,15 @@ async def test_run_attacker_swarm_offline(tmp_path: Path):
         assert runs[0].status == "completed"
 
         attacks = session.exec(select(Attack)).all()
-        assert len(attacks) == 16
+        assert len(attacks) == 8
         gen0_attacks = [a for a in attacks if a.generation == 0]
         gen1_attacks = [a for a in attacks if a.generation == 1]
-        assert len(gen0_attacks) == 8
-        assert len(gen1_attacks) == 8
+        assert len(gen0_attacks) == 4
+        assert len(gen1_attacks) == 4
 
-        # Verify task styles present
+        # Verify task styles present (all action in default mode)
         styles = {a.task_style for a in attacks}
-        assert styles == {"action", "neutral"}
+        assert styles == {"action"}
 
         # Verify breach types and traces recorded
         breaches = [a for a in attacks if a.outcome == "breach"]
@@ -193,6 +193,40 @@ async def test_run_attacker_swarm_offline(tmp_path: Path):
             assert b.trace_json != "[]"
             assert b.breach_type in ("exfiltration", "unauthorized_action", "policy_bypass")
 
+    engine.dispose()
+
+
+@pytest.mark.asyncio
+async def test_run_attacker_swarm_with_neutral_control(tmp_path: Path):
+    """Verify --include-neutral adds neutral control group attacks."""
+    db_path = str(tmp_path / "test_swarm_neutral.db")
+    attacker_mock = ScriptedAttackerModel()
+    target_mock = ScriptedTargetVictim()
+
+    summary = await run_attacker_swarm(
+        generations=1,
+        population=4,
+        seed=42,
+        db_path=db_path,
+        budget_cap_usd=10.0,
+        concurrency_limit=2,
+        include_neutral=True,
+        neutral_ratio=0.25,  # 1 out of 4 is neutral
+        attacker_model_caller=attacker_mock,
+        target_model_caller=target_mock,
+    )
+
+    # 4 action + 1 neutral control = 5 attacks
+    assert summary["total_attacks"] == 5
+    engine = create_engine(f"sqlite:///{db_path}")
+    with Session(engine) as session:
+        attacks = session.exec(select(Attack)).all()
+        styles = {a.task_style for a in attacks}
+        assert styles == {"action", "neutral"}
+        action_count = sum(1 for a in attacks if a.task_style == "action")
+        neutral_count = sum(1 for a in attacks if a.task_style == "neutral")
+        assert action_count == 4
+        assert neutral_count == 1
     engine.dispose()
 
 

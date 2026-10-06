@@ -47,3 +47,6 @@ Gauntlet hardens AI agents before they ship. It attacks a target agent with an e
 
 ### Done means
 Tests pass, lint is clean, the feature works in the browser, and you have reported what you ran and what you saw. If something could not be verified, say so.
+
+
+Never open, print or read .env. Use environment variables through code only.

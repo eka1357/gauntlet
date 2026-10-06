@@ -8,7 +8,12 @@ Tables:
     Eval    — before/after evaluation metrics
 """
 
-from sqlmodel import Field, SQLModel
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Any
+
+from sqlmodel import Field, SQLModel, create_engine
 
 
 class Run(SQLModel, table=True):
@@ -31,6 +36,7 @@ class Attack(SQLModel, table=True):
     parent_id: str | None = Field(default=None)
     channel: str = Field(default="")
     category: str = Field(default="")
+    strategy: str = Field(default="")
     payload: str = Field(default="")
     model: str = Field(default="")
     outcome: str = Field(default="pending")
@@ -78,3 +84,25 @@ class Eval(SQLModel, table=True):
     held_out_breach_rate: float = Field(default=0.0)
     benign_pass_rate: float = Field(default=0.0)
     cost_usd: float = Field(default=0.0)
+
+
+def init_db(db_path_or_engine: str | Path | Any = "runs/gauntlet.db") -> Any:
+    """Initialize database tables and apply backward-compatible schema updates."""
+    if isinstance(db_path_or_engine, (str, Path)):
+        p = Path(db_path_or_engine)
+        p.parent.mkdir(parents=True, exist_ok=True)
+        engine = create_engine(f"sqlite:///{p}")
+    else:
+        engine = db_path_or_engine
+
+    SQLModel.metadata.create_all(engine)
+    try:
+        with engine.connect() as conn:
+            cursor = conn.connection.cursor()
+            cols = [c[1] for c in cursor.execute("PRAGMA table_info(attack)").fetchall()]
+            if cols and "strategy" not in cols:
+                cursor.execute("ALTER TABLE attack ADD COLUMN strategy TEXT DEFAULT ''")
+                conn.connection.commit()
+    except Exception:
+        pass
+    return engine
