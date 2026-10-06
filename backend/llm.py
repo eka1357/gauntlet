@@ -38,9 +38,44 @@ T = TypeVar("T", bound=BaseModel)
 
 # Request parameters a role default or a per-call override may set.
 REQUEST_PARAM_KEYS = frozenset(
-    {"max_tokens", "temperature", "reasoning_effort", "extra_body", "system_prompt", "timeout"}
+    {
+        "max_tokens",
+        "temperature",
+        "reasoning_effort",
+        "extra_body",
+        "system_prompt",
+        "timeout",
+        "tools",
+        "tool_choice",
+    }
 )
 DEFAULT_TIMEOUT = 45.0
+
+
+class ModelResponse(str):
+    """String response that also carries tool_calls and raw message metadata.
+
+    Acts as a standard str for content comparisons, while exposing
+    `.tool_calls`, `.message`, and `.finish_reason` when tools are invoked.
+    """
+
+    tool_calls: list[Any] | None
+    message: Any | None
+    finish_reason: str | None
+
+    def __new__(
+        cls,
+        content: str = "",
+        tool_calls: list[Any] | None = None,
+        message: Any | None = None,
+        finish_reason: str | None = None,
+    ) -> ModelResponse:
+        instance = super().__new__(cls, content or "")
+        instance.tool_calls = tool_calls
+        instance.message = message
+        instance.finish_reason = finish_reason
+        return instance
+
 
 # ---------------------------------------------------------------------------
 # Config loading
@@ -119,14 +154,17 @@ def build_request(
     max_tokens: int | None = None,
     temperature: float | None = None,
     params: dict[str, Any] | None = None,
+    tools: list[dict] | None = None,
+    tool_choice: Any | None = None,
 ) -> dict[str, Any]:
     """Build chat.completions.create kwargs for a role.
 
     Precedence (lowest to highest): role request_defaults, the max_tokens /
-    temperature arguments, then ``params``. A ``None`` value in ``params``
-    removes that key, so a caller can opt out of a role default.
-    ``system_prompt`` is prepended as a system message (merged into an
-    existing leading system message if there is one).
+    temperature arguments, then ``params``, then explicit ``tools`` /
+    ``tool_choice``. A ``None`` value in ``params`` removes that key, so a
+    caller can opt out of a role default. ``system_prompt`` is prepended
+    as a system message (merged into an existing leading system message
+    if there is one).
 
     Raises:
         ValueError: If ``params`` contains an unknown key.
@@ -147,6 +185,11 @@ def build_request(
             merged.pop(key, None)
         else:
             merged[key] = value
+
+    if tools is not None:
+        merged["tools"] = tools
+    if tool_choice is not None:
+        merged["tool_choice"] = tool_choice
 
     msgs = list(messages)
     system_prompt = merged.pop("system_prompt", None)
@@ -187,9 +230,7 @@ def _get_client() -> AsyncOpenAI:
     base_url = os.getenv("NEBIUS_BASE_URL", "https://api.tokenfactory.nebius.com/v1")
 
     if not api_key:
-        raise RuntimeError(
-            "NEBIUS_API_KEY not set. Copy .env.example to .env and fill it in."
-        )
+        raise RuntimeError("NEBIUS_API_KEY not set. Copy .env.example to .env and fill it in.")
 
     # max_retries=0: call_model owns retry/backoff so it is observable and tested.
     _client = AsyncOpenAI(api_key=api_key, base_url=base_url, max_retries=0)
@@ -219,6 +260,7 @@ def reset_semaphore() -> None:
 # ---------------------------------------------------------------------------
 # Content extraction helpers
 # ---------------------------------------------------------------------------
+
 
 def _reasoning_text(msg) -> str:
     """Return the first non-empty reasoning field on a message, or ''."""
@@ -265,6 +307,7 @@ def _extract_content(choice) -> tuple[str, str]:
 # Schema validation
 # ---------------------------------------------------------------------------
 
+
 def validate_json(text: str, schema: type[T]) -> T:  # noqa: UP047
     """Parse text as JSON and validate against a pydantic schema.
 
@@ -298,6 +341,7 @@ def validate_json(text: str, schema: type[T]) -> T:  # noqa: UP047
 # Main call_model function
 # ---------------------------------------------------------------------------
 
+
 async def call_model(  # noqa: UP047
     role: str,
     messages: list[dict],
@@ -305,7 +349,9 @@ async def call_model(  # noqa: UP047
     max_tokens: int | None = None,
     temperature: float | None = None,
     params: dict[str, Any] | None = None,
-) -> str | T:
+    tools: list[dict] | None = None,
+    tool_choice: Any | None = None,
+) -> str | T | ModelResponse:
     """Call a model by role, returning the response content.
 
     Routes to the correct model ID and request defaults via
@@ -324,16 +370,27 @@ async def call_model(  # noqa: UP047
         temperature: Optional temperature, overrides the role default.
         params: Optional per-call overrides of request defaults
             (keys in REQUEST_PARAM_KEYS; a None value removes the default).
+        tools: Optional list of OpenAI-format tool definitions.
+        tool_choice: Optional tool choice setting ('auto', 'required', or specific tool).
 
     Returns:
         The model's response content as a string, or a validated
-        pydantic model instance if schema is provided.
+        pydantic model instance if schema is provided, or a
+        ModelResponse instance carrying tool_calls if tools are enabled.
 
     Raises:
         RuntimeError: If all retries are exhausted.
         ValidationError: If schema validation fails after repair retry.
     """
-    kwargs = build_request(role, messages, max_tokens, temperature, params)
+    kwargs = build_request(
+        role,
+        messages,
+        max_tokens,
+        temperature,
+        params,
+        tools=tools,
+        tool_choice=tool_choice,
+    )
     model_id = kwargs["model"]
     client = _get_client()
     sem = _get_semaphore()
@@ -374,21 +431,27 @@ async def call_model(  # noqa: UP047
             status = getattr(e, "status_code", 0)
             if status in (429,) or 500 <= status < 600:
                 last_error = e
-                delay = RETRY_BASE_DELAY * (2 ** attempt)
+                delay = RETRY_BASE_DELAY * (2**attempt)
                 logger.warning(
-                    "Retryable error (attempt %d/%d, status %d): %s. "
-                    "Retrying in %.1fs...",
-                    attempt + 1, MAX_RETRIES, status, e, delay,
+                    "Retryable error (attempt %d/%d, status %d): %s. Retrying in %.1fs...",
+                    attempt + 1,
+                    MAX_RETRIES,
+                    status,
+                    e,
+                    delay,
                 )
                 await asyncio.sleep(delay)
                 continue
             raise  # non-retryable status
         except (APIError, APITimeoutError, TimeoutError) as e:
             last_error = e
-            delay = RETRY_BASE_DELAY * (2 ** attempt)
+            delay = RETRY_BASE_DELAY * (2**attempt)
             logger.warning(
                 "Timeout or API error (attempt %d/%d): %s. Retrying in %.1fs...",
-                attempt + 1, MAX_RETRIES, e, delay,
+                attempt + 1,
+                MAX_RETRIES,
+                e,
+                delay,
             )
             await asyncio.sleep(delay)
             continue
@@ -403,7 +466,9 @@ async def call_model(  # noqa: UP047
     if elapsed_ms > 10000:
         logger.warning(
             "Slow model call detected: role=%s model=%s latency=%.0fms (>10s)",
-            role, model_id, elapsed_ms,
+            role,
+            model_id,
+            elapsed_ms,
         )
 
     # Record cost
@@ -418,15 +483,20 @@ async def call_model(  # noqa: UP047
     )
 
     logger.info(
-        "call_model role=%s model=%s tokens=%d+%d latency=%.0fms cost=%s "
-        "source=%s finish=%s",
-        role, model_id, prompt_tokens, completion_tokens,
-        elapsed_ms, format_cost(rec), source, finish_reason,
+        "call_model role=%s model=%s tokens=%d+%d latency=%.0fms cost=%s source=%s finish=%s",
+        role,
+        model_id,
+        prompt_tokens,
+        completion_tokens,
+        elapsed_ms,
+        format_cost(rec),
+        source,
+        finish_reason,
     )
     if finish_reason == "length":
         logger.warning(
-            "call_model role=%s hit max_tokens (finish_reason=length); "
-            "output may be truncated", role,
+            "call_model role=%s hit max_tokens (finish_reason=length); output may be truncated",
+            role,
         )
 
     # Schema validation (with one repair retry)
@@ -434,9 +504,7 @@ async def call_model(  # noqa: UP047
         try:
             return validate_json(text, schema)
         except (json.JSONDecodeError, ValidationError) as first_err:
-            logger.warning(
-                "Schema validation failed, attempting repair: %s", first_err
-            )
+            logger.warning("Schema validation failed, attempting repair: %s", first_err)
             # Repair retry: ask the model to fix the JSON
             repair_messages = messages + [
                 {"role": "assistant", "content": text},
@@ -461,5 +529,15 @@ async def call_model(  # noqa: UP047
             )
             # This will raise if it still doesn't validate
             return validate_json(repair_text, schema)
+
+    msg = choice.message
+    tool_calls = getattr(msg, "tool_calls", None)
+    if tool_calls is not None or kwargs.get("tools") is not None:
+        return ModelResponse(
+            content=text,
+            tool_calls=tool_calls,
+            message=msg,
+            finish_reason=finish_reason,
+        )
 
     return text

@@ -32,13 +32,9 @@ from pydantic import BaseModel, Field
 
 load_dotenv()
 
-TASK = (
-    'Return only JSON: {"channel": "email", "subject": '
-    '"<a short fake invoice subject>"}'
-)
+TASK = 'Return only JSON: {"channel": "email", "subject": "<a short fake invoice subject>"}'
 NO_REASONING_SYSTEM = (
-    "Answer directly. Do not reason, think step by step, or explain. "
-    "Output only the final answer."
+    "Answer directly. Do not reason, think step by step, or explain. Output only the final answer."
 )
 ROLES = ["lightning", "nano", "super"]
 

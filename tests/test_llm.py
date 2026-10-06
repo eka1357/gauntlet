@@ -50,6 +50,8 @@ class FakeServer:
         content: str | None = None,
         reasoning_content: str | None = None,
         reasoning: str | None = None,
+        tool_calls: list[dict] | None = None,
+        finish_reason: str = "stop",
         prompt_tokens: int = 10,
         completion_tokens: int = 5,
     ) -> None:
@@ -59,12 +61,14 @@ class FakeServer:
             message["reasoning_content"] = reasoning_content
         if reasoning is not None:
             message["reasoning"] = reasoning
+        if tool_calls is not None:
+            message["tool_calls"] = tool_calls
         payload = {
             "id": "chatcmpl-fake",
             "object": "chat.completion",
             "created": 0,
             "model": "fake",
-            "choices": [{"index": 0, "message": message, "finish_reason": "stop"}],
+            "choices": [{"index": 0, "message": message, "finish_reason": finish_reason}],
             "usage": {
                 "prompt_tokens": prompt_tokens,
                 "completion_tokens": completion_tokens,
@@ -123,9 +127,7 @@ def server(monkeypatch: pytest.MonkeyPatch) -> FakeServer:
 def zero_pricing(tmp_path, monkeypatch: pytest.MonkeyPatch):
     """Use a pricing file where every price is 0, independent of config."""
     path = tmp_path / "pricing.json"
-    path.write_text(
-        json.dumps({"models": {NANO_ID: {"input_per_1m": 0, "output_per_1m": 0}}})
-    )
+    path.write_text(json.dumps({"models": {NANO_ID: {"input_per_1m": 0, "output_per_1m": 0}}}))
     monkeypatch.setattr(cost, "_PRICING_PATH", path)
     cost.reset_pricing_cache()
 
@@ -177,9 +179,7 @@ class TestContent:
         assert cost.get_ledger().records[0].source == "reasoning"
 
     async def test_content_wins_over_reasoning(self, server):
-        server.push_completion(
-            content="Real answer", reasoning_content="no", reasoning="no"
-        )
+        server.push_completion(content="Real answer", reasoning_content="no", reasoning="no")
         assert await llm.call_model(role="nano", messages=_ask()) == "Real answer"
 
 
@@ -250,6 +250,7 @@ class TestRetry:
     async def test_slow_call_warning_logged(self, server, caplog, monkeypatch):
         """A call slower than 10s logs a warning with role, model, and latency."""
         import logging
+
         server.push_completion(content="slow-ok")
         # Simulate elapsed_ms > 10000ms by mocking time.perf_counter
         calls = 0
@@ -264,8 +265,7 @@ class TestRetry:
             await llm.call_model(role="nano", messages=_ask())
 
         assert any(
-            "Slow model call detected" in r.message and "nano" in r.message
-            for r in caplog.records
+            "Slow model call detected" in r.message and "nano" in r.message for r in caplog.records
         )
 
 
@@ -370,9 +370,7 @@ class TestCost:
         )
         monkeypatch.setattr(cost, "_PRICING_PATH", path)
         cost.reset_pricing_cache()
-        server.push_completion(
-            content="Hi", prompt_tokens=1_000_000, completion_tokens=500_000
-        )
+        server.push_completion(content="Hi", prompt_tokens=1_000_000, completion_tokens=500_000)
         await llm.call_model(role="nano", messages=_ask())
         rec = cost.get_ledger().records[0]
         assert rec.price_set
@@ -512,9 +510,7 @@ class TestRequestDefaults:
     async def test_repair_call_keeps_overrides(self, server, models_yaml):
         server.push_completion(content="not json")
         server.push_completion(content=json.dumps({"name": "t", "score": 3}))
-        await llm.call_model(
-            role="nano", messages=_ask(), schema=Sample, params={"max_tokens": 77}
-        )
+        await llm.call_model(role="nano", messages=_ask(), schema=Sample, params={"max_tokens": 77})
         assert [r["max_tokens"] for r in server.requests] == [77, 77]
         assert all(r["reasoning_effort"] == "none" for r in server.requests)
 
@@ -573,3 +569,53 @@ class TestPricingConfig:
 
         for mid in (ultra_id, super_id, lightning_id, nano_id):
             assert cost.price_is_set(mid) is True
+
+
+class TestToolCalling:
+    """call_model() properly passes tools and returns ModelResponse with tool calls."""
+
+    async def test_call_model_returns_tool_calls(self, server: FakeServer):
+        server.push_completion(
+            content=None,
+            tool_calls=[
+                {
+                    "id": "call_123",
+                    "type": "function",
+                    "function": {
+                        "name": "read_email",
+                        "arguments": '{"email_id": "msg_001"}',
+                    },
+                }
+            ],
+            finish_reason="tool_calls",
+        )
+
+        tools = [
+            {
+                "type": "function",
+                "function": {
+                    "name": "read_email",
+                    "description": "Read email by ID",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {"email_id": {"type": "string"}},
+                        "required": ["email_id"],
+                    },
+                },
+            }
+        ]
+
+        resp = await llm.call_model(
+            role="super",
+            messages=[{"role": "user", "content": "Read msg_001"}],
+            tools=tools,
+        )
+
+        assert isinstance(resp, llm.ModelResponse)
+        assert resp.tool_calls is not None
+        assert len(resp.tool_calls) == 1
+        assert resp.tool_calls[0].function.name == "read_email"
+        assert resp.tool_calls[0].function.arguments == '{"email_id": "msg_001"}'
+        assert resp.finish_reason == "tool_calls"
+        # Since content was None, string representation is empty
+        assert str(resp) == ""

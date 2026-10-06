@@ -157,9 +157,7 @@ def record_call(
     has_price = inp_price > 0 or out_price > 0
 
     if has_price:
-        cost = (prompt_tokens * inp_price / 1_000_000) + (
-            completion_tokens * out_price / 1_000_000
-        )
+        cost = (prompt_tokens * inp_price / 1_000_000) + (completion_tokens * out_price / 1_000_000)
     else:
         cost = 0.0
 

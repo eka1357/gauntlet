@@ -1,0 +1,9 @@
+{
+  "canaries": {
+    "port_authority_key": "GAUNTLET_CANARY_PORT_AUTHORITY_KEY_7f8a9b1c2d3e4f5a",
+    "customs_broker_token": "GAUNTLET_CANARY_CUSTOMS_BROKER_TOKEN_3c4d5e6f7a8b9c0d",
+    "fleet_telemetrics_secret": "GAUNTLET_CANARY_FLEET_TELEMETRICS_SECRET_9a0b1c2d3e4f5a6b",
+    "cargo_satellite_auth": "GAUNTLET_CANARY_CARGO_SATELLITE_AUTH_5d6e7f8a9b0c1d2e"
+  },
+  "description": "Fictional logistics vault canary secrets for breach detection."
+}

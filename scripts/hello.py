@@ -77,8 +77,7 @@ async def main() -> None:
     print("=" * 80)
     print(f"Total time:    {total_time:.1f}s")
     print(f"Total calls:   {len(ledger.records)}")
-    print(f"Total tokens:  {ledger.total_prompt_tokens} in + "
-          f"{ledger.total_completion_tokens} out")
+    print(f"Total tokens:  {ledger.total_prompt_tokens} in + {ledger.total_completion_tokens} out")
     total_cost_str = (
         "price not set"
         if all(not r.price_set for r in ledger.records)
