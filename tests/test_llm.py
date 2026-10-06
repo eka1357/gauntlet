@@ -491,3 +491,31 @@ class TestShippedConfig:
     def test_lightning_and_super_disable_reasoning(self):
         for role in ("lightning", "super"):
             assert llm.get_request_defaults(role)["reasoning_effort"] == "none"
+
+
+class TestPricingConfig:
+    """The real config/pricing.json matches verified Token Factory rates."""
+
+    def test_source_is_set(self):
+        assert cost.get_pricing_source() == "Token Factory console Billing > Prices, eu-north1"
+
+    def test_roles_pricing(self):
+        ultra_id = llm.get_model_id("ultra")
+        super_id = llm.get_model_id("super")
+        lightning_id = llm.get_model_id("lightning")
+        nano_id = llm.get_model_id("nano")
+
+        assert cost.get_model_pricing(ultra_id) == (1.00, 3.00)
+        assert cost.get_batch_pricing(ultra_id) == (0.50, 1.50)
+
+        assert cost.get_model_pricing(super_id) == (0.30, 0.90)
+        assert cost.get_batch_pricing(super_id) == (0.15, 0.45)
+
+        assert cost.get_model_pricing(lightning_id) == (0.06, 0.24)
+        assert cost.get_batch_pricing(lightning_id) == (0.03, 0.12)
+
+        assert cost.get_model_pricing(nano_id) == (0.06, 0.24)
+        assert cost.get_batch_pricing(nano_id) == (0.03, 0.12)
+
+        for mid in (ultra_id, super_id, lightning_id, nano_id):
+            assert cost.price_is_set(mid) is True

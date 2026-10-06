@@ -36,7 +36,7 @@ async def main() -> None:
 
     for role in roles:
         model_id = get_model_id(role)
-        print(f"--- {role} ({model_id}) ---")
+        print(f"--- {role} ({model_id}) ---", flush=True)
 
         start = time.monotonic()
         try:
@@ -60,7 +60,7 @@ async def main() -> None:
             print(f"  compl_tok:   {rec.completion_tokens}")
             print(f"  source:      {rec.source}")
             print(f"  cost:        {cost_str}")
-            print(f"  answer:      {answer[:80]}")
+            print(f"  answer:      {answer[:80]}", flush=True)
             print()
 
         except Exception as e:

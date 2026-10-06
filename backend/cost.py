@@ -52,10 +52,31 @@ def get_model_pricing(model_id: str) -> tuple[float, float]:
     return entry.get("input_per_1m", 0.0), entry.get("output_per_1m", 0.0)
 
 
+def get_batch_pricing(model_id: str) -> tuple[float | None, float | None]:
+    """Return optional (batch_input_per_1m, batch_output_per_1m) for a model.
+
+    Args:
+        model_id: The model ID string.
+
+    Returns:
+        Tuple of (batch_input_per_1m, batch_output_per_1m) or (None, None).
+    """
+    pricing = _load_pricing()
+    entry = pricing.get(model_id, {})
+    return entry.get("batch_input_per_1m"), entry.get("batch_output_per_1m")
+
+
 def price_is_set(model_id: str) -> bool:
     """Return True if the model has non-zero pricing configured."""
     inp, out = get_model_pricing(model_id)
     return inp > 0 or out > 0
+
+
+def get_pricing_source() -> str:
+    """Return the source attribution string from config/pricing.json."""
+    with open(_PRICING_PATH, encoding="utf-8") as f:
+        data = json.load(f)
+    return data.get("source", "")
 
 
 @dataclass

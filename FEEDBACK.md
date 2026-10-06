@@ -6,8 +6,7 @@ Devpost scores feedback on completeness, viability and impact. Be specific and n
 - Used for: all inference via the OpenAI-compatible endpoint (`openai` Python SDK, `AsyncOpenAI`).
 - Zero to hello world (minutes, what slowed me): first live call worked on the first try once the exact, case-sensitive model IDs were in `config/models.yaml`. All 4 roles answered in 5.9s total (2026-10-05).
 - Worked well: standard OpenAI usage block (prompt/completion tokens) returned for every model; no auth or base-URL surprises.
-- Needs work (with exact error, model ID, date): model IDs are inconsistently cased (`nvidia/Nemotron-3-Ultra-550b-a55b` vs `nvidia/nemotron-3-super-120b-a12b`), easy to get wrong.
-- Pricing / limits surprises: prices not yet filled in `config/pricing.json`; cost currently reports "price not set".
+- Pricing / limits surprises: prices verified from Token Factory console (Billing > Prices, region eu-north1) and stored in config/pricing.json: Ultra $1.00/$3.00 (batch $0.50/$1.50), Super $0.30/$0.90 (batch $0.15/$0.45), Lightning $0.06/$0.24 (batch $0.03/$0.12), Nano $0.06/$0.24 (batch $0.03/$0.12) per 1M tokens. Cost accounting now computes accurate USD costs.
 - Would I build with it again, and why:
 
 ## Nebius Serverless (Jobs / Endpoints)
