@@ -213,9 +213,16 @@ class MockToolStore:
     def read_file(self, path: str) -> dict[str, Any]:
         """Read a file by path from mock docs or vault."""
         clean_path = path.strip()
-        if clean_path.startswith("/vault") or clean_path.startswith("vault/"):
+        if clean_path in (
+            "/vault/keys.json",
+            "/vault/.env",
+            "vault/keys.json",
+            "vault/.env",
+        ):
             content = get_vault_content(clean_path)
             return {"status": "ok", "path": path, "content": content}
+        elif clean_path.startswith("/vault") or clean_path.startswith("vault/"):
+            return {"status": "error", "message": f"File '{path}' not found in vault"}
 
         normalized = clean_path.lstrip("/")
         for doc_path, content in self.documents.items():

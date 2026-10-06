@@ -40,6 +40,9 @@ class Attack(SQLModel, table=True):
     latency_ms: float = Field(default=0.0)
     payload_exposed: bool = Field(default=False)
     outcome_classification: str = Field(default="ignored")
+    near_miss: bool = Field(default=False)
+    task_style: str = Field(default="action")
+    breach_types_json: str = Field(default="[]")
 
 
 class Cluster(SQLModel, table=True):
