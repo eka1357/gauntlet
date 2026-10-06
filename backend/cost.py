@@ -69,6 +69,8 @@ class CallRecord:
     cost_usd: float
     price_set: bool
     source: str = "content"
+    finish_reason: str | None = None
+    reasoning_present: bool = False
 
 
 @dataclass
@@ -109,6 +111,8 @@ def record_call(
     completion_tokens: int,
     latency_ms: float,
     source: str = "content",
+    finish_reason: str | None = None,
+    reasoning_present: bool = False,
 ) -> CallRecord:
     """Record a model call and return its CallRecord.
 
@@ -122,6 +126,8 @@ def record_call(
         latency_ms: Call latency in milliseconds.
         source: Response field the answer came from ('content',
             'reasoning_content' or 'reasoning').
+        finish_reason: The choice's finish_reason ('stop', 'length', ...).
+        reasoning_present: True if a reasoning field was non-empty.
 
     Returns:
         CallRecord with computed cost.
@@ -144,6 +150,8 @@ def record_call(
         cost_usd=cost,
         price_set=has_price,
         source=source,
+        finish_reason=finish_reason,
+        reasoning_present=reasoning_present,
     )
     _ledger.record(rec)
     return rec

@@ -344,3 +344,150 @@ class TestRouting:
     def test_unknown_role_raises(self):
         with pytest.raises(ValueError, match="Unknown role"):
             llm.get_model_id("nonexistent")
+
+
+# ---------------------------------------------------------------------------
+# Per-role request defaults
+# ---------------------------------------------------------------------------
+
+_TEST_MODELS_YAML = """
+roles:
+  nano:
+    model_id: "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B"
+    request_defaults:
+      max_tokens: 1024
+      reasoning_effort: "none"
+      extra_body:
+        chat_template_kwargs:
+          enable_thinking: false
+  plain:
+    model_id: "test/plain"
+  prompted:
+    model_id: "test/prompted"
+    request_defaults:
+      system_prompt: "Answer directly."
+"""
+
+
+@pytest.fixture
+def models_yaml(tmp_path, monkeypatch: pytest.MonkeyPatch):
+    """Point llm at a temporary models.yaml with request_defaults."""
+    path = tmp_path / "models.yaml"
+    path.write_text(_TEST_MODELS_YAML, encoding="utf-8")
+    monkeypatch.setattr(llm, "_MODELS_PATH", path)
+    llm.reset_models_cache()
+    return path
+
+
+class TestRequestDefaults:
+    """Role request_defaults from models.yaml shape every request."""
+
+    def test_defaults_applied(self, models_yaml):
+        req = llm.build_request("nano", _ask())
+        assert req["model"] == NANO_ID
+        assert req["max_tokens"] == 1024
+        assert req["reasoning_effort"] == "none"
+        assert req["extra_body"] == {"chat_template_kwargs": {"enable_thinking": False}}
+
+    def test_role_without_defaults_sends_nothing_extra(self, models_yaml):
+        assert llm.build_request("plain", _ask()) == {
+            "model": "test/plain",
+            "messages": _ask(),
+        }
+
+    def test_precedence_and_opt_out(self, models_yaml):
+        req = llm.build_request(
+            "nano",
+            _ask(),
+            max_tokens=64,
+            params={"max_tokens": 128, "reasoning_effort": None, "temperature": 0.2},
+        )
+        assert req["max_tokens"] == 128  # params beat the max_tokens argument
+        assert req["temperature"] == 0.2
+        assert "reasoning_effort" not in req  # None removes the role default
+        assert "extra_body" in req
+
+    def test_defaults_not_mutated_between_calls(self, models_yaml):
+        req = llm.build_request("nano", _ask())
+        req["extra_body"]["chat_template_kwargs"]["enable_thinking"] = True
+        again = llm.build_request("nano", _ask())
+        assert again["extra_body"]["chat_template_kwargs"]["enable_thinking"] is False
+
+    def test_system_prompt_prepended(self, models_yaml):
+        req = llm.build_request("prompted", _ask("Q"))
+        assert req["messages"] == [
+            {"role": "system", "content": "Answer directly."},
+            {"role": "user", "content": "Q"},
+        ]
+        assert "system_prompt" not in req
+
+    def test_system_prompt_merged_into_existing_system(self, models_yaml):
+        msgs = [{"role": "system", "content": "You are X."}, *_ask("Q")]
+        req = llm.build_request("prompted", msgs)
+        assert req["messages"][0] == {
+            "role": "system",
+            "content": "Answer directly.\n\nYou are X.",
+        }
+        assert len(req["messages"]) == 2
+        assert msgs[0]["content"] == "You are X."  # caller's list untouched
+
+    def test_unknown_param_rejected(self, models_yaml):
+        with pytest.raises(ValueError, match="Unknown request param"):
+            llm.build_request("nano", _ask(), params={"reasoning": "off"})
+
+    def test_unknown_config_key_rejected(self, tmp_path, monkeypatch):
+        path = tmp_path / "models.yaml"
+        path.write_text(
+            'roles:\n  x:\n    model_id: "m"\n    request_defaults:\n      thinking: false\n',
+            encoding="utf-8",
+        )
+        monkeypatch.setattr(llm, "_MODELS_PATH", path)
+        llm.reset_models_cache()
+        with pytest.raises(ValueError, match="unknown request_defaults"):
+            llm.get_model_id("x")
+
+    async def test_defaults_reach_the_wire(self, server, models_yaml):
+        server.push_completion(content='{"name": "t", "score": 1}')
+        await llm.call_model(role="nano", messages=_ask())
+        body = server.requests[0]
+        assert body["max_tokens"] == 1024
+        assert body["reasoning_effort"] == "none"
+        # extra_body keys are merged into the top-level JSON body by the SDK.
+        assert body["chat_template_kwargs"] == {"enable_thinking": False}
+
+    async def test_repair_call_keeps_overrides(self, server, models_yaml):
+        server.push_completion(content="not json")
+        server.push_completion(content=json.dumps({"name": "t", "score": 3}))
+        await llm.call_model(
+            role="nano", messages=_ask(), schema=Sample, params={"max_tokens": 77}
+        )
+        assert [r["max_tokens"] for r in server.requests] == [77, 77]
+        assert all(r["reasoning_effort"] == "none" for r in server.requests)
+
+    async def test_records_finish_reason_and_reasoning_presence(self, server):
+        server.push_completion(content="answer", reasoning="thinking...")
+        await llm.call_model(role="nano", messages=_ask())
+        rec = cost.get_ledger().records[0]
+        assert rec.source == "content"
+        assert rec.reasoning_present is True
+        assert rec.finish_reason == "stop"
+
+
+class TestShippedConfig:
+    """The real config/models.yaml loads and every default key is allowed."""
+
+    def test_all_roles_load(self):
+        for role in ("ultra", "super", "lightning", "nano", "vision"):
+            defaults = llm.get_request_defaults(role)
+            assert set(defaults) <= llm.REQUEST_PARAM_KEYS
+
+    def test_nano_uses_enable_thinking_not_reasoning_effort(self):
+        # reasoning_effort="none" put Nano's answer in the reasoning field
+        # (docs/experiments/reasoning_20261006T041444Z.json).
+        defaults = llm.get_request_defaults("nano")
+        assert "reasoning_effort" not in defaults
+        assert defaults["extra_body"]["chat_template_kwargs"]["enable_thinking"] is False
+
+    def test_lightning_and_super_disable_reasoning(self):
+        for role in ("lightning", "super"):
+            assert llm.get_request_defaults(role)["reasoning_effort"] == "none"

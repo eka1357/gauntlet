@@ -19,9 +19,9 @@ Devpost scores feedback on completeness, viability and impact. Be specific and n
 | Model | Used for | Strengths | Problems |
 |---|---|---|---|
 | Nemotron 3 Ultra (`nvidia/Nemotron-3-Ultra-550b-a55b`) | recon, defender, clustering, report | clean answer in `content` ("ready", 17 tokens) | slowest: 3743 ms for a one-word reply |
-| Nemotron 3 Super (`nvidia/nemotron-3-super-120b-a12b`) | target agent brain, strategic attacks | clean answer in `content` ("ready", 19 tokens), 689 ms | none seen yet |
-| Nemotron 3.5 Lightning (`nvidia/Nemotron-3_5-Lightning`) | bulk payload generation | fastest: 410 ms | puts its thinking trace inline in `content` ("Here's a thinking process: ..."); hit max_tokens=32 before answering |
-| Nemotron 3 Nano (`nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B`) | fallback for Lightning | 1035 ms | `content` empty; answer came from the `reasoning` field, and that was still thinking when it hit max_tokens=32 |
+| Nemotron 3 Super (`nvidia/nemotron-3-super-120b-a12b`) | target agent brain, strategic attacks | clean `content` with or without thinking; honors `reasoning_effort` and `enable_thinking` | none seen yet |
+| Nemotron 3.5 Lightning (`nvidia/Nemotron-3_5-Lightning`) | bulk payload generation | with `reasoning_effort: "none"`: 26 tok, ~0.4s, clean JSON | thinks by default (~470 tok for a one-line JSON answer); if cut off by max_tokens mid-thinking, the thinking lands in `content` |
+| Nemotron 3 Nano (`nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B`) | fallback for Lightning | with `enable_thinking: false`: 29 tok, clean JSON | `reasoning_effort: "none"` puts the answer in the `reasoning` field with `content` empty; if cut off mid-thinking, everything lands in `reasoning` |
 | Nemotron 3 Nano Omni | | | |
 
 Notes on reasoning-field output, JSON adherence, latency under concurrency:
@@ -29,7 +29,48 @@ Notes on reasoning-field output, JSON adherence, latency under concurrency:
   - Ultra, Super: `content`.
   - Nano: `reasoning` field (content empty).
   - Lightning: `content`, but the content is reasoning text.
-- Implication: small token budgets on Lightning/Nano spend everything on thinking. Bulk generation will need a larger max_tokens or reasoning turned off; must be verified before Prompt 3.
+- Implication: small token budgets on Lightning/Nano spend everything on thinking. Bulk generation will need a larger max_tokens or reasoning turned off; must be verified before Prompt 3. (Resolved 2026-10-06, see below.)
+
+### Reasoning-control experiment (2026-10-06)
+Raw data: `docs/experiments/reasoning_20261006T041444Z.json`, from `scripts/reasoning_experiment.py`.
+
+Setup:
+- Task: `Return only JSON: {"channel": "email", "subject": "<a short fake invoice subject>"}`.
+- max_tokens 1024, 2 reps per cell, calls run one at a time.
+- 30 calls total, 1250 in + 4434 out tokens.
+
+Where the controls are documented:
+- `reasoning_effort` (`none|minimal|low|medium|high|xhigh|max`) is in the Token Factory chat-completion API reference.
+- `chat_template_kwargs.enable_thinking` is not in the Token Factory docs. It was passed via `extra_body` and accepted.
+
+Results (each cell: answer location, mean completion tokens, mean latency):
+
+| Variant | Lightning | Nano | Super |
+|---|---|---|---|
+| a) default | content (+reasoning field), 469 tok, 2363 ms | content (+reasoning field), 148 tok, 2072 ms | content (+reasoning field), 72 tok, 921 ms |
+| b) `enable_thinking: false` | content only, 32 tok, 918 ms | content only, 29 tok, 1531 ms | content only, 33 tok, 842 ms |
+| c) `reasoning_effort: "none"` | content only, 26 tok, 403 ms | **reasoning field only, content empty**, 24 tok, 502 ms | content only, 33 tok, 832 ms |
+| c) `reasoning_effort: "low"` | content (+reasoning field), 487 tok, 2034 ms | content (+reasoning field), 196 tok, 2868 ms | content (+reasoning field), 44 tok, 2058 ms |
+| d) system prompt "do not reason" | content (+reasoning field), 424 tok, 1892 ms | content (+reasoning field), 106 tok, 1933 ms | content (+reasoning field), 94 tok, 2104 ms |
+
+Findings:
+- All 30 answers were valid JSON with `finish_reason=stop`, parseable as-is with `json.loads`.
+- With 1024 tokens, thinking is separated correctly into the reasoning field. The answer is clean JSON in `content` (or in `reasoning` for the Nano + `reasoning_effort` case).
+- Root cause of the Prompt 1 weirdness is truncation. I reran the 32-token "ready" prompt with no controls:
+  - Lightning returned `finish_reason=length`, thinking in `content`, no reasoning field.
+  - Nano returned `finish_reason=length`, thinking in `reasoning`.
+  - When generation stops before thinking ends, the server can't split thinking from the answer, and each model fails differently.
+- A system prompt does not turn thinking off. It only shortens it (Lightning still used about 424 tokens).
+- `reasoning_effort: "low"` does not reduce thinking on Lightning or Nano.
+- Caveat: only 2 reps per cell. Latency is noisy; for example Nano with `enable_thinking: false` took 557 ms and 2505 ms.
+
+Defaults chosen (in `config/models.yaml` `request_defaults`, overridable per call via `params=`):
+- Lightning: `reasoning_effort: "none"` (documented). Fewest tokens and lowest latency.
+- Nano: `extra_body.chat_template_kwargs.enable_thinking: false`. It is the only option that puts Nano's answer in `content`.
+- Super: `reasoning_effort: "none"`. Same clean output as default, 33 vs 72 tokens.
+- All three: `max_tokens: 1024`.
+- Ultra: unchanged; it was not in the experiment.
+- Check after the change: `scripts/hello.py` (still max_tokens=32) returns `ready` from `content` for all 4 roles. Lightning, Nano and Super each used 2 completion tokens, down from 32/32/19.
 
 ## Tavily
 - Used for:

@@ -1,22 +1,50 @@
 # Model routing configuration
 # IDs are exact — case matters. Verified against Token Factory console.
+#
+# request_defaults (optional, per role) are applied by backend/llm.py
+# call_model() and can be overridden per call via `params=` (None removes one).
+# Allowed keys: max_tokens, temperature, reasoning_effort, extra_body, system_prompt.
+#
+# Reasoning defaults below come from the 2026-10-06 experiment:
+#   docs/experiments/reasoning_20261006T041444Z.json  (scripts/reasoning_experiment.py)
+# Task: tiny JSON answer, max_tokens 1024, 2 reps per variant. Summary in FEEDBACK.md.
 
 roles:
   ultra:
     model_id: "nvidia/Nemotron-3-Ultra-550b-a55b"
     description: "Recon, defender, clustering, report — hardest reasoning, few calls"
+    # Not covered by the experiment; reasoning left on (clean `content` in hello.py).
 
   super:
     model_id: "nvidia/nemotron-3-super-120b-a12b"
     description: "Target agent brain, strategic attacks — cheaper than Ultra"
+    # Default thinking already gave clean JSON in `content` (72 tok, ~0.9s).
+    # reasoning_effort "none": same clean JSON with 33 tok, ~0.83s, no reasoning field.
+    # For a call that needs deliberate planning, pass params={"reasoning_effort": None}.
+    request_defaults:
+      max_tokens: 1024
+      reasoning_effort: "none"
 
   lightning:
     model_id: "nvidia/Nemotron-3_5-Lightning"
     description: "Bulk payload generation, swarm — fast and cheap"
+    # Default thinking costs ~470 tok, ~2.4s for a one-line JSON answer.
+    # reasoning_effort "none" (documented API param): clean `content`, 26 tok, ~0.4s.
+    # chat_template_kwargs.enable_thinking=false also worked (32 tok, 0.4–1.4s).
+    request_defaults:
+      max_tokens: 1024
+      reasoning_effort: "none"
 
   nano:
     model_id: "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B"
     description: "Fallback for lightning"
+    # reasoning_effort "none" puts the ANSWER in the `reasoning` field with `content`
+    # empty, so it is not used here. enable_thinking=false gives clean `content`, 29 tok.
+    request_defaults:
+      max_tokens: 1024
+      extra_body:
+        chat_template_kwargs:
+          enable_thinking: false
 
   vision:
     model_id: "google/gemma-3-27b-it"
