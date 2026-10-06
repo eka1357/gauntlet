@@ -13,9 +13,12 @@ venv/
 # Environment
 .env
 
-# SQLite
+# SQLite & Runs
 *.db
 *.sqlite
+target/mock_sink.json
+runs/
+outputs/
 
 # IDE
 .vscode/

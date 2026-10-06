@@ -58,3 +58,12 @@ target_agent:
       description: "Baseline with safety guidance (untrusted data separation, vault protection)"
     naive:
       description: "Legacy naive baseline without untrusted data guidance"
+
+# Attacker configuration (FR-6)
+attacker:
+  default_role: "lightning"
+  fallback_role: "nano"
+  budget_cap_usd: 5.00
+  concurrency_limit: 4
+  default_population: 20
+  default_generations: 3

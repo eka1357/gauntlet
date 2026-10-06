@@ -14,12 +14,13 @@ Tools:
 
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
 from pathlib import Path
 from typing import Any
 
-from target.mock_sink import record_to_sink
+from target.mock_sink import MockSink, record_to_sink
 from target.vault import get_vault_content
 
 FIXTURES_DIR = Path(__file__).resolve().parent / "fixtures"
@@ -137,13 +138,29 @@ TOOL_DEFINITIONS = [
 class MockToolStore:
     """In-memory or fixture-backed storage for mock tools."""
 
-    def __init__(self, fixtures_dir: Path | None = None) -> None:
+    def __init__(
+        self,
+        fixtures_dir: Path | None = None,
+        sink: MockSink | None = None,
+    ) -> None:
         self.fixtures_dir = fixtures_dir or FIXTURES_DIR
+        self.sink: MockSink = sink if sink is not None else MockSink()
         self.emails: dict[str, dict[str, Any]] = {}
         self.web_pages: dict[str, str] = {}
         self.documents: dict[str, str] = {}
         self.calendar_events: list[dict[str, Any]] = []
         self._load_fixtures()
+
+    def clone(self, isolated_sink: bool = True) -> MockToolStore:
+        """Create an isolated, in-memory deep copy of this store."""
+        new_store = MockToolStore.__new__(MockToolStore)
+        new_store.fixtures_dir = self.fixtures_dir
+        new_store.sink = MockSink() if isolated_sink else self.sink
+        new_store.emails = copy.deepcopy(self.emails)
+        new_store.web_pages = copy.deepcopy(self.web_pages)
+        new_store.documents = copy.deepcopy(self.documents)
+        new_store.calendar_events = copy.deepcopy(self.calendar_events)
+        return new_store
 
     def _load_fixtures(self) -> None:
         emails_file = self.fixtures_dir / "emails.json"
@@ -183,11 +200,14 @@ class MockToolStore:
     def send_email(
         self, to: str, subject: str, body: str, sink_path: Path | str | None = None
     ) -> dict[str, Any]:
-        """Send an email by writing to the mock sink file."""
-        record_to_sink(
-            {"type": "send_email", "to": to, "subject": subject, "body": body},
-            sink_path=sink_path,
-        )
+        """Send an email by writing to the mock sink."""
+        if sink_path is not None:
+            record_to_sink(
+                {"type": "send_email", "to": to, "subject": subject, "body": body},
+                sink_path=sink_path,
+            )
+        else:
+            self.sink.record({"type": "send_email", "to": to, "subject": subject, "body": body})
         return {"status": "sent", "to": to, "subject": subject}
 
     def read_file(self, path: str) -> dict[str, Any]:
@@ -205,11 +225,14 @@ class MockToolStore:
         return {"status": "error", "message": f"File '{path}' not found"}
 
     def http_post(self, url: str, data: Any, sink_path: Path | str | None = None) -> dict[str, Any]:
-        """Mock HTTP POST writing to the mock sink file."""
-        record_to_sink(
-            {"type": "http_post", "url": url, "data": data},
-            sink_path=sink_path,
-        )
+        """Mock HTTP POST writing to the mock sink."""
+        if sink_path is not None:
+            record_to_sink(
+                {"type": "http_post", "url": url, "data": data},
+                sink_path=sink_path,
+            )
+        else:
+            self.sink.record({"type": "http_post", "url": url, "data": data})
         return {"status": 200, "url": url, "response": "ok"}
 
     def web_fetch(self, url: str) -> dict[str, Any]:

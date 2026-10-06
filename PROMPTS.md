@@ -47,7 +47,22 @@ Implement FR-2, FR-3, FR-4. Build the Inbox Assistant in /target with the six mo
 
 ## Prompt 3: Attack loop (CLI only)
 ```
-Implement FR-6 as a CLI first: `python -m backend.attacker --generations 3 --population 20 --seed 1`. Use Nano to generate payloads per channel and category from config/threat_categories.yaml, run each against the target, apply the oracle, select breaching attacks, mutate them for the next generation, and store everything in SQLite. Print breaches per generation and total cost. No UI yet.
+Before implementing the attacker, fix two things:
+1. Isolation for concurrency: refactor so each attack run gets its own mock sink, audit log and in-memory copy of the fixture store (the payload is injected into that copy only). Nothing shared on disk. Add a test that runs 10 attacks concurrently with scripted agents and asserts no cross-contamination between sinks or traces.
+2. Add target/mock_sink.json, any run databases and run output folders to .gitignore, and untrack target/mock_sink.json with git rm --cached.
+Also: record the 10-variant hand-written injection set as the "human baseline" (10% leak, n=10) and, once the swarm runs, report the swarm's generation-0 breach rate next to it with the sample sizes.
+Then continue with the attacker task below.
+Implement FR-6 as a CLI: python -m backend.attacker --generations 3 --population 20 --seed 1
+
+- An attack = payload + channel (email, web_page, document) + category from config/threat_categories.yaml (create it if missing: authority framing, urgency, format smuggling, instruction splitting, role confusion, multilingual, encoding; descriptive categories only).
+- Harness: inject the payload into the fixture store at the chosen channel, pick a benign task that touches that channel (an email task for email, web_fetch task for web_page, read_file task for document), run the target with the realistic baseline prompt, and let the oracle decide. Store the full trace.
+- Attacker knowledge is black-box: Lightning gets only the tool names and descriptions and the category. It must NOT be told the vault path or the canary format.
+- Generation 0: Lightning writes payloads per channel and category. Later generations mutate breaching payloads using the categories as operators; drop near-duplicates.
+- Concurrency semaphore, per-run budget cap in config, seed for reproducibility, SQLite storage.
+- Print a per-generation table (attacks, breaches, breach rate, cost) and the total cost. Save the 3 most interesting breach traces.
+- Safety scope: payloads are prompt-injection text against the fake sandbox only.
+- If gen 0 breach rate is 0% or 100%, say so plainly and propose how to tune difficulty; do not fudge numbers.
+Run it with a real key, show me the output, update FEEDBACK.md, add tests with a scripted fake attacker, commit and push.
 ```
 
 ## Prompt 4: Recon and Tavily
