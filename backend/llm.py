@@ -38,8 +38,9 @@ T = TypeVar("T", bound=BaseModel)
 
 # Request parameters a role default or a per-call override may set.
 REQUEST_PARAM_KEYS = frozenset(
-    {"max_tokens", "temperature", "reasoning_effort", "extra_body", "system_prompt"}
+    {"max_tokens", "temperature", "reasoning_effort", "extra_body", "system_prompt", "timeout"}
 )
+DEFAULT_TIMEOUT = 45.0
 
 # ---------------------------------------------------------------------------
 # Config loading
@@ -131,6 +132,8 @@ def build_request(
         ValueError: If ``params`` contains an unknown key.
     """
     merged = get_request_defaults(role)
+    if "timeout" not in merged:
+        merged["timeout"] = DEFAULT_TIMEOUT
     if max_tokens is not None:
         merged["max_tokens"] = max_tokens
     if temperature is not None:
@@ -349,7 +352,12 @@ async def call_model(  # noqa: UP047
     for attempt in range(MAX_RETRIES):
         try:
             async with sem:
-                response = await client.chat.completions.create(**kwargs)
+                call_timeout = kwargs.get("timeout")
+                if call_timeout is not None:
+                    async with asyncio.timeout(call_timeout):
+                        response = await client.chat.completions.create(**kwargs)
+                else:
+                    response = await client.chat.completions.create(**kwargs)
 
             choice = response.choices[0]
             text, source = _extract_content(choice)
@@ -375,11 +383,11 @@ async def call_model(  # noqa: UP047
                 await asyncio.sleep(delay)
                 continue
             raise  # non-retryable status
-        except (APIError, APITimeoutError) as e:
+        except (APIError, APITimeoutError, TimeoutError) as e:
             last_error = e
             delay = RETRY_BASE_DELAY * (2 ** attempt)
             logger.warning(
-                "API error (attempt %d/%d): %s. Retrying in %.1fs...",
+                "Timeout or API error (attempt %d/%d): %s. Retrying in %.1fs...",
                 attempt + 1, MAX_RETRIES, e, delay,
             )
             await asyncio.sleep(delay)
@@ -391,6 +399,12 @@ async def call_model(  # noqa: UP047
         )
 
     elapsed_ms = (time.perf_counter() * 1000) - start_ms
+
+    if elapsed_ms > 10000:
+        logger.warning(
+            "Slow model call detected: role=%s model=%s latency=%.0fms (>10s)",
+            role, model_id, elapsed_ms,
+        )
 
     # Record cost
     rec = record_call(

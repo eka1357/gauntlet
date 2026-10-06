@@ -40,6 +40,7 @@ class FakeServer:
         self.queue: list[tuple[int, dict]] = []
         self.requests: list[dict] = []
         self.delay_s = 0.0
+        self.delays: list[float] = []
         self.in_flight = 0
         self.max_in_flight = 0
         self.app = self._build_app()
@@ -86,12 +87,13 @@ class FakeServer:
             self.in_flight += 1
             self.max_in_flight = max(self.max_in_flight, self.in_flight)
             try:
-                if self.delay_s:
-                    await asyncio.sleep(self.delay_s)
                 if not self.queue:
                     # 418 is non-retryable, so an unscripted call fails loudly.
                     return JSONResponse({"error": {"message": "unscripted"}}, 418)
                 status, payload = self.queue.pop(0)
+                delay = self.delays.pop(0) if self.delays else self.delay_s
+                if delay:
+                    await asyncio.sleep(delay)
                 return JSONResponse(payload, status_code=status)
             finally:
                 self.in_flight -= 1
@@ -215,6 +217,56 @@ class TestRetry:
         with pytest.raises(BadRequestError):
             await llm.call_model(role="nano", messages=_ask())
         assert len(server.requests) == 1
+
+    async def test_retries_on_timeout_with_delayed_response(self, server):
+        """Times out if response delay exceeds timeout, then retries with backoff and succeeds."""
+        # First request delays 0.08s (longer than 0.02s timeout), second succeeds immediately
+        server.delays = [0.08, 0.0]
+        server.push_completion(content="first-delayed")
+        server.push_completion(content="second-succeeded")
+
+        result = await llm.call_model(
+            role="nano",
+            messages=_ask(),
+            params={"timeout": 0.02},
+        )
+        assert result == "second-succeeded"
+        assert len(server.requests) == 2
+
+    async def test_raises_after_all_timeouts(self, server):
+        """Raises RuntimeError after max retries exhausted due to persistent timeouts."""
+        server.delay_s = 0.08
+        for _ in range(llm.MAX_RETRIES):
+            server.push_completion(content="never-reached")
+
+        with pytest.raises(RuntimeError, match="retries exhausted"):
+            await llm.call_model(
+                role="nano",
+                messages=_ask(),
+                params={"timeout": 0.02},
+            )
+        assert len(server.requests) == llm.MAX_RETRIES
+
+    async def test_slow_call_warning_logged(self, server, caplog, monkeypatch):
+        """A call slower than 10s logs a warning with role, model, and latency."""
+        import logging
+        server.push_completion(content="slow-ok")
+        # Simulate elapsed_ms > 10000ms by mocking time.perf_counter
+        calls = 0
+
+        def fake_counter():
+            nonlocal calls
+            calls += 1
+            return 15.0 if calls > 1 else 0.0
+
+        monkeypatch.setattr("time.perf_counter", fake_counter)
+        with caplog.at_level(logging.WARNING):
+            await llm.call_model(role="nano", messages=_ask())
+
+        assert any(
+            "Slow model call detected" in r.message and "nano" in r.message
+            for r in caplog.records
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -388,11 +440,13 @@ class TestRequestDefaults:
         assert req["max_tokens"] == 1024
         assert req["reasoning_effort"] == "none"
         assert req["extra_body"] == {"chat_template_kwargs": {"enable_thinking": False}}
+        assert req["timeout"] == 45.0
 
     def test_role_without_defaults_sends_nothing_extra(self, models_yaml):
         assert llm.build_request("plain", _ask()) == {
             "model": "test/plain",
             "messages": _ask(),
+            "timeout": 45.0,
         }
 
     def test_precedence_and_opt_out(self, models_yaml):
