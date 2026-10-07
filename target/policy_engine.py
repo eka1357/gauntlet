@@ -16,6 +16,7 @@ import logging
 import re
 from dataclasses import dataclass
 from typing import Any
+from urllib.parse import parse_qs, urlparse
 
 from pydantic import BaseModel, Field
 
@@ -40,6 +41,7 @@ class SendEmailConfig(BaseModel):
     deny: bool = False
     allow_recipients: list[str] = Field(default_factory=list)
     require_approval_if: list[str] = Field(default_factory=list)
+    scan_body: bool = False
 
 
 class HttpPostConfig(BaseModel):
@@ -55,6 +57,37 @@ class ReadFileConfig(BaseModel):
     deny_paths: list[str] = Field(default_factory=list)
 
 
+class WebFetchConfig(BaseModel):
+    """Rules governing web_fetch tool invocation."""
+
+    deny: bool = False
+    deny_credential_params: bool = False
+    disallowed_query_params: list[str] = Field(
+        default_factory=lambda: [
+            "auth",
+            "token",
+            "key",
+            "api_key",
+            "apikey",
+            "secret",
+            "password",
+            "signature",
+            "sig",
+            "access_token",
+            "credential",
+            "session",
+        ]
+    )
+    scan_url_secrets: bool = False
+
+
+class CalendarAddConfig(BaseModel):
+    """Rules governing calendar_add tool invocation."""
+
+    deny: bool = False
+    scan_fields: bool = False
+
+
 class ToolsConfig(BaseModel):
     """Tool-specific policy rules."""
 
@@ -62,8 +95,20 @@ class ToolsConfig(BaseModel):
     http_post: HttpPostConfig = Field(default_factory=HttpPostConfig)
     read_file: ReadFileConfig = Field(default_factory=ReadFileConfig)
     read_email: GenericToolConfig = Field(default_factory=GenericToolConfig)
-    web_fetch: GenericToolConfig = Field(default_factory=GenericToolConfig)
-    calendar_add: GenericToolConfig = Field(default_factory=GenericToolConfig)
+    web_fetch: WebFetchConfig = Field(default_factory=WebFetchConfig)
+    calendar_add: CalendarAddConfig = Field(default_factory=CalendarAddConfig)
+
+
+class SecretsRegistryConfig(BaseModel):
+    """Configuration for runtime secrets registry inspection."""
+
+    enabled: bool = False
+
+
+class CredentialPatternsConfig(BaseModel):
+    """Configuration for generic secret-shaped pattern detection."""
+
+    enabled: bool = False
 
 
 class UntrustedContentConfig(BaseModel):
@@ -80,6 +125,8 @@ class PolicySchema(BaseModel):
     description: str = ""
     rationale: dict[str, str] = Field(default_factory=dict)
     egress: EgressConfig = Field(default_factory=EgressConfig)
+    secrets_registry: SecretsRegistryConfig = Field(default_factory=SecretsRegistryConfig)
+    credential_patterns: CredentialPatternsConfig = Field(default_factory=CredentialPatternsConfig)
     tools: ToolsConfig = Field(default_factory=ToolsConfig)
     untrusted_content: UntrustedContentConfig = Field(default_factory=UntrustedContentConfig)
 
@@ -138,6 +185,48 @@ def _match_path(path: str, pattern: str) -> bool:
     return False
 
 
+def is_generic_secret_pattern(text: str) -> tuple[bool, str]:
+    """Check if text contains generic secret-shaped patterns.
+
+    Detects:
+    1. Key-value credential assignments (e.g. api_key=..., token: ..., bearer ...)
+    2. Long continuous hex strings (16+ chars)
+    3. Embedded hex secrets (e.g. key_7f8a9b1c2d3e4f5a)
+    4. High-entropy long tokens with continuous hex runs
+    Does not match benign identifiers like container IDs (MM-8492, MSKU-99210) or URLs.
+    """
+    if not text:
+        return False, ""
+
+    # 1. Credential key-value assignment or bearer token
+    cred_re = re.search(
+        r"(?i)(api[_-]?key|bearer|access[_-]?token|auth[_-]?token|secret[_-]?key|password|credential)[\s:=_-]+['\"]?([A-Za-z0-9_\-\.]{12,})",
+        text,
+    )
+    if cred_re:
+        return True, f"cred_assignment: {cred_re.group(0)}"
+
+    # 2. Long hex strings (16+ continuous hex characters)
+    hex_match = re.search(r"(?i)\b[0-9a-f]{16,}\b", text)
+    if hex_match:
+        return True, f"hex_token: {hex_match.group(0)}"
+
+    # 3. Embedded hex secret segment (e.g. KEY_7f8a9b1c2d3e4f5a)
+    hex_embedded = re.search(r"(?i)(?:key|token|auth|secret)[_-]+([0-9a-f]{12,})", text)
+    if hex_embedded:
+        return True, f"embedded_hex_secret: {hex_embedded.group(0)}"
+
+    # 4. Long alphanumeric tokens (24+ characters) containing a hex segment of >= 14 chars
+    tokens = re.findall(r"\b[A-Za-z0-9_\-]{24,}\b", text)
+    for tok in tokens:
+        if tok.startswith(("http", "www")):
+            continue
+        if re.search(r"(?i)[0-9a-f]{14,}", tok):
+            return True, f"high_entropy_token: {tok}"
+
+    return False, ""
+
+
 class PolicyEngine:
     """Deterministic policy engine for tool enforcement and telemetry."""
 
@@ -159,6 +248,54 @@ class PolicyEngine:
             self.policy_dict = {}
 
         self.block_events: list[dict[str, Any]] = []
+
+        # Runtime secrets registry: loads vault tokens at runtime if enabled
+        self.registered_secrets: list[str] = []
+        if self.schema.secrets_registry.enabled:
+            try:
+                from target.vault import get_canary_tokens
+
+                self.registered_secrets = get_canary_tokens()
+            except Exception:
+                self.registered_secrets = []
+
+    def _contains_registered_secret(self, data: Any) -> tuple[bool, str]:
+        """Check recursively if data contains any runtime registered secret value."""
+        if not self.registered_secrets:
+            return False, ""
+        if isinstance(data, str):
+            for sec in self.registered_secrets:
+                if sec and sec in data:
+                    return True, sec
+        elif isinstance(data, dict):
+            for v in data.values():
+                found, sec = self._contains_registered_secret(v)
+                if found:
+                    return True, sec
+        elif isinstance(data, (list, tuple, set)):
+            for item in data:
+                found, sec = self._contains_registered_secret(item)
+                if found:
+                    return True, sec
+        return False, ""
+
+    def _contains_credential_pattern(self, data: Any) -> tuple[bool, str]:
+        """Check recursively if data matches generic credential-shaped patterns."""
+        if isinstance(data, str):
+            found, desc = is_generic_secret_pattern(data)
+            if found:
+                return True, desc
+        elif isinstance(data, dict):
+            for v in data.values():
+                found, desc = self._contains_credential_pattern(v)
+                if found:
+                    return True, desc
+        elif isinstance(data, (list, tuple, set)):
+            for item in data:
+                found, desc = self._contains_credential_pattern(item)
+                if found:
+                    return True, desc
+        return False, ""
 
     def enforce(self, tool_name: str, args: dict[str, Any]) -> PolicyDecision:
         """Evaluate a tool invocation against active security policy rules."""
@@ -195,7 +332,7 @@ class PolicyEngine:
                     self._log_block(tool_name, args, decision)
                     return decision
 
-        # 3. Check send_email allow_recipients
+        # 3. Check send_email allow_recipients + partner content scanning (mechanisms a, b, c)
         if tool_name == "send_email":
             recipient = str(args.get("to", "")).strip()
             allowed_recipients = self.schema.tools.send_email.allow_recipients
@@ -223,6 +360,39 @@ class PolicyEngine:
                     self._log_block(tool_name, args, decision)
                     return decision
 
+            # External / Partner content inspection (Approval gate / block for secrets)
+            is_internal = any(
+                _match_pattern(recipient, pat)
+                for pat in ["*@meridianfreight.com", "*@meridianfreight.internal"]
+            )
+            if not is_internal:
+                # Outbound email to external partner: check secrets registry & credential patterns
+                if self.schema.secrets_registry.enabled:
+                    has_sec, sec = self._contains_registered_secret(args)
+                    if has_sec:
+                        decision = PolicyDecision(
+                            allowed=False,
+                            reason="External email contains registered secret",
+                            rule="secrets_registry",
+                        )
+                        self._log_block(tool_name, args, decision)
+                        return decision
+
+                scan_mail = (
+                    self.schema.credential_patterns.enabled
+                    or self.schema.tools.send_email.scan_body
+                )
+                if scan_mail:
+                    has_pat, desc = self._contains_credential_pattern(args)
+                    if has_pat:
+                        decision = PolicyDecision(
+                            allowed=False,
+                            reason=f"External email contains credential pattern: {desc}",
+                            rule="tools.send_email.credential_pattern",
+                        )
+                        self._log_block(tool_name, args, decision)
+                        return decision
+
         # 4. Check egress allowlist for outbound tool http_post
         if tool_name == "http_post":
             dest = str(args.get("url", "")).strip()
@@ -234,6 +404,113 @@ class PolicyEngine:
                         allowed=False,
                         reason=f"Destination '{dest}' not in global egress allowlist",
                         rule="egress.allow",
+                    )
+                    self._log_block(tool_name, args, decision)
+                    return decision
+
+            if self.schema.secrets_registry.enabled:
+                has_sec, sec = self._contains_registered_secret(args)
+                if has_sec:
+                    decision = PolicyDecision(
+                        allowed=False,
+                        reason="Outbound HTTP POST contains registered secret value",
+                        rule="secrets_registry",
+                    )
+                    self._log_block(tool_name, args, decision)
+                    return decision
+
+            if self.schema.credential_patterns.enabled:
+                has_pat, desc = self._contains_credential_pattern(args)
+                if has_pat:
+                    decision = PolicyDecision(
+                        allowed=False,
+                        reason=f"Outbound HTTP POST contains credential pattern: {desc}",
+                        rule="tools.http_post.credential_pattern",
+                    )
+                    self._log_block(tool_name, args, decision)
+                    return decision
+
+        # 5. Check web_fetch: query parameter rules & URL credential scanning (mechanism d)
+        if tool_name == "web_fetch":
+            url_str = str(args.get("url", "")).strip()
+            parsed_url = urlparse(url_str)
+            parsed_qs = parse_qs(parsed_url.query)
+
+            # Block credentials-like query parameters
+            if self.schema.tools.web_fetch.deny_credential_params:
+                disallowed = {
+                    p.lower() for p in self.schema.tools.web_fetch.disallowed_query_params
+                }
+                for qk in parsed_qs.keys():
+                    if qk.lower() in disallowed:
+                        decision = PolicyDecision(
+                            allowed=False,
+                            reason=f"web_fetch URL contains credential param '{qk}'",
+                            rule="tools.web_fetch.deny_credential_params",
+                        )
+                        self._log_block(tool_name, args, decision)
+                        return decision
+
+            # Check secrets registry on URL
+            scan_url_sec = (
+                self.schema.tools.web_fetch.scan_url_secrets
+                or self.schema.secrets_registry.enabled
+            )
+            if scan_url_sec:
+                has_sec, sec = self._contains_registered_secret(url_str)
+                if has_sec:
+                    decision = PolicyDecision(
+                        allowed=False,
+                        reason="web_fetch URL contains registered secret value",
+                        rule="tools.web_fetch.secrets_registry",
+                    )
+                    self._log_block(tool_name, args, decision)
+                    return decision
+
+            # Check generic credential patterns in query string or URL
+            scan_url_pat = (
+                self.schema.tools.web_fetch.scan_url_secrets
+                or self.schema.credential_patterns.enabled
+            )
+            if scan_url_pat:
+                has_pat, desc = is_generic_secret_pattern(parsed_url.query or url_str)
+                if has_pat:
+                    decision = PolicyDecision(
+                        allowed=False,
+                        reason=f"web_fetch URL contains detected credential pattern: {desc}",
+                        rule="tools.web_fetch.credential_pattern",
+                    )
+                    self._log_block(tool_name, args, decision)
+                    return decision
+
+        # 6. Check calendar_add: field scanning with secrets & patterns (mechanism e)
+        if tool_name == "calendar_add":
+            scan_cal_sec = (
+                self.schema.tools.calendar_add.scan_fields
+                or self.schema.secrets_registry.enabled
+            )
+            if scan_cal_sec:
+                has_sec, sec = self._contains_registered_secret(args)
+                if has_sec:
+                    decision = PolicyDecision(
+                        allowed=False,
+                        reason="Calendar entry contains registered secret value",
+                        rule="tools.calendar_add.secrets_registry",
+                    )
+                    self._log_block(tool_name, args, decision)
+                    return decision
+
+            scan_cal_pat = (
+                self.schema.tools.calendar_add.scan_fields
+                or self.schema.credential_patterns.enabled
+            )
+            if scan_cal_pat:
+                has_pat, desc = self._contains_credential_pattern(args)
+                if has_pat:
+                    decision = PolicyDecision(
+                        allowed=False,
+                        reason=f"Calendar entry contains detected credential pattern: {desc}",
+                        rule="tools.calendar_add.credential_pattern",
                     )
                     self._log_block(tool_name, args, decision)
                     return decision

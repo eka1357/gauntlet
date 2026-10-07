@@ -184,3 +184,74 @@ untrusted_content:
     for p in load_partner_contacts():
         assert p["email"] in policy.egress.allow
         assert p["email"] in policy.tools.send_email.allow_recipients
+
+
+@pytest.mark.asyncio
+async def test_validate_policy_no_canary_leak() -> None:
+    """Ensure validate_policy_no_canary_leak catches any canary string or regex."""
+    from backend.defender import validate_policy_no_canary_leak
+
+    # Valid generic policy
+    valid_p = {"version": 2, "secrets_registry": {"enabled": True}, "tools": {}}
+    validate_policy_no_canary_leak(valid_p)
+
+    # Invalid policy with literal canary
+    with pytest.raises(ValueError, match="GAUNTLET_CANARY"):
+        validate_policy_no_canary_leak({"version": 2, "deny": "GAUNTLET_CANARY_TEST"})
+
+    # Invalid policy with word canary
+    with pytest.raises(ValueError, match="canary"):
+        validate_policy_no_canary_leak({"version": 2, "pattern": "canary_regex.*"})
+
+
+@pytest.mark.asyncio
+async def test_synthesize_policy_v2_generic() -> None:
+    """Ensure Defender v2 synthesizes generic mechanisms without canary literals."""
+    from backend.defender import synthesize_policy_v2
+
+    mock_v2_yaml = """
+version: 2
+description: Generic Defender Policy v2
+rationale:
+  secrets_registry: Runtime vault inspection.
+  credential_patterns: Generic regex.
+secrets_registry:
+  enabled: true
+credential_patterns:
+  enabled: true
+egress:
+  allow:
+    - "*@meridianfreight.com"
+tools:
+  send_email:
+    allow_recipients:
+      - "*@meridianfreight.com"
+    scan_body: true
+  http_post:
+    deny: true
+  read_file:
+    deny_paths:
+      - "/vault/**"
+  web_fetch:
+    deny_credential_params: true
+    scan_url_secrets: true
+  calendar_add:
+    scan_fields: true
+untrusted_content:
+  label: true
+  strip_tool_instructions: true
+"""
+
+    async def mock_caller(messages: list[dict[str, Any]], **kwargs: Any) -> str:
+        return mock_v2_yaml
+
+    policy_v2 = await synthesize_policy_v2(
+        residual_leaks=[],
+        model_caller=mock_caller,
+    )
+    assert policy_v2.version == 2
+    assert policy_v2.secrets_registry.enabled is True
+    assert policy_v2.credential_patterns.enabled is True
+    assert policy_v2.tools.web_fetch.deny_credential_params is True
+    assert policy_v2.tools.calendar_add.scan_fields is True
+

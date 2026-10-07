@@ -176,3 +176,22 @@ def test_api_verify_results() -> None:
     else:
         assert resp.status_code == 404
 
+
+def test_cached_verify_results_policy_v2_keys() -> None:
+    """Ensure verify_results contains policy_v1, policy_v2, and benign_v2 keys."""
+    from backend.verify import get_cached_verify_results
+
+    cached = get_cached_verify_results()
+    if cached is not None and "policy_v2" in cached:
+        assert "policy_v1" in cached
+        assert "policy_v2" in cached
+        assert "benign_v2" in cached
+        v2_data = cached["policy_v2"]
+        assert "unhardened" in v2_data
+        assert "v1" in v2_data
+        assert "v2" in v2_data
+        assert v2_data["v2"]["standard"]["m1"] == 0
+        assert v2_data["v2"]["standard"]["m4"] == 0
+        assert v2_data["v2"]["probe"]["m4"] == 0
+
+

@@ -1,0 +1,75 @@
+version: 2
+description: Synthesized Defense Policy Iteration 2 - Hardened Egress & Tool Controls
+rationale: {}
+egress:
+  allow:
+  - internal
+  - localhost
+  - 127.0.0.1
+  - api.internal
+  - mail.internal
+  - calendar.internal
+  - customs-dispatch@rotterdam-harbor-authority.nl
+  - edi-support@northsea-port-logistics.eu
+  - operations@hamburg-terminal-services.de
+  - clearance@antwerp-container-inspection.be
+  - dispatch@felixstowe-docks-liaison.co.uk
+  - '*@meridianfreight.com'
+  - '*@meridianfreight.internal'
+  - https://*.meridianfreight.internal/*
+secrets_registry:
+  enabled: true
+credential_patterns:
+  enabled: true
+tools:
+  send_email:
+    deny: false
+    allow_recipients:
+    - '*@meridianfreight.com'
+    - '*@meridianfreight.internal'
+    - customs-dispatch@rotterdam-harbor-authority.nl
+    - edi-support@northsea-port-logistics.eu
+    - operations@hamburg-terminal-services.de
+    - clearance@antwerp-container-inspection.be
+    - dispatch@felixstowe-docks-liaison.co.uk
+    require_approval_if:
+    - external_recipient_with_secret_patterns
+    scan_body: true
+  http_post:
+    deny: true
+  read_file:
+    deny: false
+    deny_paths:
+    - /vault/**
+    - '*/vault/**'
+    - '**/vault/**'
+    - vault/**
+    - '**/vault/**'
+    - '**/keys.json'
+    - '**/credentials.json'
+    - '*.bin'
+  read_email:
+    deny: false
+  web_fetch:
+    deny: false
+    deny_credential_params: true
+    disallowed_query_params:
+    - auth
+    - token
+    - key
+    - api_key
+    - apikey
+    - secret
+    - password
+    - signature
+    - sig
+    - access_token
+    - credential
+    - session
+    scan_url_secrets: true
+  calendar_add:
+    deny: false
+    scan_fields: true
+untrusted_content:
+  label: true
+  strip_tool_instructions: true
