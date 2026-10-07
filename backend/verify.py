@@ -293,6 +293,7 @@ async def _evaluate_attacks_batch(
     m1_count = sum(1 for r in eval_results if r["m1"])
     m2_count = sum(1 for r in eval_results if r["m2"])
     m3_count = sum(1 for r in eval_results if r["m3"])
+    m4_count = sum(1 for r in eval_results if r.get("m4", False))
     unsafe_count = sum(1 for r in eval_results if r["unsafe"])
 
     return {
@@ -300,10 +301,12 @@ async def _evaluate_attacks_batch(
         "m1": m1_count,
         "m2": m2_count,
         "m3": m3_count,
+        "m4": m4_count,
         "unsafe": unsafe_count,
         "m1_rate": (m1_count / n) if n else 0.0,
         "m2_rate": (m2_count / n) if n else 0.0,
         "m3_rate": (m3_count / n) if n else 0.0,
+        "m4_rate": (m4_count / n) if n else 0.0,
         "unsafe_rate": (unsafe_count / n) if n else 0.0,
         "details": eval_results,
     }
@@ -530,11 +533,13 @@ async def run_verify(
 
     # Cache verified results for fast reproducible replay
     cache_path = Path("runs/cache/verify_results.json")
-    try:
-        cache_path.parent.mkdir(parents=True, exist_ok=True)
-        cache_path.write_text(json.dumps(report_data, indent=2), encoding="utf-8")
-    except Exception as e:
-        logger.warning("Could not cache verify results: %s", e)
+    results_path = Path("runs/verify_results.json")
+    for p in (cache_path, results_path):
+        try:
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_text(json.dumps(report_data, indent=2), encoding="utf-8")
+        except Exception as e:
+            logger.warning("Could not cache verify results to %s: %s", p, e)
 
     # Print Formatted Verification Tables
     print_verification_summary(report_data)
@@ -542,18 +547,24 @@ async def run_verify(
     return report_data
 
 
+def get_cached_verify_results() -> dict[str, Any] | None:
+    """Read the verified before/after report from disk cache with zero model calls."""
+    for p in (Path("runs/verify_results.json"), Path("runs/cache/verify_results.json")):
+        if p.is_file():
+            try:
+                return json.loads(p.read_text(encoding="utf-8"))
+            except Exception as e:
+                logger.warning("Could not read verification cache %s: %s", p, e)
+    return None
+
+
 def print_cached_verification_report() -> bool:
     """Print the verified before/after report from stored run cache if present."""
-    cache_path = Path("runs/cache/verify_results.json")
-    if not cache_path.is_file():
+    data = get_cached_verify_results()
+    if data is None:
         return False
-    try:
-        data = json.loads(cache_path.read_text(encoding="utf-8"))
-        print_verification_summary(data)
-        return True
-    except Exception as e:
-        logger.warning("Could not read verification cache: %s", e)
-        return False
+    print_verification_summary(data)
+    return True
 
 
 def print_verification_summary(report: dict[str, Any]) -> None:
@@ -586,17 +597,19 @@ def print_verification_summary(report: dict[str, Any]) -> None:
         "m1": "M1 (Exfiltration)",
         "m2": "M2 (Vault Access)",
         "m3": "M3 (Unauth Egress)",
+        "m4": "M4 (Canary Leak)",
         "unsafe": "UNSAFE (Composite)",
     }
+    metrics_to_show = ["m1", "m2", "m3", "m4", "unsafe"]
 
     # Table 1: Training Replay (Realistic Mode)
     lines.append("### 1. Training Exploits Replayed (Realistic Target Mode, n=41)")
     lines.append("| Metric | Before Hardening (n=41) | After Hardening (n=41) | Classification |")
     lines.append("| :--- | :--- | :--- | :--- |")
-    for m in ["m1", "m2", "m3", "unsafe"]:
+    for m in metrics_to_show:
         name = m_names[m]
-        kb = tr_r_b[m]
-        ka = tr_r_a[m]
+        kb = tr_r_b.get(m, 0)
+        ka = tr_r_a.get(m, 0)
         diff_str = describe_diff(kb, 41, ka, 41)
         r_b = format_rate_with_ci(kb, 41)
         r_a = format_rate_with_ci(ka, 41)
@@ -607,10 +620,10 @@ def print_verification_summary(report: dict[str, Any]) -> None:
     lines.append("### 2. Training Exploits Replayed (Naive Target Mode, n=41)")
     lines.append("| Metric | Before Hardening (n=41) | After Hardening (n=41) | Classification |")
     lines.append("| :--- | :--- | :--- | :--- |")
-    for m in ["m1", "m2", "m3", "unsafe"]:
+    for m in metrics_to_show:
         name = m_names[m]
-        kb = tr_n_b[m]
-        ka = tr_n_a[m]
+        kb = tr_n_b.get(m, 0)
+        ka = tr_n_a.get(m, 0)
         diff_str = describe_diff(kb, 41, ka, 41)
         r_b = format_rate_with_ci(kb, 41)
         r_a = format_rate_with_ci(ka, 41)
@@ -621,10 +634,10 @@ def print_verification_summary(report: dict[str, Any]) -> None:
     lines.append("### 3. Held-Out Evaluation Set (Realistic Target Mode, n=380)")
     lines.append("| Metric | Before Hardening (n=380) | After Hardening (n=380) | Classification |")
     lines.append("| :--- | :--- | :--- | :--- |")
-    for m in ["m1", "m2", "m3", "unsafe"]:
+    for m in metrics_to_show:
         name = m_names[m]
-        kb = ho_r_b[m]
-        ka = ho_r_a[m]
+        kb = ho_r_b.get(m, 0)
+        ka = ho_r_a.get(m, 0)
         diff_str = describe_diff(kb, 380, ka, 380)
         r_b = format_rate_with_ci(kb, 380)
         r_a = format_rate_with_ci(ka, 380)
@@ -635,10 +648,10 @@ def print_verification_summary(report: dict[str, Any]) -> None:
     lines.append("### 4. Held-Out Evaluation Set (Naive Target Mode, n=380)")
     lines.append("| Metric | Before Hardening (n=380) | After Hardening (n=380) | Classification |")
     lines.append("| :--- | :--- | :--- | :--- |")
-    for m in ["m1", "m2", "m3", "unsafe"]:
+    for m in metrics_to_show:
         name = m_names[m]
-        kb = ho_n_b[m]
-        ka = ho_n_a[m]
+        kb = ho_n_b.get(m, 0)
+        ka = ho_n_a.get(m, 0)
         diff_str = describe_diff(kb, 380, ka, 380)
         r_b = format_rate_with_ci(kb, 380)
         r_a = format_rate_with_ci(ka, 380)

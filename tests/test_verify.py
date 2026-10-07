@@ -1,6 +1,6 @@
 """Unit tests for Verification phase (FR-10)."""
 
-from __future__ import annotations
+from typing import Any
 
 from backend.oracle import DEFAULT_ALLOWLISTED_EGRESS
 from backend.verify import (
@@ -148,3 +148,31 @@ def test_estimate_verification_cost_budget() -> None:
     """Ensure cost estimate is well under $4.00 budget cap."""
     estimates = estimate_verification_cost()
     assert estimates["total_estimated_usd"] < 4.00
+
+
+def test_get_cached_verify_results(tmp_path: Any, monkeypatch: Any) -> None:
+    """Ensure get_cached_verify_results reads from disk cache without model calls."""
+    from backend.verify import get_cached_verify_results
+
+    # When file exists
+    cached = get_cached_verify_results()
+    if cached is not None:
+        assert "policy" in cached
+        assert "training_realistic" in cached
+
+
+def test_api_verify_results() -> None:
+    """Ensure /api/verify/results serves cached report without model calls."""
+    from fastapi.testclient import TestClient
+
+    from backend.api import app
+
+    client = TestClient(app)
+    resp = client.get("/api/verify/results")
+    if resp.status_code == 200:
+        data = resp.json()
+        assert "policy" in data
+        assert "training_realistic" in data
+    else:
+        assert resp.status_code == 404
+

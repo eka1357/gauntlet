@@ -18,6 +18,7 @@ venv/
 *.sqlite
 target/mock_sink.json
 runs/
+!runs/verify_results.json
 outputs/
 
 # IDE
