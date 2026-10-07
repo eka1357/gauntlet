@@ -15,6 +15,7 @@ from collections.abc import Awaitable, Callable
 from typing import Any
 
 from backend.llm import call_model
+from target.policy_engine import PolicyEngine
 from target.tools import (
     TOOL_DEFINITIONS,
     MockToolStore,
@@ -72,6 +73,7 @@ class InboxAgent:
         tool_store: MockToolStore | None = None,
         tools: list[dict[str, Any]] | None = None,
         tool_policy: Callable[[str, dict[str, Any]], bool] | None = None,
+        policy: dict[str, Any] | PolicyEngine | None = None,
         model_caller: Callable[..., Awaitable[Any]] | None = None,
         max_turns: int = 10,
     ) -> None:
@@ -84,6 +86,7 @@ class InboxAgent:
             tool_store: Optional custom MockToolStore instance.
             tools: Optional custom list of tool definitions (defaults to TOOL_DEFINITIONS).
             tool_policy: Optional callable (tool_name, args) -> bool that decides if a tool can run.
+            policy: Optional security policy dict or PolicyEngine instance for tool-layer hardening.
             model_caller: Optional custom async callable for offline/scripted testing.
             max_turns: Maximum tool-execution loops before stopping.
         """
@@ -101,6 +104,12 @@ class InboxAgent:
         self.tool_store = tool_store or get_default_store()
         self.tools = tools if tools is not None else TOOL_DEFINITIONS
         self.tool_policy = tool_policy
+        if policy is not None:
+            self.policy_engine: PolicyEngine | None = (
+                policy if isinstance(policy, PolicyEngine) else PolicyEngine(policy)
+            )
+        else:
+            self.policy_engine = None
         self.model_caller = model_caller
         self.max_turns = max_turns
 
@@ -185,17 +194,52 @@ class InboxAgent:
                     except Exception:
                         args = {"raw": args_raw}
 
-                    # Execute in sandbox, enforcing tool_policy if configured
-                    if self.tool_policy is not None and not self.tool_policy(fn_name, args):
+                    # Execute in sandbox, enforcing policy if configured
+                    policy_blocked = False
+                    block_rule = ""
+                    block_reason = ""
+
+                    if self.policy_engine is not None:
+                        decision = self.policy_engine.enforce(fn_name, args)
+                        if not decision.allowed:
+                            policy_blocked = True
+                            block_rule = decision.rule
+                            block_reason = decision.reason
+                            result = {
+                                "status": "error",
+                                "error": (
+                                    f"Policy denied: {decision.reason} [rule: {decision.rule}]"
+                                ),
+                                "policy_block": True,
+                            }
+                        else:
+                            result = execute_tool(fn_name, args, store=self.tool_store)
+                    elif self.tool_policy is not None and not self.tool_policy(fn_name, args):
+                        policy_blocked = True
                         result = {
                             "status": "error",
                             "error": (
                                 f"Policy denied: execution of '{fn_name}' is not "
                                 "permitted by security policy"
                             ),
+                            "policy_block": True,
                         }
                     else:
                         result = execute_tool(fn_name, args, store=self.tool_store)
+
+                    # Untrusted content labelling if policy_engine active
+                    if not policy_blocked and self.policy_engine is not None and fn_name in (
+                        "read_email",
+                        "web_fetch",
+                    ):
+                        if isinstance(result, dict) and "body" in result:
+                            result["body"] = self.policy_engine.label_untrusted_content(
+                                fn_name, str(result["body"])
+                            )
+                        elif isinstance(result, dict) and "content" in result:
+                            result["content"] = self.policy_engine.label_untrusted_content(
+                                fn_name, str(result["content"])
+                            )
 
                     audit_entry = {
                         "turn": turn,
@@ -204,6 +248,9 @@ class InboxAgent:
                         "arguments": args,
                         "result": result,
                         "timestamp": time.time(),
+                        "policy_block": policy_blocked,
+                        "policy_rule": block_rule,
+                        "policy_reason": block_reason,
                     }
                     audit_log.append(audit_entry)
 

@@ -113,13 +113,21 @@ def wilson_ci(k: int, n: int, confidence: float = 0.95) -> tuple[float, float]:
     """Calculate the Wilson score confidence interval for a binomial proportion."""
     if n <= 0:
         return (0.0, 0.0)
+    if k <= 0:
+        z = 1.95996
+        high = (z**2 / n) / (1.0 + (z**2 / n))
+        return (0.0, float(high))
+    if k >= n:
+        z = 1.95996
+        low = 1.0 / (1.0 + (z**2 / n))
+        return (float(low), 1.0)
     z = 1.95996  # 95% confidence
     p_hat = k / n
     denom = 1.0 + (z**2) / n
     center = (p_hat + (z**2) / (2.0 * n)) / denom
     margin = (z / denom) * math.sqrt((p_hat * (1.0 - p_hat) / n) + (z**2) / (4.0 * (n**2)))
-    low = max(0.0, center - margin)
-    high = min(1.0, center + margin)
+    low = max(0.0, float(center - margin))
+    high = min(1.0, float(center + margin))
     return (low, high)
 
 
@@ -611,6 +619,7 @@ async def evaluate_single_attack(
     target_role: str = "super",
     target_mode: str = "realistic",
     target_model_caller: Callable[..., Awaitable[Any]] | None = None,
+    policy: Any = None,
     gen_cost: float = 0.0,
     custom_task: dict[str, Any] | None = None,
     custom_email: dict[str, Any] | None = None,
@@ -680,6 +689,7 @@ async def evaluate_single_attack(
         role=target_role,
         mode=target_mode,
         tool_store=isolated_store,
+        policy=policy,
         model_caller=target_model_caller,
     )
 
@@ -696,7 +706,7 @@ async def evaluate_single_attack(
 
         # 2. Oracle deterministic evaluation
         allowed_tools = task.get("allowed_tools")
-        oracle_res = check_trace(trace=trace, allowed_tools=allowed_tools)
+        oracle_res = check_trace(trace=trace, allowed_tools=allowed_tools, policy=policy)
 
         outcome = "breach" if oracle_res.breached else "defended"
         breach_type_str = oracle_res.breach_type.value if oracle_res.breach_type else None

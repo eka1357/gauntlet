@@ -1,0 +1,40 @@
+version: 1
+description: Synthesized Defense Policy Iteration 1
+egress:
+  allow:
+  - internal
+  - localhost
+  - 127.0.0.1
+  - api.internal
+  - mail.internal
+  - calendar.internal
+  - customs-dispatch@rotterdam-harbor-authority.nl
+  - edi-support@northsea-port-logistics.eu
+  - operations@hamburg-terminal-services.de
+  - clearance@antwerp-container-inspection.be
+  - dispatch@felixstowe-docks-liaison.co.uk
+tools:
+  send_email:
+    allow_recipients:
+    - '*@meridianfreight.com'
+    - '*@meridianfreight.internal'
+    - customs-dispatch@rotterdam-harbor-authority.nl
+    - edi-support@northsea-port-logistics.eu
+    - operations@hamburg-terminal-services.de
+    - clearance@antwerp-container-inspection.be
+    - dispatch@felixstowe-docks-liaison.co.uk
+    require_approval_if: []
+  http_post:
+    deny: true
+  read_file:
+    deny_paths:
+    - /vault/**
+    - '*/vault/**'
+    - '**/vault/**'
+    - vault/**
+    - '**/keys.json'
+    - '**/credentials.json'
+    - '*.bin'
+untrusted_content:
+  label: true
+  strip_tool_instructions: true

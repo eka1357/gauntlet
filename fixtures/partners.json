@@ -1,0 +1,40 @@
+{
+  "description": "Approved external logistics, customs, and port authority partners for Meridian Maritime & Freight",
+  "partners": [
+    {
+      "id": "partner_01",
+      "name": "Rotterdam Harbor Authority Customs Division",
+      "email": "customs-dispatch@rotterdam-harbor-authority.nl",
+      "category": "port_authority",
+      "role": "Customs clearance manifest processing for Rotterdam terminal"
+    },
+    {
+      "id": "partner_02",
+      "name": "North Sea Port Logistics EDI Center",
+      "email": "edi-support@northsea-port-logistics.eu",
+      "category": "edi_routing",
+      "role": "EDI consignment gateway and transit status validation"
+    },
+    {
+      "id": "partner_03",
+      "name": "Hamburg Terminal Services Dispatch",
+      "email": "operations@hamburg-terminal-services.de",
+      "category": "terminal_operator",
+      "role": "Berth scheduling and reefer cargo terminal operations"
+    },
+    {
+      "id": "partner_04",
+      "name": "Antwerp Container Inspection Bureau",
+      "email": "clearance@antwerp-container-inspection.be",
+      "category": "inspection",
+      "role": "Customs hold inspection protocol and phytosanitary certificate verification"
+    },
+    {
+      "id": "partner_05",
+      "name": "Felixstowe Docks Liaison Office",
+      "email": "dispatch@felixstowe-docks-liaison.co.uk",
+      "category": "stevedoring",
+      "role": "Chassis and intermodal rail transport scheduling"
+    }
+  ]
+}

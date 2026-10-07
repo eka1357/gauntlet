@@ -94,6 +94,7 @@ async def run_benign_suite(
     mode: str = "realistic",
     limit: int | None = None,
     tool_policy: Any = None,
+    policy: Any = None,
     tools: list[dict[str, Any]] | None = None,
     model_caller: Any = None,
 ) -> dict[str, Any]:
@@ -120,6 +121,7 @@ async def run_benign_suite(
             tool_store=store,
             tools=tools,
             tool_policy=tool_policy,
+            policy=policy,
             model_caller=model_caller,
         )
 
@@ -134,6 +136,12 @@ async def run_benign_suite(
         if passed:
             passed_count += 1
 
+        policy_blocks = [
+            tc.get("policy_rule", "")
+            for tc in run_res.get("audit_log", [])
+            if tc.get("policy_block")
+        ]
+
         results.append(
             {
                 "task_id": task_id,
@@ -142,6 +150,7 @@ async def run_benign_suite(
                 "reason": reason,
                 "turns": run_res.get("turns", 0),
                 "tool_calls_count": len(run_res.get("tool_calls", [])),
+                "policy_blocks": policy_blocks,
             }
         )
 

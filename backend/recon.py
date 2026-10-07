@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import Any
 
 from dotenv import load_dotenv
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from backend.llm import call_model
 from target.inbox_agent import REALISTIC_SYSTEM_PROMPT
@@ -78,6 +78,23 @@ class ThreatPlan(BaseModel):
         default="",
         description="Executive summary of the target's attack surface and threat landscape",
     )
+
+    @field_validator("sources", mode="before")
+    @classmethod
+    def _coerce_sources(cls, v: Any) -> list[Any]:
+        if isinstance(v, list):
+            coerced = []
+            for item in v:
+                if isinstance(item, str):
+                    coerced.append({
+                        "title": "External Intelligence",
+                        "url": item,
+                        "short_note": "Recon technique source",
+                    })
+                else:
+                    coerced.append(item)
+            return coerced
+        return v
 
 
 def sanitize_target_prompt(prompt: str) -> str:
