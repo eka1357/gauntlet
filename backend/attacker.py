@@ -815,12 +815,16 @@ async def run_attacker_swarm(
     # FR-5: Reconnaissance phase with Ultra + Tavily
     threat_plan: ThreatPlan | None = None
     tavily_credits_used = 0
+    tavily_live_calls = 0
     if enable_recon and attacker_model_caller is None:
         print("\n" + "=" * 72)
         print("[*] RECONNAISSANCE PHASE (FR-5): Executing threat modeling with Tavily...")
         print("=" * 72)
-        threat_plan, tavily_credits_used = await run_recon()
-        print(f"    Tavily search completed: {tavily_credits_used} credits spent.")
+        threat_plan, tavily_credits_used, tavily_live_calls = await run_recon()
+        print(
+            f"    Tavily search completed: live_calls={tavily_live_calls}, "
+            f"credits_used={tavily_credits_used}"
+        )
         print(f"    Threat Categories: {', '.join(threat_plan.threat_categories)}")
         print(f"    Risky Channels: {', '.join(threat_plan.risky_channels)}")
         print("    Prioritized Attack Styles:")
@@ -844,6 +848,9 @@ async def run_attacker_swarm(
         "threat_plan": threat_plan.model_dump() if threat_plan else None,
         "recon_sources": [s.model_dump() for s in threat_plan.sources] if threat_plan else [],
         "tavily_credits_used": tavily_credits_used,
+        "tavily_live_calls": tavily_live_calls,
+        "credits_used": tavily_credits_used,
+        "live_calls": tavily_live_calls,
         "include_neutral": include_neutral,
         "neutral_ratio": neutral_ratio,
     }
@@ -1337,6 +1344,19 @@ async def run_attacker_swarm(
                 safe = b.payload.encode("ascii", errors="backslashreplace").decode("ascii")
                 print(f"Payload:\n{safe}")
 
+    with Session(engine) as session:
+        stored_run = session.get(Run, run_id)
+        if stored_run:
+            stored_run.status = "completed"
+            stored_run.cost_usd = total_cost_usd
+            run_meta["cost_usd"] = total_cost_usd
+            stored_run.config_json = json.dumps(run_meta)
+            session.add(stored_run)
+            session.commit()
+
+    if enable_recon:
+        print(f"\nTAVILY RECON: live_calls={tavily_live_calls}, credits_used={tavily_credits_used}")
+
     engine.dispose()
 
     return {
@@ -1352,6 +1372,9 @@ async def run_attacker_swarm(
         "saved_traces": saved_traces,
         "threat_plan": threat_plan.model_dump() if threat_plan else None,
         "tavily_credits_used": tavily_credits_used,
+        "tavily_live_calls": tavily_live_calls,
+        "credits_used": tavily_credits_used,
+        "live_calls": tavily_live_calls,
     }
 
 

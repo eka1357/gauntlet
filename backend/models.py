@@ -59,6 +59,7 @@ class Cluster(SQLModel, table=True):
     title: str = Field(default="")
     severity: str = Field(default="")
     root_cause: str = Field(default="")
+    root_cause_type: str = Field(default="")
     attack_ids_json: str = Field(default="[]")
     repro_attack_id: str | None = Field(default=None)
 
@@ -102,6 +103,10 @@ def init_db(db_path_or_engine: str | Path | Any = "runs/gauntlet.db") -> Any:
             cols = [c[1] for c in cursor.execute("PRAGMA table_info(attack)").fetchall()]
             if cols and "strategy" not in cols:
                 cursor.execute("ALTER TABLE attack ADD COLUMN strategy TEXT DEFAULT ''")
+                conn.connection.commit()
+            cluster_cols = [c[1] for c in cursor.execute("PRAGMA table_info(cluster)").fetchall()]
+            if cluster_cols and "root_cause_type" not in cluster_cols:
+                cursor.execute("ALTER TABLE cluster ADD COLUMN root_cause_type TEXT DEFAULT ''")
                 conn.connection.commit()
     except Exception:
         pass

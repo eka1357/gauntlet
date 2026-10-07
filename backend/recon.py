@@ -32,7 +32,14 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_CACHE_PATH = Path(__file__).resolve().parent.parent / "runs" / "cache" / "tavily_cache.json"
 
+DEFAULT_CACHE_EXPIRY_SECONDS = 24 * 3600  # 24 hours
+
+FRESHEST_TECHNIQUE_QUERY = (
+    "freshest 2026 prompt injection and LLM agent tool misuse techniques"
+)
+
 DEFAULT_RECON_QUERIES = [
+    FRESHEST_TECHNIQUE_QUERY,
     "indirect prompt injection email reading assistant techniques",
     "LLM tool misuse unauthorized data exfiltration prompt injection",
     "prompt injection infrastructure error spoofing email agent",
@@ -95,26 +102,45 @@ def search_tavily_with_cache(
     cache_path: Path | str = DEFAULT_CACHE_PATH,
     max_results: int = 5,
     search_depth: str = "basic",
-) -> tuple[list[TavilySource], int]:
-    """Execute Tavily search with on-disk caching per query.
+    cache_expiry_seconds: float = DEFAULT_CACHE_EXPIRY_SECONDS,
+    force_live_queries: list[str] | set[str] | None = None,
+    guarantee_live_query: bool = True,
+) -> tuple[list[TavilySource], int, int]:
+    """Execute Tavily search with on-disk caching and 24-hour TTL expiry per query.
+
+    Guarantees at least one live (uncached) query per run by forcing the
+    freshest-technique query to execute against the live Tavily API when available.
+    Never logs or exposes the Tavily API key.
 
     Args:
         queries: List of search queries.
         cache_path: Path to on-disk JSON cache.
         max_results: Maximum results per query (default: 5).
         search_depth: Tavily search depth (default: 'basic').
+        cache_expiry_seconds: Cache TTL in seconds (default: 86400 / 24 hours).
+        force_live_queries: Optional list of query strings to force live.
+        guarantee_live_query: If True, forces the freshest-technique query to execute live.
 
     Returns:
-        Tuple of (list of TavilySource, credits_used).
+        Tuple of (list of TavilySource, credits_used, live_calls).
     """
+    import time
+
+    now = time.time()
     cache_file = Path(cache_path)
     cache_file.parent.mkdir(parents=True, exist_ok=True)
 
-    cache: dict[str, list[dict[str, Any]]] = {}
+    cache: dict[str, Any] = {}
+    file_mtime = now
     if cache_file.is_file():
         try:
+            file_mtime = cache_file.stat().st_mtime
             with open(cache_file, encoding="utf-8") as f:
-                cache = json.load(f)
+                raw_cache = json.load(f)
+                if isinstance(raw_cache, dict):
+                    cache = {k.strip().lower(): v for k, v in raw_cache.items()}
+                else:
+                    cache = {}
         except Exception as e:
             logger.warning("Failed to load Tavily cache from %s: %s", cache_file, e)
             cache = {}
@@ -129,14 +155,52 @@ def search_tavily_with_cache(
         except Exception as e:
             logger.warning("Could not initialize TavilyClient: %s", e)
 
+    # Determine forced live queries
+    forced_live_set: set[str] = set()
+    if force_live_queries:
+        for q in force_live_queries:
+            forced_live_set.add(q.strip().lower())
+
+    if guarantee_live_query:
+        # Guarantee freshest-technique query runs live
+        for q in queries:
+            q_clean = q.strip().lower()
+            if "freshest" in q_clean or q_clean == FRESHEST_TECHNIQUE_QUERY.lower():
+                forced_live_set.add(q_clean)
+                break
+
     credits_used = 0
+    live_calls = 0
     all_sources: list[TavilySource] = []
     seen_urls: set[str] = set()
 
     for q in queries:
         query_key = q.strip().lower()
-        if query_key in cache:
-            results = cache[query_key]
+        is_forced_live = query_key in forced_live_set
+
+        # Check existing cache entry
+        cached_val = cache.get(query_key)
+        cached_results = None
+        is_expired = True
+
+        if cached_val is not None:
+            if isinstance(cached_val, dict) and "results" in cached_val:
+                cached_at = cached_val.get("cached_at", file_mtime)
+                age = now - cached_at
+                if age <= cache_expiry_seconds:
+                    is_expired = False
+                    cached_results = cached_val["results"]
+            elif isinstance(cached_val, list):
+                # Legacy format without explicit timestamp
+                age = now - file_mtime
+                if age <= cache_expiry_seconds:
+                    is_expired = False
+                    cached_results = cached_val
+
+        results: list[dict[str, Any]] = []
+
+        if not is_forced_live and not is_expired and cached_results is not None:
+            results = cached_results
         elif tavily_client is not None:
             try:
                 resp = tavily_client.search(
@@ -145,14 +209,24 @@ def search_tavily_with_cache(
                     max_results=max_results,
                 )
                 results = resp.get("results", [])
-                cache[query_key] = results
-                credits_used += 1  # 1 credit spent per basic search query
+                cache[query_key] = {
+                    "cached_at": now,
+                    "results": results,
+                }
+                live_calls += 1
+                credits_used += 1  # 1 basic credit spent per query
             except Exception as e:
                 logger.warning("Tavily search failed for query '%s': %s", q, e)
-                results = []
+                if cached_results is not None:
+                    results = cached_results
+                else:
+                    results = []
         else:
-            logger.info("Tavily API key not available and query not in cache: '%s'", q)
-            results = []
+            if cached_results is not None:
+                results = cached_results
+            else:
+                logger.info("Tavily API key not available and query not in cache: '%s'", q)
+                results = []
 
         for r in results:
             url = r.get("url", "")
@@ -160,7 +234,6 @@ def search_tavily_with_cache(
                 seen_urls.add(url)
                 title = r.get("title", "Untitled Technical Article")
                 content = r.get("content", "").strip()
-                # Create a concise note from the snippet
                 snippet = content[:200] + "..." if len(content) > 200 else content
                 all_sources.append(
                     TavilySource(
@@ -177,7 +250,7 @@ def search_tavily_with_cache(
     except Exception as e:
         logger.warning("Failed to write Tavily cache to %s: %s", cache_file, e)
 
-    return all_sources, credits_used
+    return all_sources, credits_used, live_calls
 
 
 async def run_recon(
@@ -187,7 +260,7 @@ async def run_recon(
     cache_path: Path | str = DEFAULT_CACHE_PATH,
     role: str = "ultra",
     model_caller: Callable[..., Awaitable[Any]] | None = None,
-) -> tuple[ThreatPlan, int]:
+) -> tuple[ThreatPlan, int, int]:
     """Execute the full Recon phase (FR-5).
 
     Args:
@@ -199,7 +272,7 @@ async def run_recon(
         model_caller: Optional mock caller for tests.
 
     Returns:
-        Tuple of (ThreatPlan, tavily_credits_used).
+        Tuple of (ThreatPlan, tavily_credits_used, live_calls).
     """
     tools = target_tools or TOOL_DEFINITIONS
     raw_prompt = system_prompt or REALISTIC_SYSTEM_PROMPT
@@ -207,7 +280,7 @@ async def run_recon(
     search_queries = queries or DEFAULT_RECON_QUERIES
 
     # 1. Real Tavily search with disk caching
-    sources, credits_used = search_tavily_with_cache(
+    sources, credits_used, live_calls = search_tavily_with_cache(
         queries=search_queries,
         cache_path=cache_path,
         max_results=5,
@@ -299,4 +372,4 @@ async def run_recon(
     if not threat_plan.sources and sources:
         threat_plan.sources = sources
 
-    return threat_plan, credits_used
+    return threat_plan, credits_used, live_calls

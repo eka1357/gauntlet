@@ -40,3 +40,4 @@ web/out/
 htmlcov/
 .pytest_cache/
 .ruff_cache/
+scratch/

@@ -67,12 +67,13 @@ def test_search_tavily_with_cache(tmp_path: Path):
     with open(cache_file, "w", encoding="utf-8") as f:
         json.dump(pre_cached, f)
 
-    # Test reading from cache (0 credits spent)
-    sources, credits_used = search_tavily_with_cache(
+    # Test reading from cache (0 credits spent, 0 live calls)
+    sources, credits_used, live_calls = search_tavily_with_cache(
         queries=["cached query"],
         cache_path=cache_file,
     )
     assert credits_used == 0
+    assert live_calls == 0
     assert len(sources) == 1
     assert sources[0].title == "Cached Vulnerability Paper"
     assert sources[0].url == "https://example.com/cached"
@@ -92,18 +93,23 @@ def test_search_tavily_with_cache(tmp_path: Path):
     with patch("tavily.TavilyClient", return_value=mock_tavily), patch.dict(
         "os.environ", {"TAVILY_API_KEY": "fake_test_key"}
     ):
-        sources_new, credits_new = search_tavily_with_cache(
+        sources_new, credits_new, live_new = search_tavily_with_cache(
             queries=["cached query", "fresh query"],
             cache_path=cache_file,
         )
         assert credits_new == 1  # 1 credit for fresh query, 0 for cached
+        assert live_new == 1
         assert len(sources_new) == 2
 
     # Verify that cache file was updated on disk
     with open(cache_file, encoding="utf-8") as f:
         updated_cache = json.load(f)
     assert "fresh query" in updated_cache
-    assert updated_cache["fresh query"][0]["title"] == "New Prompt Injection Vector"
+    fresh_entry = updated_cache["fresh query"]
+    if isinstance(fresh_entry, dict):
+        assert fresh_entry["results"][0]["title"] == "New Prompt Injection Vector"
+    else:
+        assert fresh_entry[0]["title"] == "New Prompt Injection Vector"
 
 
 @pytest.mark.asyncio
@@ -140,13 +146,14 @@ async def test_run_recon_with_scripted_model(tmp_path: Path):
     async def mock_ultra_caller(*args, **kwargs):
         return mock_plan
 
-    plan, credits_used = await run_recon(
+    plan, credits_used, live_calls = await run_recon(
         queries=["indirect prompt injection email reading assistant techniques"],
         cache_path=cache_file,
         model_caller=mock_ultra_caller,
     )
 
     assert credits_used == 0
+    assert live_calls == 0
     assert isinstance(plan, ThreatPlan)
     assert plan.threat_categories == ["authority_framing", "instruction_splitting"]
     assert plan.risky_channels == ["email"]
@@ -162,3 +169,96 @@ async def test_run_recon_surfaces_model_error():
 
     with pytest.raises(RuntimeError, match="Nebius Token Factory 500"):
         await run_recon(model_caller=failing_caller)
+
+
+def test_tavily_cache_expiry_and_guaranteed_freshest_query(tmp_path: Path):
+    """Verify 24h cache expiry, freshest query forced live, and key privacy."""
+    import time
+
+    cache_file = tmp_path / "tavily_expiry_cache.json"
+    now = time.time()
+
+    freshest_q = "freshest 2026 prompt injection and LLM agent tool misuse techniques"
+    cached_valid_q = "cached still valid query"
+    cached_expired_q = "cached expired query"
+
+    # Seed cache with one valid (<24h), one expired (>24h), and the freshest query
+    seeded_cache = {
+        cached_valid_q: {
+            "cached_at": now - 3600,  # 1 hour old (valid)
+            "results": [
+                {
+                    "title": "Valid Cached Title",
+                    "url": "https://example.com/valid",
+                    "content": "Valid cached snippet.",
+                }
+            ],
+        },
+        cached_expired_q: {
+            "cached_at": now - (25 * 3600),  # 25 hours old (expired!)
+            "results": [
+                {
+                    "title": "Old Expired Title",
+                    "url": "https://example.com/old",
+                    "content": "Expired snippet.",
+                }
+            ],
+        },
+        freshest_q: {
+            "cached_at": now - 3600,  # even if recently cached, freshest MUST be live
+            "results": [
+                {
+                    "title": "Stale Freshest",
+                    "url": "https://example.com/stale-freshest",
+                    "content": "Stale snippet.",
+                }
+            ],
+        },
+    }
+    with open(cache_file, "w", encoding="utf-8") as f:
+        json.dump(seeded_cache, f)
+
+    fake_secret_key = "tvly-TOPSECRETKEY123456789"
+    mock_tavily = MagicMock()
+
+    def fake_search(query: str, **kwargs):
+        return {
+            "results": [
+                {
+                    "title": f"Live Result for {query}",
+                    "url": f"https://example.com/live-{abs(hash(query)) % 1000}",
+                    "content": f"Live content for {query}",
+                }
+            ]
+        }
+
+    mock_tavily.search.side_effect = fake_search
+
+    with patch("tavily.TavilyClient", return_value=mock_tavily), patch.dict(
+        "os.environ", {"TAVILY_API_KEY": fake_secret_key}
+    ):
+        sources, credits_used, live_calls = search_tavily_with_cache(
+            queries=[cached_valid_q, cached_expired_q, freshest_q],
+            cache_path=cache_file,
+            cache_expiry_seconds=24 * 3600,
+            guarantee_live_query=True,
+        )
+
+        # 1. cached_valid_q should NOT trigger a live call
+        # 2. cached_expired_q is >24h old, so it DOES trigger a live call
+        # 3. freshest_q has "freshest", so it is guaranteed live (uncached)
+        assert live_calls == 2
+        assert credits_used == 2
+        assert len(sources) == 3
+
+        # Assert key is never printed or exposed anywhere in sources
+        for s in sources:
+            assert fake_secret_key not in s.title
+            assert fake_secret_key not in s.url
+            assert fake_secret_key not in s.short_note
+
+        # Verify disk cache now has fresh timestamps for the refreshed queries
+        with open(cache_file, encoding="utf-8") as f:
+            updated = json.load(f)
+        assert updated[cached_expired_q]["cached_at"] >= now - 10
+        assert updated[freshest_q.strip().lower()]["cached_at"] >= now - 10
