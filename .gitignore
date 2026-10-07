@@ -19,6 +19,7 @@ venv/
 target/mock_sink.json
 runs/
 !runs/verify_results.json
+!runs/recorded_run.json
 outputs/
 
 # IDE

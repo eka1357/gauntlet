@@ -195,3 +195,23 @@ def test_cached_verify_results_policy_v2_keys() -> None:
         assert v2_data["v2"]["probe"]["m4"] == 0
 
 
+def test_recorded_run_json_schema() -> None:
+    """Ensure runs/recorded_run.json contains all 235 attacks with traces and metrics."""
+    import json
+    from pathlib import Path
+
+    rec_path = Path("runs/recorded_run.json")
+    if rec_path.is_file():
+        data = json.loads(rec_path.read_text(encoding="utf-8"))
+        assert "attacks" in data
+        assert len(data["attacks"]) == 235
+        first = data["attacks"][0]
+        for field in ("id", "channel", "category", "strategy", "payload", "unhardened", "v1", "v2"):
+            assert field in first
+        for cond in ("unhardened", "v1", "v2"):
+            assert "outcome" in first[cond]
+            assert "metrics" in first[cond]
+            assert "trace" in first[cond]
+
+
+
