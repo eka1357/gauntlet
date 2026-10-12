@@ -101,9 +101,22 @@ def init_db(db_path_or_engine: str | Path | Any = "runs/gauntlet.db") -> Any:
         with engine.connect() as conn:
             cursor = conn.connection.cursor()
             cols = [c[1] for c in cursor.execute("PRAGMA table_info(attack)").fetchall()]
-            if cols and "strategy" not in cols:
-                cursor.execute("ALTER TABLE attack ADD COLUMN strategy TEXT DEFAULT ''")
-                conn.connection.commit()
+            if cols:
+                for col_name, col_type, default_val in [
+                    ("strategy", "TEXT", "''"),
+                    ("payload_exposed", "BOOLEAN", "0"),
+                    ("outcome_classification", "TEXT", "'ignored'"),
+                    ("near_miss", "BOOLEAN", "0"),
+                    ("task_style", "TEXT", "'action'"),
+                    ("breach_types_json", "TEXT", "'[]'"),
+                ]:
+                    if col_name not in cols:
+                        sql = (
+                            f"ALTER TABLE attack ADD COLUMN {col_name} "
+                            f"{col_type} DEFAULT {default_val}"
+                        )
+                        cursor.execute(sql)
+                        conn.connection.commit()
             cluster_cols = [c[1] for c in cursor.execute("PRAGMA table_info(cluster)").fetchall()]
             if cluster_cols and "root_cause_type" not in cluster_cols:
                 cursor.execute("ALTER TABLE cluster ADD COLUMN root_cause_type TEXT DEFAULT ''")

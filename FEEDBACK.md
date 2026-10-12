@@ -755,4 +755,37 @@ Reduced ordered tool execution sequences into categorical arguments across all 5
 - **Total Ledger Cost**:
   - Task 1 & 2 run cost: **$1.3107 USD** across 210 benign evaluations and 380 naive attack evaluations on Super.
 
+### Phase 8: API & Recorded-Run Replay Implementation (FR-14)
+- **Recorded Endpoints (Zero Model Calls, Works With No API Keys)**:
+  - `GET /api/recorded/summary`: Serves headline comparison tables directly from `runs/verify_results.json`:
+    - Naive-mode ($n=190$ standard attacks, unhardened vs Policy v2, Wilson 95% CI for M1–M4 & UNSAFE).
+    - Realistic-mode ($n=190$ standard attacks, unhardened vs Policy v2, Wilson 95% CI for M1–M4 & UNSAFE).
+    - Channel-coverage probe set ($n=45$, unhardened vs v1 vs v2 with side-channel leak metrics).
+    - Benign operational suite pooled pass rates across 3 repeats ($n=105$ per condition: 95.2% vs 95.2%, 0.0 point drop) and deny-all negative control (17.1% collapsed).
+    - SHA-256 policy hashes for frozen v1 (`f27decd5...`) and v2 (`31dc77b5...`).
+    - Comprehensive per-run cost ledger ($4.1662 total verified spend across iterations).
+    - Limitations list: literal secrets registry matching, single fictional freight domain, unexcluded benign labelling effects, attacker-supplied probe secret, low realistic baseline M1 (~2%), and primary headline improvement in unsafe actions (M2, M3).
+  - `GET /api/recorded/attacks`: Paginated attacks from `runs/recorded_run.json` (`id`, `channel`, `category`, `strategy`, `is_probe`, per-condition `outcome`, `m1`–`m4` flags, `policy_block_rule`). Verified that full multi-turn execution traces are excluded from the list endpoint to preserve lean transfer overhead. Filterable by `channel`, `condition`, and `is_probe`.
+  - `GET /api/attacks/{id}/trace?condition=unhardened|v1|v2`: Full tool execution trace for a single attack under the specified condition. Tested against recorded run fixtures and SQLite live runs.
+  - `GET /api/policy/{version}`: Clean YAML representation for Policy v1 and v2 with computed SHA-256 hashes and per-rule rationales.
+- **Live Mini-Runs (`POST /api/runs` & SSE Stream)**:
+  - Endpoint `POST /api/runs` launches an async background mini-run capped at max 20 attacks.
+  - Uses realistic target mode, Lightning-generated payloads (`role="lightning"`, zero Ultra, zero recon), and Super target model (`role="super"`).
+  - Optional `compare_v2` flag evaluates the exact same generated payload against Policy v2 for side-by-side before/after telemetry in the web UI.
+  - Real-time Server-Sent Events (SSE) streaming via `GET /api/runs/{id}/events` with strictly ordered event delivery: `attack_started` -> `attack_finished` (including outcome and M1–M4 flags) -> `run_complete` / `run_error`. Replay buffer ensures late-joining subscribers receive all historical events.
+  - Persists each live evaluation to SQLite (`Run` and `Attack` models) with schema migrations ensuring full trace and classification persistence.
+- **Multi-Layer Safeguards**:
+  - **Per-IP Rate Limit**: Enforces a strict 3-run-per-hour limit with sliding window in-memory tracking. Returns HTTP 429 when exceeded.
+  - **Hard Per-Run Budget Cap**: $0.05 cap enforced within the live run loop; if reached, the run halts immediately and emits `budget_capped` in `run_complete`.
+  - **Global Daily Spend Cap**: Default $0.50 daily cap tracked in SQLite across all live runs. When reached, returns `"Live runs are paused for today; open the recorded run instead"`, while recorded replay endpoints remain fully operational.
+  - **Kill Switch**: If `LIVE_RUNS_ENABLED` is not `"true"`, live runs are disabled with the same polite message.
+  - **CORS & Payload Limits**: Strict CORS origins loaded from environment (`ALLOWED_ORIGINS` / `WEB_APP_ORIGIN`), 1 MB request payload cap, and zero credential or header leakage.
+- **Privacy-Preserving Health Check (`GET /api/health`)**:
+  - Checks Token Factory configuration and network reachability using free `client.models.list()`.
+  - Checks Tavily configuration and reachability via free status check without executing paid searches.
+  - Verifies that secret API keys are never exposed in logs, exceptions, or JSON payloads.
+- **Verification Suite**:
+  - Added `tests/test_api.py` covering zero-model-call recorded endpoints with mocked LLM failure, IP rate limiting, daily cap blocking, kill switch enforcement, health check privacy, and SSE event ordering. All 122 tests in the repository pass cleanly in under 16 seconds.
+
+
 
