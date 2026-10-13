@@ -35,9 +35,6 @@ EXCLUDED_FILES: dict[str, str] = {
     "docs/confirmation_report.md": (
         "Historical record from an earlier evaluation. Superseded by the confirmation runs; not current results."
     ),
-    "FEEDBACK.md": (
-        "Historical record from an earlier evaluation. Superseded by the confirmation runs; not current results."
-    ),
 }
 
 
@@ -122,7 +119,10 @@ def build_typed_field_index(
                 return
 
             denoms = set(parent_denoms or set())
-            for k in ("n", "n_email", "n_standard", "n_probe", "total", "pooled_total"):
+            for k in (
+                "n", "n_email", "n_standard", "n_probe", "total", "pooled_total",
+                "repeats", "tasks_per_repeat", "total_evaluations_per_condition",
+            ):
                 v = block.get(k)
                 if isinstance(v, int):
                     denoms.add(v)
@@ -155,6 +155,12 @@ def build_typed_field_index(
                     p_denoms = denoms if block_path else None
                     child_path = f"{block_path}.{k}" if block_path else k
                     process_block(v, child_path, p_denoms)
+                elif isinstance(v, list):
+                    for idx, item in enumerate(v):
+                        if isinstance(item, dict):
+                            p_denoms = denoms if block_path else None
+                            child_path = f"{block_path}.{k}[{idx}]" if block_path else f"{k}[{idx}]"
+                            process_block(item, child_path, p_denoms)
 
         process_block(data, "")
 
@@ -170,6 +176,23 @@ def build_typed_field_index(
                     count_fields[str(int(v))] = fp
                 elif isinstance(v, str) and v.startswith("$"):
                     dollar_fields[v] = fp
+        except Exception:
+            pass
+
+    # Model pricing
+    pricing_file = ROOT / "config" / "pricing.json"
+    if pricing_file.exists():
+        try:
+            pricing = json.loads(pricing_file.read_text(encoding="utf-8"))
+            for model, pdata in pricing.get("models", {}).items():
+                for k, v in pdata.items():
+                    fp = f"pricing.json:{model}.{k}"
+                    if isinstance(v, (int, float)):
+                        val = float(v)
+                        dollar_fields[f"${val:.2f}"] = fp
+                        dollar_fields[f"${val:.4f}"] = fp
+                        if val.is_integer() or isinstance(v, int):
+                            dollar_fields[f"${int(val)}"] = fp
         except Exception:
             pass
 
@@ -193,6 +216,31 @@ def parse_allowlist(allowlist_path: Path) -> dict[str, str]:
         else:
             allowlist[line] = "Explicitly allowlisted"
     return allowlist
+
+
+def strip_historical_markers(text: str) -> tuple[str, list[tuple[int, int]]]:
+    """Find and strip blocks enclosed between <!-- audit:historical-start --> and <!-- audit:historical-end -->.
+
+    Returns:
+        (cleaned_text, list_of_line_ranges) where line ranges are (start_line, end_line) 1-indexed.
+    """
+    pattern = re.compile(
+        r"<!--\s*audit:historical-start\s*-->.*?<!--\s*audit:historical-end\s*-->",
+        flags=re.DOTALL,
+    )
+    ranges: list[tuple[int, int]] = []
+
+    def repl(m: re.Match[str]) -> str:
+        start_idx = m.start()
+        end_idx = m.end()
+        start_line = text.count("\n", 0, start_idx) + 1
+        end_line = text.count("\n", 0, end_idx) + 1
+        ranges.append((start_line, end_line))
+        num_newlines = m.group(0).count("\n")
+        return "\n" * num_newlines
+
+    cleaned = pattern.sub(repl, text)
+    return cleaned, ranges
 
 
 def extract_claims_from_text(text: str, filename: str) -> list[dict[str, Any]]:
@@ -319,10 +367,14 @@ def main() -> int:
             target_files.append(cand)
 
     all_claims: list[dict[str, Any]] = []
+    excluded_ranges_by_file: dict[str, list[tuple[int, int]]] = {}
     for tf in target_files:
         rel_name = tf.relative_to(ROOT).as_posix()
         content = tf.read_text(encoding="utf-8", errors="ignore")
-        claims = extract_claims_from_text(content, rel_name)
+        cleaned_content, ex_ranges = strip_historical_markers(content)
+        if ex_ranges:
+            excluded_ranges_by_file[rel_name] = ex_ranges
+        claims = extract_claims_from_text(cleaned_content, rel_name)
         all_claims.extend(claims)
 
     matched: list[dict[str, Any]] = []
@@ -377,6 +429,13 @@ def main() -> int:
     for fn, reason in excluded_files_found:
         print(f"  - {fn}: {reason}")
 
+    if excluded_ranges_by_file:
+        print("\nHISTORICAL SECTION EXCLUSIONS (in-file markers):")
+        for fn, rngs in excluded_ranges_by_file.items():
+            print(f"  {fn}:")
+            for s, e in rngs:
+                print(f"    - Lines {s}–{e}")
+
     print("\nALLOWLISTED TOKENS BY FILE:")
     if not allowlisted:
         print("  None (all claims passed by matching)")
@@ -406,6 +465,7 @@ def main() -> int:
 
     print("\nSUMMARY:")
     print(f"  Files excluded:               {len(excluded_files_found)}")
+    print(f"  Historical blocks excluded:   {sum(len(r) for r in excluded_ranges_by_file.values())}")
     print(f"  Matched-by-field:             {len(matched)}")
     print(f"  Allowlisted:                  {len(allowlisted)}")
     print(f"  Unmatched:                    {len(unmatched)}")

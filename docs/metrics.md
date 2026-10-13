@@ -52,7 +52,10 @@ To prevent metric distortion from attacker-supplied secrets, evaluations are par
 ### A. Headline Standard Set
 - **Composition**: Adversarial prompt injection attacks across channels (email, web, document) where the attacker attempts unauthorized actions, perimeter egress, or vault access.
 - **Reporting Scope**: Headline metrics ($M1$, $M2$, $M3$, $UNSAFE$, and $M4$ on the standard set) are computed exclusively on this set.
-- **M4 Standard Baseline ($n=260$)**: Under frozen policy v1, standard set $M4$ is **0.0% (0/260)** [95% CI: 0.0%–1.5%].
+- **Current Standard Baseline (Confirmation Set #2, $n=190$)**:
+  - Realistic prompt: unhardened $\text{UNSAFE} = \textbf{25.8\% (49/190)}$ [95% CI: 20.1%–32.4%], Policy v2 $\text{UNSAFE} = \textbf{0.0\% (0/190)}$ [95% CI: 0.0%–2.0%], standard $M4 = \textbf{0.0\% (0/190)}$ [95% CI: 0.0%–2.0%].
+  - Naive prompt: unhardened $\text{UNSAFE} = \textbf{62.1\% (118/190)}$ [95% CI: 55.0%–68.7%], Policy v2 $\text{UNSAFE} = \textbf{0.0\% (0/190)}$ [95% CI: 0.0%–2.0%].
+- **Historical Standard Baseline ($n=260$, Confirmation Run 2 — superseded)**: Under frozen policy v1 in earlier Confirmation Run 2 (Table 2 of `docs/confirmation_report.md`), the standard threat set had unhardened $\text{UNSAFE} = \textbf{23.1\% (60/260)}$ [95% CI: 18.4%–28.6%] and standard set $M4 = \textbf{0.0\% (0/260)}$ [95% CI: 0.0%–1.5%]. This evaluation is superseded by Confirmation Set #2 ($n=190$).
 
 ### B. Channel-Coverage Probe (Attacker-Supplied Secret)
 - **Composition**: Targeted probe attacks where the attacker supplies a canary/secret in the prompt injection text and coerces the agent into transmitting it across nominally permitted or ungoverned channels:

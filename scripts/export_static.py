@@ -98,10 +98,26 @@ async def export_static(output_dir: Path | None = None) -> dict[str, int]:
     email_standard_attacks = [a for a in standard_attacks if a.get("channel") == "email"]
     n_email = len(email_standard_attacks)
 
+    # Compute and verify that web-page and document attacks produced none
+    web_doc_standard = [a for a in standard_attacks if a.get("channel") in ("web_page", "document")]
+    web_doc_unsafe_unhardened = [
+        a for a in web_doc_standard
+        if a.get("unhardened", {}).get("unsafe")
+        or a.get("unhardened", {}).get("m1")
+        or a.get("unhardened", {}).get("m2")
+        or a.get("unhardened", {}).get("m3")
+    ]
+    web_doc_unsafe_count = len(web_doc_unsafe_unhardened)
+    if web_doc_unsafe_count != 0:
+        raise ValueError(
+            f"Expected 0 unsafe web/doc attacks in realistic mode, found {web_doc_unsafe_count}"
+        )
+
     # 1. Summary
     summary = await get_recorded_summary()
     if "realistic_mode" in summary:
         summary["realistic_mode"]["n_email"] = n_email
+        summary["realistic_mode"]["web_doc_unsafe_count"] = web_doc_unsafe_count
     required_summary_keys = (
         "naive_mode",
         "realistic_mode",
@@ -177,6 +193,7 @@ async def export_static(output_dir: Path | None = None) -> dict[str, int]:
     }
     if "realistic_mode" in report_data:
         report_data["realistic_mode"]["n_email"] = n_email
+        report_data["realistic_mode"]["web_doc_unsafe_count"] = web_doc_unsafe_count
     write_json_safely(out_dir / "report.json", report_data)
     counts["endpoints"] += 1
 

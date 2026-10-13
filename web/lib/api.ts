@@ -27,6 +27,7 @@ export interface ModeMetrics {
 export interface StandardModeEval {
   n: number;
   n_email?: number;
+  web_doc_unsafe_count?: number;
   description: string;
   unhardened: ModeMetrics;
   policy_v2: ModeMetrics;

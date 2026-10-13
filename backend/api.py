@@ -452,11 +452,18 @@ async def get_recorded_summary() -> dict[str, Any]:
     if "realistic_mode" in response_data and isinstance(response_data["realistic_mode"], dict):
         try:
             rdata = load_recorded_run_data()
-            std_email = [
-                a for a in rdata.get("attacks", [])
-                if not a.get("is_probe") and a.get("channel") == "email"
-            ]
+            std_attacks = [a for a in rdata.get("attacks", []) if not a.get("is_probe")]
+            std_email = [a for a in std_attacks if a.get("channel") == "email"]
             response_data["realistic_mode"]["n_email"] = len(std_email)
+            web_doc = [a for a in std_attacks if a.get("channel") in ("web_page", "document")]
+            web_doc_unsafe = [
+                a for a in web_doc
+                if a.get("unhardened", {}).get("unsafe")
+                or a.get("unhardened", {}).get("m1")
+                or a.get("unhardened", {}).get("m2")
+                or a.get("unhardened", {}).get("m3")
+            ]
+            response_data["realistic_mode"]["web_doc_unsafe_count"] = len(web_doc_unsafe)
         except Exception:
             pass
     return response_data

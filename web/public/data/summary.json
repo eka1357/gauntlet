@@ -278,7 +278,8 @@
         ]
       }
     },
-    "n_email": 150
+    "n_email": 150,
+    "web_doc_unsafe_count": 0
   },
   "probe_set": {
     "n": 45,
@@ -1513,7 +1514,6 @@
     "formatted_project_usage": "$12.40",
     "live_run_cap_usd": 0.08,
     "daily_cap_usd": 0.4,
-    "initial_spend_usd": 0.0,
     "source": "Token Factory console usage page, read manually on 2026-10-13",
     "description": "Total project usage per the Token Factory console across development, earlier experiments, failed runs, and confirmation runs."
   }

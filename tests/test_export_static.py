@@ -88,6 +88,8 @@ def test_public_data_directory_contents_and_schemas() -> None:
     )
     for req in required_keys:
         assert req in summary
+    assert summary["realistic_mode"]["n_email"] == 150
+    assert summary["realistic_mode"]["web_doc_unsafe_count"] == 0
 
     # 2. Project facts
     facts_path = PUBLIC_DATA_DIR / "project_facts.json"
