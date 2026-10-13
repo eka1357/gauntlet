@@ -14,12 +14,11 @@ def test_audit_numbers_clean() -> None:
     """Audit passes cleanly with exit code 0 on the active codebase."""
     res = subprocess.run([sys.executable, str(SCRIPT)], capture_output=True, text=True)
     assert res.returncode == 0, f"audit_numbers failed: {res.stdout}\n{res.stderr}"
-    assert "Unmatched:   0" in res.stdout
+    assert "Unmatched:        0" in res.stdout or "Unmatched:   0" in res.stdout
 
 
-def test_audit_numbers_fails_on_unmatched_claim(tmp_path: Path) -> None:
+def test_audit_numbers_fails_on_unmatched_claim() -> None:
     """Audit detects fabricated numbers not in data or allowlist and exits non-zero."""
-    # Create a fake markdown claim file
     fake_doc = ROOT / "docs" / "_temp_audit_probe.md"
     try:
         fake_doc.write_text(
@@ -31,6 +30,26 @@ def test_audit_numbers_fails_on_unmatched_claim(tmp_path: Path) -> None:
         assert res.returncode != 0, "audit_numbers should have failed on unmatched claims"
         assert "UNMATCHED CLAIMS DETECTED" in res.stdout
         assert "99.999%" in res.stdout or "$999.99" in res.stdout
+    finally:
+        if fake_doc.exists():
+            fake_doc.unlink()
+
+
+def test_audit_numbers_fails_on_wrong_percentage_matching_unrelated_count() -> None:
+    """Audit fails when a percentage claim equals an unrelated count (e.g. 49%)."""
+    fake_doc = ROOT / "docs" / "_temp_audit_probe_percentage.md"
+    try:
+        # 49 is a real count in summary.json (realistic_mode.unhardened.unsafe.count),
+        # but 49% is NOT a real percentage in the data.
+        fake_doc.write_text(
+            "# Wrong Percentage Probe\n"
+            "The system reported a 49% rate of failure.",
+            encoding="utf-8",
+        )
+        res = subprocess.run([sys.executable, str(SCRIPT)], capture_output=True, text=True)
+        assert res.returncode != 0, "audit_numbers should fail on 49% (count, not pct)"
+        assert "UNMATCHED CLAIMS DETECTED" in res.stdout
+        assert "49%" in res.stdout
     finally:
         if fake_doc.exists():
             fake_doc.unlink()

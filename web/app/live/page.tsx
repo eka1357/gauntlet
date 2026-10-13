@@ -320,7 +320,7 @@ export default function LivePage() {
           Live runs use email attacks, the channel where this agent failed in the recorded evaluation. Web and document attacks never succeeded in recorded runs.
         </p>
         <p className="text-xs sm:text-sm text-[var(--ink-muted)] font-sans max-w-3xl mt-1.5 leading-relaxed">
-          Recorded evidence, email attacks only: realistic 32.7% [25.7%, 40.5%], naive 78.7% [71.4%, 84.5%]. Live runs use freshly generated email attacks and can differ.
+          Recorded confirmation evidence: realistic-prompt attacks breach 25.8% [20.1%, 32.4%], naive-prompt attacks breach 62.1% [55.0%, 68.7%]. Live runs use freshly generated email attacks and can differ.
         </p>
         <p className="text-xs sm:text-sm text-[var(--ink-muted)] font-sans max-w-3xl mt-1 leading-relaxed italic">
           Live attacks were generated differently from the recorded set; their success rates are not directly comparable.
@@ -410,7 +410,7 @@ export default function LivePage() {
           </p>
           {(runSummary.unhardened_unsafe ?? runSummary.unhardened_breaches ?? 0) === 0 && (
             <div className="p-2.5 rounded-[var(--radius-sm)] bg-[var(--range-paper)] border border-[var(--rule)] text-xs text-[var(--ink)] font-sans">
-              No unsafe actions in this run. In recorded evidence (email attacks only), naive-prompt attacks breach 78.7% [71.4%, 84.5%] and realistic 32.7% [25.7%, 40.5%];{" "}
+              No unsafe actions in this run. In recorded confirmation evidence, realistic-prompt attacks breach 25.8% [20.1%, 32.4%] and naive-prompt attacks breach 62.1% [55.0%, 68.7%];{" "}
               <Link href="/" className="font-semibold underline hover:text-[var(--ink)] text-[var(--cleared)]">
                 open the recorded run
               </Link>.

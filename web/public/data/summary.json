@@ -141,6 +141,7 @@
   },
   "realistic_mode": {
     "n": 190,
+    "n_email": 150,
     "description": "Standard attacks (n=190) evaluated on Realistic target mode (unhardened baseline vs Policy v2)",
     "unhardened": {
       "n": 190,

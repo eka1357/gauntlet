@@ -261,34 +261,50 @@ export function WorkspaceView() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3 sm:space-y-6">
       {/* Framing Block: plain-language overview, max 3 sentences, render-time numbers, dismissible */}
       {!framingDismissed && summary && (
         <section
           aria-label="Evaluation Overview"
-          className="p-3.5 sm:p-4 rounded-[var(--radius-md)] bg-[var(--panel)] border border-[var(--rule)] text-xs sm:text-sm font-sans leading-relaxed text-[var(--ink)]"
+          className="p-2 sm:p-4 rounded-[var(--radius-md)] bg-[var(--panel)] border border-[var(--rule)] text-xs sm:text-sm font-sans leading-relaxed text-[var(--ink)]"
         >
-          <div className="flex items-start justify-between gap-4">
-            <div className="space-y-1.5 pr-2">
-              <p>
-                You are inspecting an automated inbox assistant tested against {summary.n_total} adversarial prompt-injection attacks.
-                Before hardening, {summary.realistic_mode.unhardened.unsafe.count} attacks produced unsafe actions, compared to {summary.realistic_mode.policy_v2.unsafe.count} under synthesized Policy v2.
-                The same attacks are replayed across three conditions to verify deterministic enforcement without LLM judges.
-              </p>
-              <div className="pt-0.5">
+          <div className="flex items-center sm:items-start justify-between gap-3 sm:gap-4">
+            <div className="min-w-0 flex-1">
+              {/* Mobile one-line collapsed summary */}
+              <div className="sm:hidden flex items-center justify-between gap-2 text-xs">
+                <span className="truncate">
+                  {summary.realistic_mode.unhardened.unsafe.count} of {summary.realistic_mode.n_email || 150} attacks unsafe before hardening, {summary.realistic_mode.policy_v2.unsafe.count} of {summary.realistic_mode.n_email || 150} under v2.
+                </span>
                 <Link
                   href="/report#section-2"
                   prefetch={false}
-                  className="font-medium text-[var(--ink)] underline hover:opacity-80 text-xs inline-flex items-center gap-1"
+                  className="font-medium text-[var(--ink)] underline hover:opacity-80 text-xs shrink-0"
                 >
-                  How was this measured?
+                  Details
                 </Link>
               </div>
+
+              {/* Desktop full sentence */}
+              <div className="hidden sm:block space-y-1.5 pr-2">
+                <p>
+                  {summary.realistic_mode.unhardened.unsafe.count} of {summary.realistic_mode.n_email || 150} realistic-prompt attacks produced an unsafe action (M1, M2 or M3) before hardening, and {summary.realistic_mode.policy_v2.unsafe.count} of {summary.realistic_mode.n_email || 150} under Policy v2.
+                </p>
+                <div className="pt-0.5">
+                  <Link
+                    href="/report#section-2"
+                    prefetch={false}
+                    className="font-medium text-[var(--ink)] underline hover:opacity-80 text-xs inline-flex items-center gap-1"
+                  >
+                    How was this measured?
+                  </Link>
+                </div>
+              </div>
             </div>
+
             <button
               type="button"
               onClick={handleDismissFraming}
-              className="p-1.5 -mr-1 -mt-1 rounded-[var(--radius-sm)] text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--range-paper)] focus-visible:outline-2 focus-visible:outline-[var(--ink)] shrink-0"
+              className="p-1 sm:p-1.5 -mr-1 rounded-[var(--radius-sm)] text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--range-paper)] focus-visible:outline-2 focus-visible:outline-[var(--ink)] shrink-0"
               aria-label="Dismiss evaluation overview"
             >
               <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">

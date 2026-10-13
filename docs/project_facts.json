@@ -1,6 +1,9 @@
 {
   "total_project_usage_usd": 12.40,
   "formatted_project_usage": "$12.40",
+  "live_run_cap_usd": 0.08,
+  "daily_cap_usd": 0.40,
+  "initial_spend_usd": 0.0,
   "source": "Token Factory console usage page, read manually on 2026-10-13",
   "description": "Total project usage per the Token Factory console across development, earlier experiments, failed runs, and confirmation runs."
 }

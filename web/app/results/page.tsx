@@ -105,11 +105,11 @@ export default function ResultsPage() {
     <div className="max-w-6xl mx-auto space-y-8 pb-12">
       {/* Page Header */}
       <div>
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 sm:gap-3 mb-2">
           <h1 className="font-display font-bold text-2xl sm:text-3xl text-[var(--ink)] tracking-tight">
             Verification Results
           </h1>
-          <div className="flex items-center gap-2 font-mono text-xs text-[var(--ink-muted)]">
+          <div className="flex flex-wrap items-center justify-start gap-2 font-mono text-xs text-[var(--ink-muted)]">
             <span className="px-2 py-0.5 rounded-[var(--radius-sm)] bg-[var(--panel)] border border-[var(--rule)]">
               Evaluation: {summary.evaluation_type ?? "confirmation_split"}
             </span>
