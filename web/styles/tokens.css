@@ -14,6 +14,9 @@
   --cleared: #1E7A68;
   --in-flight: #D9962B;
 
+  /* Contrast / Muted text */
+  --ink-muted: #556B79;
+
   /* Radius scale by hierarchy */
   --radius-sm: 2px;
   --radius-md: 6px;
@@ -27,6 +30,27 @@
   --text-xl: 28px;
   --text-2xl: 44px;
   --text-hero: 72px;
+
+  /* shadcn mappings */
+  --background: var(--range-paper);
+  --foreground: var(--ink);
+  --card: var(--panel);
+  --card-foreground: var(--ink);
+  --popover: var(--panel);
+  --popover-foreground: var(--ink);
+  --primary: var(--ink);
+  --primary-foreground: var(--panel);
+  --secondary: var(--panel);
+  --secondary-foreground: var(--ink);
+  --muted: var(--range-paper);
+  --muted-foreground: var(--ink-muted);
+  --accent: var(--panel);
+  --accent-foreground: var(--ink);
+  --destructive: var(--breach);
+  --destructive-foreground: var(--panel);
+  --border: var(--rule);
+  --input: var(--rule);
+  --ring: var(--ink);
 }
 
 /* Optional dark theme */
@@ -36,10 +60,31 @@
     --panel: #16252F;
     --ink: #E8EDF0;
     --rule: #2E3D47;
+    --ink-muted: #8E9EA8;
 
     /* Semantic colours lightened for contrast */
     --breach: #E05048;
     --cleared: #2CA88E;
     --in-flight: #F0B040;
+
+    --background: var(--range-paper);
+    --foreground: var(--ink);
+    --card: var(--panel);
+    --card-foreground: var(--ink);
+    --popover: var(--panel);
+    --popover-foreground: var(--ink);
+    --primary: var(--ink);
+    --primary-foreground: var(--panel);
+    --secondary: var(--panel);
+    --secondary-foreground: var(--ink);
+    --muted: var(--range-paper);
+    --muted-foreground: var(--ink-muted);
+    --accent: var(--panel);
+    --accent-foreground: var(--ink);
+    --destructive: var(--breach);
+    --destructive-foreground: var(--panel);
+    --border: var(--rule);
+    --input: var(--rule);
+    --ring: var(--ink);
   }
 }
