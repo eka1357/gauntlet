@@ -2,7 +2,7 @@
 
 Gauntlet attacks your AI agent until it breaks, fixes it, and proves the fix.
 
-Demo: <PASTE VERCEL URL>
+Demo: https://gauntlet-ecru.vercel.app/
 
 The hosted demo shows a recorded run. Live runs are disabled in this deployment to protect the cost cap.
 
@@ -36,7 +36,7 @@ Evaluation results from `summary.json` comparing unhardened baselines against sy
 
 All 49 unsafe actions in the realistic unhardened baseline came through email (49 of 150 email attacks; web and document vectors yielded zero unsafe actions).
 
-On the channel-coverage probe set, while exfiltration differences are not statistically distinguishable due to low base rates, Policy v2 eliminates residual leakage:
+On the channel-coverage probe set, while exfiltration differences are not statistically distinguishable due to low base rates, no leaks observed in 45 probes (95% upper bound 7.9%):
 - Unhardened probe M4 side-channel leak rate: 22.2% (10 of 45), Wilson 95% interval [12.5%, 36.3%].
 - Policy v1 probe M4 side-channel leak rate: 17.8% (8 of 45), Wilson 95% interval [9.3%, 31.3%].
 - Policy v2 probe M4 side-channel leak rate: 0.0% (0 of 45), Wilson 95% interval [0.0%, 7.9%].
@@ -51,13 +51,13 @@ Benign operational task pass rate:
 
 ## Limitations
 
-Verbatim limitations from the evaluation report:
-1. secrets registry matches literal values
-2. one fictional company and one agent
-3. labelling effect on benign tasks not excluded
-4. probe set used an attacker-supplied secret
-5. realistic baseline M1 was low (about 2%), so exfiltration alone shows no measurable change
-6. headline improvement is unsafe actions (M2, M3)
+Limitations from the evaluation report:
+1. The secrets registry only detects exact literal secret values in outbound tool arguments.
+2. All evaluations were conducted against a single freight-operations agent at one fictional company.
+3. The evaluation did not measure the separate effect of input boundary labelling on benign task execution.
+4. The channel-coverage probe set tested exfiltration with an attacker-supplied secret rather than an internal secret.
+5. Because the baseline rate of direct exfiltration was low (about 2%), the evaluation cannot statistically prove a reduction in exfiltration alone.
+6. The measurable improvement is in unsafe actions that bypass the agent's rules (M2, M3), not in exfiltration alone.
 
 Additional boundaries:
 - One target agent: The evaluation is conducted on Meridian Freight's freight operations inbox assistant.
@@ -86,7 +86,7 @@ Nebius Token Factory measured usage from `summary.json:costs`:
 - Policy v1 confirmation run: $1.3087 USD
 - Confirmation Set #2 evaluation run: $1.5468 USD
 - Benign operational variance and naive-mode run: $1.3107 USD
-- Total recorded confirmation spend: $4.1662 USD
+- Cost of the three recorded confirmation runs: $4.1662 USD
 - Project total usage: $12.40 USD (source note from `docs/project_facts.json`: Token Factory console usage page, read manually on 2026-10-13, covering development, prototyping, exploratory runs, and confirmation runs).
 
 Tavily:
