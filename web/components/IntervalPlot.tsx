@@ -71,7 +71,7 @@ export function IntervalPlot({
           />
           <span className="font-medium text-[var(--ink)]">Policy v2</span>
         </div>
-        <div className="text-[11px] text-[var(--ink-muted)] ml-auto">
+        <div className="text-xs text-[var(--ink-muted)] font-sans ml-auto">
           Whisker bars: 95% Wilson CI
         </div>
       </div>
@@ -301,7 +301,7 @@ export function IntervalPlot({
                   <th className="py-1.5 pl-3 font-semibold text-right">Policy v2 95% CI</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[var(--rule)] font-mono text-[11px]">
+              <tbody className="divide-y divide-[var(--rule)] font-mono text-xs">
                 {METRICS.map((m) => {
                   const u = unhardened[m.key];
                   const p = policyV2[m.key];

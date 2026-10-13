@@ -6,11 +6,11 @@ import { motion } from "motion/react";
 import { AttackRecord } from "@/lib/api";
 import { AttackCondition, getAttackSquareState } from "@/lib/range-utils";
 
-const SQUARE_SIZE = 13;
+const SQUARE_SIZE = 14;
 const GAP = 3;
-const STEP = SQUARE_SIZE + GAP; // 16px
+const STEP = SQUARE_SIZE + GAP; // 17px
 const MAX_COLS = 30;
-const GRID_START_X = 125;
+const GRID_START_X = 140;
 
 function subscribeToReducedMotion(callback: () => void) {
   if (typeof window === "undefined") return () => {};
@@ -60,7 +60,9 @@ export function RangeGrid({
   onSelectAttack,
   isWiping = false,
 }: RangeGridProps) {
-  const [focusedIndex, setFocusedIndex] = useState<number>(0);
+  // Do not auto-focus or pre-select on load; focus rings appear only on keyboard use
+  const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
+  const [isKeyboardFocus, setIsKeyboardFocus] = useState<boolean>(false);
   const [hoveredItem, setHoveredItem] = useState<{
     attack: AttackRecord;
     x: number;
@@ -102,88 +104,136 @@ export function RangeGrid({
       .sort((a, b) => a.id.localeCompare(b.id));
 
     return [
-      { id: "email", label: "Email", sublabel: `${emailAttacks.length} attacks`, isProbe: false, attacks: emailAttacks },
-      { id: "web_page", label: "Web page", sublabel: `${webAttacks.length} attacks`, isProbe: false, attacks: webAttacks },
-      { id: "document", label: "Document", sublabel: `${docAttacks.length} attacks`, isProbe: false, attacks: docAttacks },
-      { id: "probe_partner", label: "Partner address", sublabel: `${partnerProbes.length} probes`, isProbe: true, attacks: partnerProbes },
-      { id: "probe_url", label: "URL smuggling", sublabel: `${urlProbes.length} probes`, isProbe: true, attacks: urlProbes },
-      { id: "probe_cal", label: "Calendar fields", sublabel: `${calProbes.length} probes`, isProbe: true, attacks: calProbes },
+      {
+        id: "email",
+        label: "Email body",
+        sublabel: `${emailAttacks.length} attacks`,
+        isProbe: false,
+        attacks: emailAttacks,
+      },
+      {
+        id: "web_page",
+        label: "Web page",
+        sublabel: `${webAttacks.length} attacks`,
+        isProbe: false,
+        attacks: webAttacks,
+      },
+      {
+        id: "document",
+        label: "Document",
+        sublabel: `${docAttacks.length} attacks`,
+        isProbe: false,
+        attacks: docAttacks,
+      },
+      {
+        id: "probe_partner",
+        label: "Partner probe",
+        sublabel: `${partnerProbes.length} probes`,
+        isProbe: true,
+        attacks: partnerProbes,
+      },
+      {
+        id: "probe_url",
+        label: "URL probe",
+        sublabel: `${urlProbes.length} probes`,
+        isProbe: true,
+        attacks: urlProbes,
+      },
+      {
+        id: "probe_cal",
+        label: "Calendar probe",
+        sublabel: `${calProbes.length} probes`,
+        isProbe: true,
+        attacks: calProbes,
+      },
     ];
   }, [attacks]);
 
+  // Compute 2D layout coordinates for all squares
   const { gridItems, rowPositions, totalHeight } = useMemo(() => {
     const items: GridItem[] = [];
-    const positions: Array<{ id: string; label: string; sublabel: string; y: number; isProbe: boolean; count: number }> = [];
-
+    const positions: Array<{ id: string; label: string; count: string; y: number; isProbe: boolean }> = [];
     let currentY = 16;
     let globalCounter = 0;
 
-    rows.forEach((row, rIdx) => {
-      // Add extra spacing before probes
-      if (row.isProbe && rIdx === 3) {
-        currentY += 28;
+    rows.forEach((row, rowIdx) => {
+      const isFirstProbe = row.isProbe && rowIdx === 3;
+      if (isFirstProbe) {
+        currentY += 28; // Distinct visual spacing before probes
       }
 
       const rowStartY = currentY;
-      const subRowCount = Math.max(1, Math.ceil(row.attacks.length / MAX_COLS));
-
       positions.push({
         id: row.id,
         label: row.label,
-        sublabel: row.sublabel,
+        count: row.sublabel,
         y: rowStartY,
         isProbe: row.isProbe,
-        count: row.attacks.length,
       });
 
-      row.attacks.forEach((attack, idx) => {
-        const col = idx % MAX_COLS;
-        const subRow = Math.floor(idx / MAX_COLS);
+      const count = row.attacks.length;
+      const subRowCount = Math.max(1, Math.ceil(count / MAX_COLS));
+
+      row.attacks.forEach((attack, idxInRow) => {
+        const col = idxInRow % MAX_COLS;
+        const subRow = Math.floor(idxInRow / MAX_COLS);
         const x = GRID_START_X + col * STEP;
         const y = rowStartY + subRow * STEP;
 
         items.push({
           attack,
           col,
-          rowIdx: rIdx,
+          rowIdx,
           x,
           y,
           globalIndex: globalCounter++,
         });
       });
 
-      currentY += subRowCount * STEP + 14;
+      currentY += subRowCount * STEP + 18;
     });
 
-    return { gridItems: items, rowPositions: positions, totalHeight: currentY + 10 };
+    return { gridItems: items, rowPositions: positions, totalHeight: currentY + 12 };
   }, [rows]);
 
-  // Keyboard navigation
+  // Keyboard navigation (focus rings appear ONLY on keyboard use)
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (gridItems.length === 0) return;
 
     if (e.key === "ArrowRight") {
       e.preventDefault();
-      setFocusedIndex((prev) => (prev + 1) % gridItems.length);
+      setIsKeyboardFocus(true);
+      setFocusedIndex((prev) => (prev === null ? 0 : (prev + 1) % gridItems.length));
     } else if (e.key === "ArrowLeft") {
       e.preventDefault();
-      setFocusedIndex((prev) => (prev - 1 + gridItems.length) % gridItems.length);
+      setIsKeyboardFocus(true);
+      setFocusedIndex((prev) => (prev === null ? 0 : (prev - 1 + gridItems.length) % gridItems.length));
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
-      setFocusedIndex((prev) => (prev + MAX_COLS < gridItems.length ? prev + MAX_COLS : prev));
+      setIsKeyboardFocus(true);
+      setFocusedIndex((prev) => {
+        if (prev === null) return 0;
+        return prev + MAX_COLS < gridItems.length ? prev + MAX_COLS : prev;
+      });
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
-      setFocusedIndex((prev) => (prev - MAX_COLS >= 0 ? prev - MAX_COLS : prev));
+      setIsKeyboardFocus(true);
+      setFocusedIndex((prev) => {
+        if (prev === null) return 0;
+        return prev - MAX_COLS >= 0 ? prev - MAX_COLS : prev;
+      });
     } else if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
-      const item = gridItems[focusedIndex];
-      if (item) {
-        onSelectAttack(item.attack);
+      if (focusedIndex !== null) {
+        const item = gridItems[focusedIndex];
+        if (item) {
+          onSelectAttack(item.attack);
+        }
       }
     }
   };
 
-  const svgWidth = GRID_START_X + MAX_COLS * STEP + 15; // ~620px
+  const svgWidth = GRID_START_X + MAX_COLS * STEP + 16; // ~666px
 
   return (
     <div
@@ -199,18 +249,18 @@ export function RangeGrid({
             <h2 className="font-display font-semibold text-base sm:text-lg text-[var(--ink)]">
               The Range
             </h2>
-            <span className="font-mono text-[11px] px-2 py-0.5 rounded-[var(--radius-sm)] bg-[var(--range-paper)] border border-[var(--rule)] text-[var(--ink)] font-medium">
+            <span className="font-sans text-xs px-2 py-0.5 rounded-[var(--radius-sm)] bg-[var(--range-paper)] border border-[var(--rule)] text-[var(--ink)] font-medium">
               Realistic prompt (safety instructions in the system prompt)
             </span>
           </div>
-          <p className="text-xs text-[var(--ink-muted)]">
+          <p className="text-xs text-[var(--ink-muted)] font-sans">
             Telemetry grid ({attacks.length} total attack squares) grouped by channel and targeted probe vectors. Naive-prompt results are on the{" "}
             <Link href="/results" className="underline hover:text-[var(--ink)]">
               Results page
             </Link>.
           </p>
         </div>
-        <div className="text-[11px] font-mono text-[var(--ink-muted)] self-start sm:self-auto">
+        <div className="text-xs font-sans text-[var(--ink-muted)] self-start sm:self-auto">
           Arrow keys to browse • Click or Enter to inspect trace
         </div>
       </div>
@@ -219,7 +269,7 @@ export function RangeGrid({
       <div className="w-full overflow-x-auto relative">
         <svg
           viewBox={`0 0 ${svgWidth} ${totalHeight}`}
-          className="w-full h-auto min-w-[580px] select-none"
+          className="w-full h-auto min-w-[620px] select-none"
           role="grid"
           aria-label="Attack Range grid"
         >
@@ -244,7 +294,7 @@ export function RangeGrid({
                       x="4"
                       y={pos.y - 8}
                       fontFamily="var(--font-ibm-sans)"
-                      fontSize="10"
+                      fontSize="12"
                       fontWeight="600"
                       fill="var(--ink-muted)"
                     >
@@ -253,12 +303,12 @@ export function RangeGrid({
                   </g>
                 )}
 
-                {/* Row label */}
+                {/* Row label (at least 12px) */}
                 <text
                   x="4"
-                  y={pos.y + 10}
+                  y={pos.y + 11}
                   fontFamily="var(--font-ibm-sans)"
-                  fontSize="11"
+                  fontSize="12"
                   fontWeight="600"
                   fill="var(--ink)"
                 >
@@ -266,9 +316,9 @@ export function RangeGrid({
                 </text>
                 <text
                   x="4"
-                  y={pos.y + 22}
+                  y={pos.y + 25}
                   fontFamily="var(--font-ibm-mono)"
-                  fontSize="9"
+                  fontSize="12"
                   fill="var(--ink-muted)"
                 >
                   {pos.count}
@@ -281,7 +331,7 @@ export function RangeGrid({
           {gridItems.map((item) => {
             const visualState = getAttackSquareState(item.attack, condition);
             const isSelected = selectedAttackId === item.attack.id;
-            const isFocused = focusedIndex === item.globalIndex;
+            const isFocusedWithKeyboard = isKeyboardFocus && focusedIndex === item.globalIndex;
 
             // Resolve target colors using CSS tokens (no raw hex)
             let fillHex = "var(--defended)"; // Grey defended
@@ -291,19 +341,18 @@ export function RangeGrid({
               fillHex = "var(--in-flight)"; // Amber
             }
 
-            let strokeHex = "transparent";
+            let strokeHex = "rgba(0, 0, 0, 0)";
             let strokeWidth = 0;
             if (visualState.hasTealOutline) {
               strokeHex = "var(--cleared)"; // Cleared teal
               strokeWidth = 2;
             }
-            if (isSelected || isFocused) {
+            if (isSelected || isFocusedWithKeyboard) {
               strokeHex = "var(--ink)";
               strokeWidth = 2.5;
             }
 
             // Before/after wipe left-to-right sweep calculation
-            // Delay is based on column index (0..29) across 900ms total
             const colDelay = prefersReducedMotion ? 0 : (item.col / MAX_COLS) * 0.65;
             const animDuration = prefersReducedMotion ? 0 : isWiping ? 0.25 : 0.12;
 
@@ -311,9 +360,10 @@ export function RangeGrid({
               <g
                 key={item.attack.id}
                 role="gridcell"
-                aria-label={`${item.attack.id} ${item.attack.category} ${item.attack[condition].outcome}`}
+                aria-label={`${item.attack.id} ${item.attack.category} ${visualState.status}`}
                 tabIndex={-1}
                 onClick={() => {
+                  setIsKeyboardFocus(false);
                   setFocusedIndex(item.globalIndex);
                   onSelectAttack(item.attack);
                 }}
@@ -385,41 +435,40 @@ export function RangeGrid({
           })}
         </svg>
 
-        {/* Floating Tooltip */}
+        {/* Hover Tooltip */}
         {hoveredItem && (
           <div
+            className="absolute z-30 pointer-events-none bg-[var(--panel)] border border-[var(--rule)] rounded-[var(--radius-sm)] shadow-xl p-2.5 max-w-xs transition-opacity duration-100"
             style={{
-              left: Math.min(hoveredItem.x + 18, 420),
-              top: Math.max(hoveredItem.y - 10, 10),
+              left: `${Math.min(hoveredItem.x + 15, 420)}px`,
+              top: `${Math.max(hoveredItem.y - 45, 10)}px`,
             }}
-            className="absolute z-30 pointer-events-none p-2.5 rounded-[var(--radius-sm)] bg-[var(--panel)] border border-[var(--ink)] shadow-lg text-xs max-w-xs transition-opacity"
-            role="tooltip"
           >
             <div className="flex items-center justify-between gap-2 mb-1">
-              <span className="font-mono text-[10px] font-bold text-[var(--ink)]">
+              <span className="font-mono text-xs font-bold text-[var(--ink)]">
                 {hoveredItem.attack.id}
               </span>
               <span
-                className={`font-mono text-[10px] font-semibold px-1 rounded ${
+                className={`font-sans text-xs font-semibold px-1.5 py-0.5 rounded ${
                   getAttackSquareState(hoveredItem.attack, condition).isUnsafe
                     ? "bg-[var(--breach)] text-[var(--panel)]"
                     : getAttackSquareState(hoveredItem.attack, condition).isCanaryOnly
-                    ? "bg-[var(--in-flight)] text-[var(--panel)]"
-                    : "bg-[var(--defended)] text-[var(--panel)]"
+                    ? "bg-[var(--in-flight)] text-[var(--ink)]"
+                    : "bg-[var(--range-paper)] text-[var(--ink)] border border-[var(--rule)]"
                 }`}
               >
-                {hoveredItem.attack[condition].outcome.toUpperCase()}
+                {getAttackSquareState(hoveredItem.attack, condition).status}
               </span>
             </div>
-            <div className="font-sans text-[11px] text-[var(--ink-muted)] mb-1">
+            <div className="font-sans text-xs text-[var(--ink-muted)] mb-1">
               {hoveredItem.attack.category.replace(/_/g, " ")}
             </div>
-            <div className="font-sans text-[11px] text-[var(--ink)] line-clamp-2 leading-tight">
+            <div className="font-sans text-xs text-[var(--ink)] line-clamp-2 leading-tight">
               {hoveredItem.attack.strategy}
             </div>
             {hoveredItem.attack[condition].policy_block_rule && (
-              <div className="mt-1.5 pt-1 border-t border-[var(--rule)] font-mono text-[10px] text-[var(--cleared)] truncate">
-                Stopped by: {hoveredItem.attack[condition].policy_block_rule}
+              <div className="mt-1.5 pt-1 border-t border-[var(--rule)] font-mono text-xs text-[var(--cleared)] truncate">
+                Rule: {hoveredItem.attack[condition].policy_block_rule}
               </div>
             )}
           </div>

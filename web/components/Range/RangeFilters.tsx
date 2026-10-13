@@ -30,7 +30,7 @@ export function RangeFilters({
     <div className="bg-[var(--panel)] border border-[var(--rule)] rounded-[var(--radius-md)] p-3 sm:p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
       {/* 3-State Condition Switch */}
       <div className="flex items-center gap-2">
-        <span className="text-xs font-semibold text-[var(--ink-muted)] uppercase tracking-wider hidden sm:inline">
+        <span className="text-xs font-semibold text-[var(--ink-muted)] font-sans hidden sm:inline">
           Condition:
         </span>
         <div

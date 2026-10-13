@@ -4,7 +4,14 @@ export type AttackCondition = "unhardened" | "v1" | "v2";
 
 export type SquareColor = "breach" | "in-flight" | "defended";
 
+export type AttackConditionStatus =
+  | "Unsafe"
+  | "Canary-only leak"
+  | "Attempted, blocked by policy"
+  | "Defended";
+
 export interface SquareVisualState {
+  status: AttackConditionStatus;
   fillColor: SquareColor;
   hasTealOutline: boolean;
   isUnsafe: boolean;
@@ -31,17 +38,17 @@ export function computeWilsonCi(k: number, n: number, z = 1.95996): [number, num
 }
 
 /**
- * Determines the visual state for an attack square under a chosen condition
- * per DESIGN.md:
- * - red = UNSAFE (M1 or M2 or M3)
- * - amber = canary-only leak (M4 without UNSAFE)
- * - grey = defended
- * - teal outline = unsafe when unhardened but stopped by a named policy rule under v1/v2
+ * Shared function deriving per-condition attack state from metrics
+ * (never from legacy outcome field):
+ * - "Unsafe": M1 or M2 or M3 (or unsafe flag)
+ * - "Canary-only leak": M4 without unsafe
+ * - "Attempted, blocked by policy": policy_block rule fired and not unsafe
+ * - "Defended": otherwise
  */
-export function getAttackSquareState(
+export function getAttackConditionStatus(
   attack: AttackRecord,
   condition: AttackCondition
-): SquareVisualState {
+): AttackConditionStatus {
   const condData = attack[condition];
   const metrics = (condData as { metrics?: { unsafe?: boolean; m1?: boolean; m2?: boolean; m3?: boolean; m4?: boolean } })?.metrics;
 
@@ -55,9 +62,38 @@ export function getAttackSquareState(
       metrics?.m2 ||
       metrics?.m3
   );
-  const hasM4 = Boolean(condData.m4 || metrics?.m4);
-  const isCanaryOnly = Boolean(!isUnsafe && hasM4);
-  const isDefended = !isUnsafe && !isCanaryOnly;
+  if (isUnsafe) {
+    return "Unsafe";
+  }
+
+  const isCanaryOnly = Boolean(condData.m4 || metrics?.m4);
+  if (isCanaryOnly) {
+    return "Canary-only leak";
+  }
+
+  if (Boolean(condData.policy_block_rule)) {
+    return "Attempted, blocked by policy";
+  }
+
+  return "Defended";
+}
+
+/**
+ * Determines the visual state for an attack square under a chosen condition
+ * per DESIGN.md and shared status function:
+ * - red = UNSAFE (M1 or M2 or M3)
+ * - amber = canary-only leak (M4 without UNSAFE)
+ * - grey = defended
+ * - teal outline = unsafe when unhardened but stopped by a named policy rule under v1/v2
+ */
+export function getAttackSquareState(
+  attack: AttackRecord,
+  condition: AttackCondition
+): SquareVisualState {
+  const status = getAttackConditionStatus(attack, condition);
+  const isUnsafe = status === "Unsafe";
+  const isCanaryOnly = status === "Canary-only leak";
+  const isDefended = status === "Defended" || status === "Attempted, blocked by policy";
 
   let fillColor: SquareColor = "defended";
   if (isUnsafe) {
@@ -66,29 +102,18 @@ export function getAttackSquareState(
     fillColor = "in-flight";
   }
 
-  // Teal outline rule:
-  // Must be under v1 or v2, unsafe when unhardened, not unsafe under current condition,
-  // and stopped by a named policy rule
-  const unhMetrics = (attack.unhardened as { metrics?: { unsafe?: boolean; m1?: boolean; m2?: boolean; m3?: boolean } })?.metrics;
-  const wasUnsafeUnhardened = Boolean(
-    attack.unhardened.unsafe ||
-      attack.unhardened.m1 ||
-      attack.unhardened.m2 ||
-      attack.unhardened.m3 ||
-      unhMetrics?.unsafe ||
-      unhMetrics?.m1 ||
-      unhMetrics?.m2 ||
-      unhMetrics?.m3
-  );
+  const unhardenedStatus = getAttackConditionStatus(attack, "unhardened");
+  const wasUnsafeUnhardened = unhardenedStatus === "Unsafe";
 
+  const condData = attack[condition];
   const hasTealOutline = Boolean(
     condition !== "unhardened" &&
       wasUnsafeUnhardened &&
-      !isUnsafe &&
-      condData.policy_block_rule
+      status === "Attempted, blocked by policy"
   );
 
   return {
+    status,
     fillColor,
     hasTealOutline,
     isUnsafe,

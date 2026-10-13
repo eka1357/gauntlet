@@ -59,7 +59,7 @@ export function ProbeSetSection({ probeSet }: ProbeSetSectionProps) {
     <div className="bg-[var(--panel)] border border-[var(--rule)] rounded-[var(--radius-md)] p-4 sm:p-5">
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 mb-3">
         <div>
-          <div className="text-xs font-semibold text-[var(--ink-muted)] uppercase tracking-wider">
+          <div className="text-xs font-semibold text-[var(--ink-muted)] font-sans">
             Probe evaluation suite (n={n})
           </div>
           <h3 className="font-display font-semibold text-base sm:text-lg text-[var(--ink)] mt-0.5">
@@ -210,7 +210,7 @@ export function ProbeSetSection({ probeSet }: ProbeSetSectionProps) {
                   x={plotRight + 16}
                   y={c.y - 2}
                   fontFamily="var(--font-ibm-mono)"
-                  fontSize="11"
+                  fontSize="12"
                   fill={c.color}
                   fontWeight="600"
                 >
@@ -218,9 +218,9 @@ export function ProbeSetSection({ probeSet }: ProbeSetSectionProps) {
                 </text>
                 <text
                   x={plotRight + 16}
-                  y={c.y + 11}
+                  y={c.y + 12}
                   fontFamily="var(--font-ibm-mono)"
-                  fontSize="10"
+                  fontSize="12"
                   fill="var(--ink-muted)"
                 >
                   95% CI: [{c.data.ci_pct[0].toFixed(1)}%, {c.data.ci_pct[1].toFixed(1)}%]
@@ -238,7 +238,7 @@ export function ProbeSetSection({ probeSet }: ProbeSetSectionProps) {
           <div className="font-mono text-base font-semibold text-[var(--breach)]">
             {unh.count}/{n} <span className="text-xs font-normal">({unh.rate_pct.toFixed(1)}%)</span>
           </div>
-          <div className="font-mono text-[11px] text-[var(--ink-muted)] mt-0.5">
+          <div className="font-mono text-xs text-[var(--ink-muted)] mt-0.5">
             95% CI: [{unh.ci_pct[0].toFixed(1)}%, {unh.ci_pct[1].toFixed(1)}%]
           </div>
         </div>
@@ -248,7 +248,7 @@ export function ProbeSetSection({ probeSet }: ProbeSetSectionProps) {
           <div className="font-mono text-base font-semibold text-[var(--in-flight)]">
             {v1.count}/{n} <span className="text-xs font-normal">({v1.rate_pct.toFixed(1)}%)</span>
           </div>
-          <div className="font-mono text-[11px] text-[var(--ink-muted)] mt-0.5">
+          <div className="font-mono text-xs text-[var(--ink-muted)] mt-0.5">
             95% CI: [{v1.ci_pct[0].toFixed(1)}%, {v1.ci_pct[1].toFixed(1)}%]
           </div>
         </div>
@@ -258,7 +258,7 @@ export function ProbeSetSection({ probeSet }: ProbeSetSectionProps) {
           <div className="font-mono text-base font-semibold text-[var(--cleared)]">
             {v2.count}/{n} <span className="text-xs font-normal">({v2.rate_pct.toFixed(1)}%)</span>
           </div>
-          <div className="font-mono text-[11px] text-[var(--ink-muted)] mt-0.5">
+          <div className="font-mono text-xs text-[var(--ink-muted)] mt-0.5">
             95% CI: [{v2.ci_pct[0].toFixed(1)}%, {v2.ci_pct[1].toFixed(1)}%]
           </div>
         </div>

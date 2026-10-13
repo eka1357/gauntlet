@@ -29,6 +29,7 @@ export function WorkspaceView() {
   const [condition, setCondition] = useState<AttackCondition>("unhardened");
   const [selectedAttack, setSelectedAttack] = useState<AttackRecord | null>(null);
   const [isWiping, setIsWiping] = useState(false);
+  const [factsExpanded, setFactsExpanded] = useState(true);
 
   // Filter State
   const [channelFilter, setChannelFilter] = useState("all");
@@ -102,12 +103,7 @@ export function WorkspaceView() {
 
       // Only unsafe when unhardened
       if (onlyUnsafeUnhardened) {
-        const wasUnsafe = Boolean(
-          a.unhardened.unsafe ||
-            a.unhardened.m1 ||
-            a.unhardened.m2 ||
-            a.unhardened.m3
-        );
+        const wasUnsafe = getAttackSquareState(a, "unhardened").isUnsafe;
         if (!wasUnsafe) return false;
       }
 
@@ -203,57 +199,48 @@ export function WorkspaceView() {
     };
   }, [filteredAttacks, condition]);
 
-  // 1. Loading State
+  const standardCount = useMemo(() => attacks.filter((a) => !a.is_probe).length, [attacks]);
+  const probeCount = useMemo(() => attacks.filter((a) => a.is_probe).length, [attacks]);
+
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto py-16 text-center space-y-3">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-[var(--radius-sm)] bg-[var(--panel)] border border-[var(--rule)] text-xs text-[var(--ink-muted)]">
-          <span className="w-2 h-2 rounded-full bg-[var(--in-flight)] animate-pulse" aria-hidden="true" />
-          <span>Loading attack telemetry...</span>
-        </div>
-        <p className="text-xs text-[var(--ink-muted)] font-mono">
-          Fetching 235 recorded attacks from /api/recorded/attacks
-        </p>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
+        <div className="w-6 h-6 border-2 border-[var(--ink)] border-t-transparent rounded-full animate-spin" />
+        <span className="font-mono text-xs text-[var(--ink-muted)]">
+          Loading recorded evaluation telemetry...
+        </span>
       </div>
     );
   }
 
-  // 2. Error State
   if (error) {
     return (
-      <div className="max-w-2xl mx-auto my-8 p-6 rounded-[var(--radius-md)] bg-[var(--panel)] border-2 border-[var(--breach)] space-y-4">
-        <div className="flex items-start gap-3">
-          <span className="w-3 h-3 rounded-full bg-[var(--breach)] shrink-0 mt-1" aria-hidden="true" />
-          <div>
-            <h2 className="font-display font-semibold text-lg text-[var(--ink)]">
-              Cannot connect to Gauntlet API
-            </h2>
-            <p className="text-xs text-[var(--breach)] font-mono mt-1 break-words">
-              {error.message}
-            </p>
-          </div>
+      <div className="max-w-2xl mx-auto my-12 p-6 bg-[var(--panel)] border border-[var(--breach)] rounded-[var(--radius-md)] space-y-4">
+        <div className="flex items-center gap-2 text-[var(--breach)] font-semibold text-sm">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path
+              fillRule="evenodd"
+              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+              clipRule="evenodd"
+            />
+          </svg>
+          API Error: Failed to load evaluation data
         </div>
-        <div className="p-3 bg-[var(--range-paper)] rounded-[var(--radius-sm)] border border-[var(--rule)] text-xs text-[var(--ink-muted)]">
-          {error.actionGuide ||
-            "Start the FastAPI server: py -m uvicorn backend.api:app --port 8000, then refresh."}
-        </div>
-        <button
-          type="button"
-          onClick={() => window.location.reload()}
-          className="px-4 py-2 rounded-[var(--radius-sm)] bg-[var(--ink)] text-[var(--panel)] text-xs font-semibold hover:opacity-90 focus-visible:outline-2"
-        >
-          Retry Connection
-        </button>
+        <p className="font-mono text-xs text-[var(--ink)] bg-[var(--range-paper)] p-3 rounded border border-[var(--rule)]">
+          {error.message}
+        </p>
+        {error.actionGuide && (
+          <p className="text-xs text-[var(--ink-muted)] font-sans">
+            <strong>Remediation:</strong> {error.actionGuide}
+          </p>
+        )}
       </div>
     );
   }
 
-  const standardCount = attacks.filter((a) => !a.is_probe).length;
-  const probeCount = attacks.filter((a) => a.is_probe).length;
-
   return (
-    <div className="max-w-7xl mx-auto space-y-6 pb-12">
-      {/* Top Controls: Filters and 3-State Condition Switch */}
+    <div className="space-y-6">
+      {/* Top Filter and Condition Switch Toolbar */}
       <RangeFilters
         condition={condition}
         onConditionChange={handleConditionChange}
@@ -266,26 +253,16 @@ export function WorkspaceView() {
         availableCategories={availableCategories}
       />
 
-      {/* Main Workspace Layout: Left Rail + Center Range + Counter */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Rail Facts */}
-        <aside className="lg:col-span-3 space-y-4" aria-label="Run facts">
-          <LeftRailFacts
-            totalAttacks={attacks.length}
-            standardCount={standardCount}
-            probeCount={probeCount}
-            policyHashes={summary?.policy_hashes ?? null}
-          />
-        </aside>
-
-        {/* Center: The Range Grid */}
-        <section className="lg:col-span-6" aria-label="The Range interactive attack grid">
+      {/* Main Workspace Layout: The Range is the Hero (most width) with Counter directly next to it */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* The Range Hero: Takes 8 of 12 columns */}
+        <section className="lg:col-span-8 xl:col-span-8 2xl:col-span-9" aria-label="The Range interactive attack grid">
           {filteredAttacks.length === 0 ? (
             <div className="bg-[var(--panel)] border border-[var(--rule)] rounded-[var(--radius-md)] p-8 text-center space-y-3">
-              <div className="text-sm font-semibold text-[var(--ink)]">
+              <div className="text-sm font-semibold text-[var(--ink)] font-sans">
                 No attacks match the selected filters
               </div>
-              <p className="text-xs text-[var(--ink-muted)] max-w-sm mx-auto">
+              <p className="text-xs text-[var(--ink-muted)] max-w-sm mx-auto font-sans">
                 No attack records satisfied the current channel, category, and unhardened-unsafe criteria.
               </p>
               <button
@@ -295,7 +272,7 @@ export function WorkspaceView() {
                   setCategoryFilter("all");
                   setOnlyUnsafeUnhardenedChange(false);
                 }}
-                className="px-3.5 py-1.5 rounded-[var(--radius-sm)] bg-[var(--ink)] text-[var(--panel)] text-xs font-semibold hover:opacity-90"
+                className="px-3.5 py-1.5 rounded-[var(--radius-sm)] bg-[var(--ink)] text-[var(--panel)] text-xs font-semibold hover:opacity-90 font-sans"
               >
                 Reset all filters
               </button>
@@ -311,8 +288,8 @@ export function WorkspaceView() {
           )}
         </section>
 
-        {/* Right: Breach Counter & Legend */}
-        <section className="lg:col-span-3" aria-label="Breach rate telemetry counter and legend">
+        {/* Counter: Right next to the grid in 4 of 12 columns */}
+        <section className="lg:col-span-4 xl:col-span-4 2xl:col-span-3" aria-label="Unsafe-action rate telemetry counter and legend">
           <RangeCounter
             condition={condition}
             standardUnsafeCount={standardUnsafeCount}
@@ -331,6 +308,38 @@ export function WorkspaceView() {
           />
         </section>
       </div>
+
+      {/* Collapsible Run Facts Panel placed below The Range hero */}
+      <section className="border border-[var(--rule)] rounded-[var(--radius-md)] bg-[var(--panel)] overflow-hidden" aria-label="Run facts and configuration">
+        <button
+          type="button"
+          onClick={() => setFactsExpanded((prev) => !prev)}
+          className="w-full flex items-center justify-between p-4 text-xs font-medium text-[var(--ink)] hover:bg-[var(--range-paper)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ink)]"
+          aria-expanded={factsExpanded}
+        >
+          <div className="flex items-center gap-2 font-sans">
+            <span className="font-semibold text-xs text-[var(--ink)]">Run facts & configuration</span>
+            <span className="text-[var(--ink-muted)] text-xs hidden sm:inline">
+              • Target agent, active model roles, and policy SHA-256 hashes
+            </span>
+          </div>
+          <span className="font-mono text-xs text-[var(--ink-muted)]">
+            {factsExpanded ? "Collapse ▲" : "Expand ▼"}
+          </span>
+        </button>
+        {factsExpanded && (
+          <div className="p-4 sm:p-5 border-t border-[var(--rule)] bg-[var(--panel)]">
+            <LeftRailFacts
+              totalAttacks={attacks.length}
+              standardCount={standardCount}
+              probeCount={probeCount}
+              policyHashes={summary?.policy_hashes ?? null}
+              modelRoles={summary?.model_roles ?? null}
+              horizontal={true}
+            />
+          </div>
+        )}
+      </section>
 
       {/* Attack Detail Drawer */}
       <AttackDrawer

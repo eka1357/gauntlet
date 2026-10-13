@@ -26,7 +26,7 @@ export function LimitationsSection({ limitations }: LimitationsSectionProps) {
             className="flex items-start gap-2.5 p-3 rounded-[var(--radius-sm)] bg-[var(--range-paper)] border border-[var(--rule)] text-xs text-[var(--ink)]"
           >
             <span
-              className="font-mono text-[11px] text-[var(--ink-muted)] font-semibold shrink-0 mt-0.5"
+              className="font-mono text-xs text-[var(--ink-muted)] font-semibold shrink-0 mt-0.5"
               aria-hidden="true"
             >
               [{String(index + 1).padStart(2, "0")}]

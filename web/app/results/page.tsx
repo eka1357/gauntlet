@@ -128,21 +128,21 @@ export default function ResultsPage() {
         aria-label="Executive Headline"
         className="p-5 sm:p-6 rounded-[var(--radius-md)] bg-[var(--panel)] border-l-4 border-l-[var(--cleared)] border-y border-r border-[var(--rule)]"
       >
-        <div className="text-[11px] font-semibold text-[var(--ink-muted)] uppercase tracking-wider mb-1.5">
-          Executive Verification Summary
+        <div className="text-xs font-semibold text-[var(--ink-muted)] font-sans mb-1.5">
+          Executive verification summary
         </div>
         <p className="font-display font-semibold text-lg sm:text-xl text-[var(--ink)] leading-snug">
           {headline}
         </p>
-        <div className="flex flex-wrap items-center gap-4 mt-3 pt-3 border-t border-[var(--rule)] text-xs text-[var(--ink-muted)]">
+        <div className="flex flex-wrap items-center gap-4 mt-3 pt-3 border-t border-[var(--rule)] text-xs text-[var(--ink-muted)] font-sans">
           <div>
-            Realistic baseline breach rate:{" "}
+            Realistic baseline unsafe-action rate:{" "}
             <span className="font-mono font-semibold text-[var(--breach)]">
               {realisticUnhardenedUnsafePct.toFixed(1)}%
             </span>
           </div>
           <div>
-            Policy v2 breach rate:{" "}
+            Policy v2 unsafe-action rate:{" "}
             <span className="font-mono font-semibold text-[var(--cleared)]">
               0.0%
             </span>{" "}

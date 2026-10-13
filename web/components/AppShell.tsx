@@ -38,7 +38,6 @@ export function AppShell({ children }: AppShellProps) {
     };
   }, []);
 
-  const verificationCost = costs ? `$${costs.confirmation_set2_run_usd.toFixed(2)}` : "$--.--";
   const allRunsCost = costs ? `$${costs.total_usd.toFixed(2)}` : "$--.--";
 
   return (
@@ -89,26 +88,17 @@ export function AppShell({ children }: AppShellProps) {
               <span>Recorded</span>
             </div>
 
-            {/* Verification run cost */}
-            <div
-              className="flex items-center gap-1.5 text-xs"
-              title="Verification confirmation run cost (235 attacks against Policy v2)"
-            >
-              <span className="text-[var(--ink-muted)]">Verification run:</span>
-              <span className="font-mono font-medium text-[var(--ink)] bg-[var(--range-paper)] px-2 py-0.5 rounded-[var(--radius-sm)] border border-[var(--rule)]">
-                {verificationCost}
-              </span>
-            </div>
-
-            {/* All runs cost breakdown */}
-            <div
-              className="hidden lg:flex items-center gap-1.5 text-xs"
-              title="Sum of Policy v1 ($1.31) + Confirmation Set 2 ($1.55) + Benign variance & naive set ($1.31)"
-            >
-              <span className="text-[var(--ink-muted)]">All evaluation runs:</span>
-              <span className="font-mono text-[var(--ink-muted)] bg-[var(--range-paper)] px-2 py-0.5 rounded-[var(--radius-sm)] border border-[var(--rule)]">
-                {allRunsCost}
-              </span>
+            {/* Recorded confirmation runs cost */}
+            <div className="hidden md:flex flex-col text-right text-xs">
+              <div className="flex items-center gap-1.5 justify-end">
+                <span className="text-[var(--ink-muted)] font-sans">Cost of the three recorded confirmation runs:</span>
+                <span className="font-mono font-medium text-[var(--ink)] bg-[var(--range-paper)] px-2 py-0.5 rounded-[var(--radius-sm)] border border-[var(--rule)]">
+                  {allRunsCost}
+                </span>
+              </div>
+              <div className="text-xs text-[var(--ink-muted)] font-sans">
+                Excludes attack generation, the first verification run and development runs.
+              </div>
             </div>
           </div>
         </div>
@@ -147,8 +137,8 @@ export function AppShell({ children }: AppShellProps) {
           className="hidden md:flex flex-col w-52 shrink-0 border-r border-[var(--rule)] bg-[var(--panel)] py-6 px-3"
           aria-label="Sidebar Navigation"
         >
-          <div className="text-[11px] font-medium text-[var(--ink-muted)] px-3 mb-2 tracking-wide uppercase">
-            Test Instrumentation
+          <div className="text-xs font-semibold text-[var(--ink-muted)] px-3 mb-2 font-sans">
+            Test instrumentation
           </div>
           <nav className="flex flex-col gap-1" aria-label="Main Navigation">
             {NAV_ITEMS.map((item) => {
@@ -175,7 +165,7 @@ export function AppShell({ children }: AppShellProps) {
           <div className="mt-auto pt-6 px-3 border-t border-[var(--rule)]">
             <div className="text-xs text-[var(--ink-muted)] space-y-1">
               <div>Target: inbox-assistant</div>
-              <div className="font-mono text-[11px]">policy-v2 (synthesized)</div>
+              <div className="font-mono text-xs">policy-v2 (synthesized)</div>
             </div>
           </div>
         </aside>

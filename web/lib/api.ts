@@ -87,6 +87,12 @@ export interface RunCosts {
   total_usd: number;
 }
 
+export interface ModelRole {
+  role: string;
+  model_id: string;
+  description: string;
+}
+
 export interface RecordedSummary {
   naive_mode: StandardModeEval;
   realistic_mode: StandardModeEval;
@@ -104,6 +110,7 @@ export interface RecordedSummary {
   evaluation_type?: string;
   frozen_policy_v1_sha256?: string;
   frozen_policy_v2_sha256?: string;
+  model_roles?: ModelRole[];
 }
 
 export interface AttackConditionRecord {

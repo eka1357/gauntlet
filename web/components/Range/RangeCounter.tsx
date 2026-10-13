@@ -97,16 +97,19 @@ export function RangeCounter({
   const probeLowPct = (probeWilsonCi[0] * 100).toFixed(1);
   const probeHighPct = (probeWilsonCi[1] * 100).toFixed(1);
 
+  const totalSquares = totalStandard + totalProbes;
+  const totalDefended = greyCount;
+
   return (
     <div className="space-y-4">
       {/* 1. Main Range Counter: Standard Attacks Only (n=190 basis matching /results) */}
       <div className="bg-[var(--panel)] border border-[var(--rule)] rounded-[var(--radius-md)] p-4 sm:p-5 flex flex-col justify-between">
         <div>
-          <div className="flex items-center justify-between text-xs text-[var(--ink-muted)] mb-2">
-            <span className="font-semibold uppercase tracking-wider text-[11px]">
-              Breach Rate (Standard Attacks)
+          <div className="flex items-center justify-between text-xs text-[var(--ink-muted)] mb-2 font-sans">
+            <span className="font-semibold text-xs text-[var(--ink)]">
+              Unsafe-action rate (standard attacks)
             </span>
-            <span className="font-mono text-[11px] px-2 py-0.5 rounded-[var(--radius-sm)] bg-[var(--range-paper)] border border-[var(--rule)] text-[var(--ink)]">
+            <span className="font-sans text-xs px-2 py-0.5 rounded-[var(--radius-sm)] bg-[var(--range-paper)] border border-[var(--rule)] text-[var(--ink)] font-medium">
               {condition === "unhardened"
                 ? "Unhardened baseline"
                 : condition === "v1"
@@ -115,15 +118,16 @@ export function RangeCounter({
             </span>
           </div>
 
-          {/* Large Breach Rate Counter in Bricolage Grotesque */}
+          {/* Large Unsafe-Action Rate Counter in Bricolage Grotesque */}
           <div className="my-2">
             <div className="font-display font-bold text-5xl sm:text-6xl text-[var(--ink)] tracking-tight">
               {displayRate.toFixed(1)}%
             </div>
-            <div className="font-mono text-xs text-[var(--ink)] mt-1.5 font-medium">
-              {displayCount} of {totalStandard} standard attacks breached
+            {/* Readable text at least 14px directly under large number */}
+            <div className="font-sans text-[14px] sm:text-base text-[var(--ink)] mt-1.5 font-medium">
+              {displayCount} of {totalStandard} · 95% upper bound {stdHighPct}%
             </div>
-            <div className="font-mono text-[11px] text-[var(--ink-muted)] mt-0.5">
+            <div className="font-sans text-xs text-[var(--ink-muted)] mt-1">
               95% Wilson CI: [{stdLowPct}%, {stdHighPct}%]
             </div>
           </div>
@@ -131,18 +135,18 @@ export function RangeCounter({
 
         {/* 2. Secondary Counter: 45 Channel-Coverage Probes */}
         <div className="mt-4 pt-3.5 border-t border-[var(--rule)]">
-          <div className="text-[11px] font-semibold text-[var(--ink-muted)] uppercase tracking-wider mb-1.5">
+          <div className="text-xs font-semibold text-[var(--ink)] font-sans mb-1.5">
             Channel-coverage probes (attacker was given the secret)
           </div>
-          <div className="flex items-baseline justify-between">
+          <div className="flex items-baseline justify-between gap-3">
             <div className="font-display font-bold text-2xl text-[var(--ink)]">
               {probeRate.toFixed(1)}%
             </div>
-            <div className="text-right">
-              <div className="font-mono text-xs text-[var(--ink)]">
-                {probeUnsafeCount} of {totalProbes} breached
+            <div className="text-right shrink-0">
+              <div className="font-sans text-xs text-[var(--ink)] font-medium">
+                {probeUnsafeCount} of {totalProbes} unsafe actions
               </div>
-              <div className="font-mono text-[10px] text-[var(--ink-muted)]">
+              <div className="font-sans text-xs text-[var(--ink-muted)] mt-0.5">
                 95% CI: [{probeLowPct}%, {probeHighPct}%] • {probeAmberCount} canary leaks
               </div>
             </div>
@@ -151,8 +155,8 @@ export function RangeCounter({
 
         {/* 3. Attribution from real data */}
         <div className="mt-4 pt-3.5 border-t border-[var(--rule)]">
-          <div className="text-[11px] font-semibold text-[var(--ink-muted)] uppercase tracking-wider mb-1">
-            Hardening Attribution
+          <div className="text-xs font-semibold text-[var(--ink)] font-sans mb-1">
+            Hardening attribution
           </div>
           <p className="text-xs text-[var(--ink)] leading-snug font-sans">
             {condition === "unhardened" ? (
@@ -169,64 +173,66 @@ export function RangeCounter({
           </p>
         </div>
 
-        {/* 4. Legend with explicit shapes for colour independence */}
-        <div className="mt-4 pt-3.5 border-t border-[var(--rule)] space-y-2 text-xs">
-          <div className="text-[11px] font-semibold text-[var(--ink-muted)] uppercase tracking-wider mb-2">
-            Square Legend (Colour-Independent Shapes)
+        {/* 4. Legend with explicit shapes for colour independence & clear basis */}
+        <div className="mt-4 pt-3.5 border-t border-[var(--rule)] space-y-2.5 text-xs">
+          <div>
+            <div className="text-xs font-semibold text-[var(--ink)] font-sans">
+              Square legend
+            </div>
+            <div className="text-xs text-[var(--ink-muted)] font-sans">
+              Basis: of {totalSquares} squares ({totalStandard} standard, {totalProbes} probes)
+            </div>
           </div>
 
           {/* UNSAFE: Red with diagonal slash */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 min-w-0">
               <svg width="14" height="14" viewBox="0 0 14 14" className="shrink-0" aria-hidden="true">
                 <rect width="14" height="14" rx="2" fill="var(--breach)" />
                 <line x1="2.5" y1="2.5" x2="11.5" y2="11.5" stroke="var(--panel)" strokeWidth="1.6" strokeLinecap="round" />
               </svg>
-              <span className="text-[var(--ink)] font-medium">
+              <span className="text-[var(--ink)] font-medium font-sans truncate">
                 UNSAFE (M1 ∨ M2 ∨ M3) <span className="text-[var(--ink-muted)] font-normal">• diagonal slash</span>
               </span>
             </div>
-            <span className="font-mono font-semibold text-[var(--breach)]">{redCount}</span>
+            <span className="font-mono font-semibold text-[var(--breach)] shrink-0">{redCount}</span>
           </div>
 
           {/* Amber: Dot in center */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 min-w-0">
               <svg width="14" height="14" viewBox="0 0 14 14" className="shrink-0" aria-hidden="true">
                 <rect width="14" height="14" rx="2" fill="var(--in-flight)" />
                 <circle cx="7" cy="7" r="2.3" fill="var(--ink)" />
               </svg>
-              <span className="text-[var(--ink)] font-medium">
+              <span className="text-[var(--ink)] font-medium font-sans truncate">
                 Canary-only leak (M4) <span className="text-[var(--ink-muted)] font-normal">• center dot</span>
               </span>
             </div>
-            <span className="font-mono font-semibold text-[var(--in-flight)]">{amberCount}</span>
+            <span className="font-mono font-semibold text-[var(--in-flight)] shrink-0">{amberCount}</span>
           </div>
 
-          {/* Defended: Plain grey */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <svg width="14" height="14" viewBox="0 0 14 14" className="shrink-0" aria-hidden="true">
+          {/* Defended: Plain grey (subset: stopped by a named policy rule) */}
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start gap-2.5 min-w-0">
+              <svg width="14" height="14" viewBox="0 0 14 14" className="shrink-0 mt-0.5" aria-hidden="true">
                 <rect width="14" height="14" rx="2" fill="var(--defended)" />
               </svg>
-              <span className="text-[var(--ink)] font-medium">
-                Defended <span className="text-[var(--ink-muted)] font-normal">• plain</span>
-              </span>
+              <div className="min-w-0">
+                <div className="text-[var(--ink)] font-medium font-sans">
+                  Defended <span className="text-[var(--ink-muted)] font-normal">• plain</span>
+                </div>
+                {tealOutlineCount > 0 && (
+                  <div className="flex items-center gap-1.5 text-xs text-[var(--ink-muted)] mt-1 font-sans">
+                    <svg width="12" height="12" viewBox="0 0 12 12" className="shrink-0" aria-hidden="true">
+                      <rect x="1" y="1" width="10" height="10" rx="2" fill="var(--defended)" stroke="var(--cleared)" strokeWidth="1.8" />
+                    </svg>
+                    <span>of which {tealOutlineCount} stopped by a named rule (teal outline)</span>
+                  </div>
+                )}
+              </div>
             </div>
-            <span className="font-mono text-[var(--ink)]">{greyCount}</span>
-          </div>
-
-          {/* Teal outline */}
-          <div className="flex items-center justify-between pt-1">
-            <div className="flex items-center gap-2.5">
-              <svg width="14" height="14" viewBox="0 0 14 14" className="shrink-0" aria-hidden="true">
-                <rect x="1" y="1" width="12" height="12" rx="2" fill="var(--defended)" stroke="var(--cleared)" strokeWidth="2" />
-              </svg>
-              <span className="text-[var(--ink)] font-medium">
-                Stopped by policy rule <span className="text-[var(--ink-muted)] font-normal">• teal outline</span>
-              </span>
-            </div>
-            <span className="font-mono font-semibold text-[var(--cleared)]">{tealOutlineCount}</span>
+            <span className="font-mono font-semibold text-[var(--ink)] shrink-0">{totalDefended}</span>
           </div>
         </div>
       </div>

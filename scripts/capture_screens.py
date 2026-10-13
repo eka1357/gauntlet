@@ -35,10 +35,9 @@ async def capture():
         await page.screenshot(path=str(out_dir / "range_v2.png"), full_page=True)
         print("Captured docs/screens/range_v2.png")
 
-        # 4. Open Drawer by clicking a square with a teal outline
-        # In v2 condition, click the first square in the Email row
-        first_square = page.locator("svg[role='grid'] g[role='gridcell']").first
-        await first_square.click()
+        # 4. Open Drawer by clicking an attack that was unsafe unhardened (e.g. conf2_std_email_002)
+        unsafe_square = page.locator("g[aria-label*='conf2_std_email_002']").first
+        await unsafe_square.click()
         await page.wait_for_timeout(1000)
         await page.screenshot(path=str(out_dir / "range_drawer.png"), full_page=True)
         print("Captured docs/screens/range_drawer.png")

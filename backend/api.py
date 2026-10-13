@@ -332,6 +332,53 @@ async def health() -> dict[str, Any]:
     return result
 
 
+def get_recorded_model_roles() -> list[dict[str, str]]:
+    """Return model roles actually used in the recorded evaluations from config/models.yaml.
+
+    Excludes unused models (such as Omni/vision) and includes active roles:
+    Ultra: recon, defender, triage
+    Super: target agent
+    Lightning: payload generation
+    """
+    models_path = Path(__file__).resolve().parent.parent / "config" / "models.yaml"
+    roles_data: dict[str, Any] = {}
+    if models_path.is_file():
+        try:
+            with open(models_path, encoding="utf-8") as f:
+                y = yaml.safe_load(f) or {}
+                roles_data = y.get("roles") or {}
+        except Exception as e:
+            logger.warning("Could not load models.yaml: %s", e)
+
+    ultra_id = roles_data.get("ultra", {}).get(
+        "model_id", "nvidia/Nemotron-3-Ultra-550b-a55b"
+    )
+    super_id = roles_data.get("super", {}).get(
+        "model_id", "nvidia/nemotron-3-super-120b-a12b"
+    )
+    lightning_id = roles_data.get("lightning", {}).get(
+        "model_id", "nvidia/Nemotron-3_5-Lightning"
+    )
+
+    return [
+        {
+            "role": "Ultra",
+            "model_id": str(ultra_id),
+            "description": "Recon, defender, triage",
+        },
+        {
+            "role": "Super",
+            "model_id": str(super_id),
+            "description": "Target agent brain",
+        },
+        {
+            "role": "Lightning",
+            "model_id": str(lightning_id),
+            "description": "Payload generation",
+        },
+    ]
+
+
 @app.get("/api/recorded/summary")
 async def get_recorded_summary() -> dict[str, Any]:
     """Headline tables from runs/verify_results.json.
@@ -346,6 +393,7 @@ async def get_recorded_summary() -> dict[str, Any]:
       - policy SHA-256 hashes for v1 and v2
       - per-run costs
       - limitations list
+      - model_roles used in recorded runs
     """
     results = get_cached_verify_results()
     if results is None:
@@ -364,6 +412,7 @@ async def get_recorded_summary() -> dict[str, Any]:
     for k, v in results.items():
         if k not in response_data:
             response_data[k] = v
+    response_data["model_roles"] = get_recorded_model_roles()
     return response_data
 
 
@@ -703,6 +752,7 @@ async def get_recorded_overview() -> dict[str, Any]:
         "n_standard": results.get("n_standard"),
         "n_probe": results.get("n_probe"),
         "policy_hashes": results.get("policy_hashes"),
+        "model_roles": get_recorded_model_roles(),
         "costs": results.get("costs"),
         "limitations": results.get("limitations"),
     }

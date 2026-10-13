@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
 import { AttackRecord, AttackTraceResponse, getAttackTrace } from "@/lib/api";
-import { AttackCondition } from "@/lib/range-utils";
+import { AttackCondition, AttackConditionStatus, getAttackConditionStatus } from "@/lib/range-utils";
 
 interface AttackDrawerProps {
   attack: AttackRecord | null;
@@ -12,6 +12,12 @@ interface AttackDrawerProps {
   onConditionChange: (cond: AttackCondition) => void;
   onClose: () => void;
 }
+
+const CONDITIONS: Array<{ key: AttackCondition; label: string }> = [
+  { key: "unhardened", label: "Unhardened" },
+  { key: "v1", label: "Policy v1" },
+  { key: "v2", label: "Policy v2" },
+];
 
 export function AttackDrawer({
   attack,
@@ -47,6 +53,7 @@ export function AttackDrawer({
         if (active) {
           setTraceData(data);
           setTraceLoading(false);
+          setTraceError(null);
         }
       })
       .catch((err) => {
@@ -103,11 +110,11 @@ export function AttackDrawer({
           {/* Header */}
           <div className="flex items-start justify-between gap-4 pb-4 border-b border-[var(--rule)]">
             <div>
-              <div className="flex items-center gap-2 mb-1">
+              <div className="flex items-center gap-2 mb-1.5">
                 <span className="font-mono text-xs px-2 py-0.5 rounded-[var(--radius-sm)] bg-[var(--range-paper)] border border-[var(--rule)] font-semibold text-[var(--ink)]">
                   {attack.id}
                 </span>
-                <span className="text-xs text-[var(--ink-muted)]">
+                <span className="text-xs font-sans text-[var(--ink-muted)]">
                   {attack.channel.replace(/_/g, " ")} • {attack.category.replace(/_/g, " ")}
                 </span>
               </div>
@@ -131,100 +138,69 @@ export function AttackDrawer({
           <div className="space-y-6 my-4 flex-1">
             {/* Condition outcome comparison */}
             <div>
-              <div className="text-[11px] font-semibold text-[var(--ink-muted)] uppercase tracking-wider mb-2">
-                Condition Outcome Comparison
+              <div className="text-xs font-semibold text-[var(--ink-muted)] font-sans mb-2">
+                Condition outcome comparison
               </div>
               <div className="grid grid-cols-3 gap-2 text-xs">
-                {/* Unhardened */}
-                <button
-                  type="button"
-                  onClick={() => onConditionChange("unhardened")}
-                  className={`p-2.5 rounded-[var(--radius-sm)] border text-left transition-all ${
-                    condition === "unhardened"
-                      ? "border-[var(--ink)] bg-[var(--range-paper)] ring-1 ring-[var(--ink)]"
-                      : "border-[var(--rule)] bg-[var(--panel)] hover:bg-[var(--range-paper)]"
-                  }`}
-                >
-                  <div className="text-[10px] text-[var(--ink-muted)] font-medium">Unhardened</div>
-                  <div
-                    className={`font-semibold font-mono mt-0.5 ${
-                      attack.unhardened.outcome === "breach"
-                        ? "text-[var(--breach)]"
-                        : "text-[var(--ink)]"
-                    }`}
-                  >
-                    {attack.unhardened.outcome.toUpperCase()}
-                  </div>
-                  <div className="font-mono text-[10px] text-[var(--ink-muted)] mt-1">
-                    {attack.unhardened.unsafe ? "M1/M2/M3" : attack.unhardened.m4 ? "M4 leak" : "Defended"}
-                  </div>
-                </button>
+                {CONDITIONS.map(({ key: condKey, label }) => {
+                  const status: AttackConditionStatus = getAttackConditionStatus(attack, condKey);
+                  const isCurrent = condition === condKey;
 
-                {/* Policy v1 */}
-                <button
-                  type="button"
-                  onClick={() => onConditionChange("v1")}
-                  className={`p-2.5 rounded-[var(--radius-sm)] border text-left transition-all ${
-                    condition === "v1"
-                      ? "border-[var(--ink)] bg-[var(--range-paper)] ring-1 ring-[var(--ink)]"
-                      : "border-[var(--rule)] bg-[var(--panel)] hover:bg-[var(--range-paper)]"
-                  }`}
-                >
-                  <div className="text-[10px] text-[var(--ink-muted)] font-medium">Policy v1</div>
-                  <div
-                    className={`font-semibold font-mono mt-0.5 ${
-                      attack.v1.outcome === "breach"
-                        ? "text-[var(--in-flight)]"
-                        : "text-[var(--cleared)]"
-                    }`}
-                  >
-                    {attack.v1.outcome.toUpperCase()}
-                  </div>
-                  <div className="font-mono text-[10px] text-[var(--ink-muted)] mt-1 truncate">
-                    {attack.v1.policy_block_rule ? "Rule blocked" : attack.v1.m4 ? "M4 leak" : "Defended"}
-                  </div>
-                </button>
+                  let statusColor = "text-[var(--ink)]";
+                  if (status === "Unsafe") {
+                    statusColor = "text-[var(--breach)]";
+                  } else if (status === "Canary-only leak") {
+                    statusColor = "text-[var(--in-flight)]";
+                  } else if (status === "Attempted, blocked by policy") {
+                    statusColor = "text-[var(--cleared)]";
+                  }
 
-                {/* Policy v2 */}
-                <button
-                  type="button"
-                  onClick={() => onConditionChange("v2")}
-                  className={`p-2.5 rounded-[var(--radius-sm)] border text-left transition-all ${
-                    condition === "v2"
-                      ? "border-[var(--cleared)] bg-[var(--range-paper)] ring-1 ring-[var(--cleared)]"
-                      : "border-[var(--rule)] bg-[var(--panel)] hover:bg-[var(--range-paper)]"
-                  }`}
-                >
-                  <div className="text-[10px] text-[var(--ink-muted)] font-medium">Policy v2</div>
-                  <div
-                    className={`font-semibold font-mono mt-0.5 ${
-                      attack.v2.outcome === "breach"
-                        ? "text-[var(--breach)]"
-                        : "text-[var(--cleared)]"
-                    }`}
-                  >
-                    {attack.v2.outcome.toUpperCase()}
-                  </div>
-                  <div className="font-mono text-[10px] text-[var(--ink-muted)] mt-1 truncate">
-                    {attack.v2.policy_block_rule ? "Rule blocked" : "Defended"}
-                  </div>
-                </button>
+                  let subtext = "Target safe";
+                  if (status === "Unsafe") {
+                    subtext = "M1/M2/M3 breached";
+                  } else if (status === "Canary-only leak") {
+                    subtext = "M4 canary leak";
+                  } else if (status === "Attempted, blocked by policy") {
+                    subtext = attack[condKey].policy_block_rule ? "Rule stopped" : "Policy blocked";
+                  }
+
+                  return (
+                    <button
+                      key={condKey}
+                      type="button"
+                      onClick={() => onConditionChange(condKey)}
+                      className={`p-2.5 rounded-[var(--radius-sm)] border text-left transition-all ${
+                        isCurrent
+                          ? "border-[var(--ink)] bg-[var(--range-paper)] ring-1 ring-[var(--ink)]"
+                          : "border-[var(--rule)] bg-[var(--panel)] hover:bg-[var(--range-paper)]"
+                      }`}
+                    >
+                      <div className="text-xs text-[var(--ink-muted)] font-medium font-sans">{label}</div>
+                      <div className={`font-semibold font-sans text-xs mt-1 leading-snug ${statusColor}`}>
+                        {status}
+                      </div>
+                      <div className="font-sans text-xs text-[var(--ink-muted)] mt-1 truncate">
+                        {subtext}
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
             {/* Named policy rule if stopped */}
             {condState.policy_block_rule && (
               <div className="p-3 rounded-[var(--radius-sm)] bg-[var(--range-paper)] border border-[var(--cleared)] text-xs">
-                <div className="text-[11px] font-semibold text-[var(--cleared)] uppercase tracking-wider mb-1">
-                  Enforcing Policy Rule ({condition})
+                <div className="text-xs font-semibold text-[var(--cleared)] font-sans mb-1">
+                  Enforcing policy rule ({condition})
                 </div>
                 <div className="flex items-center justify-between gap-2">
-                  <span className="font-mono font-semibold text-[var(--ink)]">
+                  <span className="font-mono font-semibold text-xs text-[var(--ink)]">
                     {condState.policy_block_rule}
                   </span>
                   <Link
                     href={`/policy#${condState.policy_block_rule}`}
-                    className="text-[11px] text-[var(--cleared)] underline hover:opacity-80 font-medium shrink-0"
+                    className="text-xs text-[var(--cleared)] underline hover:opacity-80 font-medium font-sans shrink-0"
                   >
                     View policy rule
                   </Link>
@@ -234,15 +210,15 @@ export function AttackDrawer({
 
             {/* Attack Payload in Mono */}
             <div>
-              <div className="flex items-center justify-between text-[11px] font-semibold text-[var(--ink-muted)] uppercase tracking-wider mb-1.5">
-                <span>Attack Payload Content</span>
+              <div className="flex items-center justify-between text-xs font-semibold text-[var(--ink-muted)] font-sans mb-1.5">
+                <span>Attack payload content</span>
                 {traceData?.payload && (
                   <button
                     type="button"
                     onClick={copyPayload}
-                    className="font-mono text-[10px] px-1.5 py-0.5 rounded border border-[var(--rule)] bg-[var(--panel)] text-[var(--ink)] hover:bg-[var(--range-paper)]"
+                    className="font-mono text-xs px-2 py-0.5 rounded border border-[var(--rule)] bg-[var(--panel)] text-[var(--ink)] hover:bg-[var(--range-paper)]"
                   >
-                    {copiedPayload ? "Copied" : "Copy Payload"}
+                    {copiedPayload ? "Copied" : "Copy payload"}
                   </button>
                 )}
               </div>
@@ -253,10 +229,10 @@ export function AttackDrawer({
 
             {/* Trace Viewer */}
             <div>
-              <div className="flex items-center justify-between text-[11px] font-semibold text-[var(--ink-muted)] uppercase tracking-wider mb-2">
-                <span>Execution Trace ({condition})</span>
+              <div className="flex items-center justify-between text-xs font-semibold text-[var(--ink-muted)] font-sans mb-2">
+                <span>Execution trace ({condition})</span>
                 {traceData && (
-                  <span className="font-mono text-[10px] text-[var(--ink-muted)]">
+                  <span className="font-mono text-xs text-[var(--ink-muted)]">
                     {traceData.trace?.length ?? 0} tool calls
                   </span>
                 )}
@@ -275,7 +251,7 @@ export function AttackDrawer({
               )}
 
               {traceData && (!traceData.trace || traceData.trace.length === 0) && (
-                <div className="p-4 text-xs text-[var(--ink-muted)] bg-[var(--range-paper)] rounded-[var(--radius-sm)] border border-[var(--rule)]">
+                <div className="p-4 text-xs text-[var(--ink-muted)] bg-[var(--range-paper)] rounded-[var(--radius-sm)] border border-[var(--rule)] font-sans">
                   No tool calls were executed in this trace.
                 </div>
               )}
@@ -305,27 +281,27 @@ export function AttackDrawer({
                         {/* Call title and badge */}
                         <div className="flex items-center justify-between gap-2 pb-1.5 border-b border-[var(--rule)]/60">
                           <div className="flex items-center gap-1.5">
-                            <span className="text-[10px] text-[var(--ink-muted)]">#{idx + 1}</span>
+                            <span className="text-xs text-[var(--ink-muted)]">#{idx + 1}</span>
                             <span className="font-bold text-[var(--ink)]">
                               {String(step.tool || "tool_call")}()
                             </span>
                           </div>
 
                           {isBlocked && (
-                            <span className="px-1.5 py-0.5 rounded bg-[var(--cleared)] text-[var(--panel)] text-[10px] font-sans font-semibold">
+                            <span className="px-2 py-0.5 rounded bg-[var(--cleared)] text-[var(--panel)] text-xs font-sans font-semibold">
                               Blocked by policy
                             </span>
                           )}
 
                           {!isBlocked && isLeaked && (
-                            <span className="px-1.5 py-0.5 rounded bg-[var(--breach)] text-[var(--panel)] text-[10px] font-sans font-semibold">
+                            <span className="px-2 py-0.5 rounded bg-[var(--breach)] text-[var(--panel)] text-xs font-sans font-semibold">
                               Leaked canary
                             </span>
                           )}
                         </div>
 
                         {/* Arguments */}
-                        <div className="mt-2 text-[11px]">
+                        <div className="mt-2 text-xs">
                           <span className="text-[var(--ink-muted)] select-none">args: </span>
                           <span className="text-[var(--ink)] break-all">
                             {JSON.stringify(step.args || step.arguments || {}, null, 1)}
@@ -334,7 +310,7 @@ export function AttackDrawer({
 
                         {/* Policy block explanation if blocked */}
                         {Boolean(isBlocked && step.policy_rule) && (
-                          <div className="mt-1.5 text-[11px] text-[var(--cleared)]">
+                          <div className="mt-1.5 text-xs text-[var(--cleared)]">
                             <span className="select-none font-sans font-semibold">Rule: </span>
                             <span>{String(step.policy_rule ?? "")}</span>
                           </div>
@@ -342,18 +318,18 @@ export function AttackDrawer({
 
                         {/* Result with truncation */}
                         {step.result !== undefined && (
-                          <div className="mt-2 pt-1.5 border-t border-[var(--rule)]/60 text-[11px]">
-                            <div className="flex items-center justify-between text-[10px] text-[var(--ink-muted)] mb-0.5">
+                          <div className="mt-2 pt-1.5 border-t border-[var(--rule)]/60 text-xs">
+                            <div className="flex items-center justify-between text-xs text-[var(--ink-muted)] mb-0.5 font-sans">
                               <span>result:</span>
                               <button
                                 type="button"
                                 onClick={() => toggleResultExpand(idx)}
-                                className="underline hover:text-[var(--ink)]"
+                                className="underline hover:text-[var(--ink)] font-sans"
                               >
                                 {isExpanded ? "Collapse" : "Expand"}
                               </button>
                             </div>
-                            <div className="text-[var(--ink-muted)] break-all leading-tight">
+                            <div className="text-[var(--ink-muted)] break-all leading-tight font-mono text-xs">
                               {isExpanded
                                 ? JSON.stringify(step.result, null, 2)
                                 : JSON.stringify(step.result).slice(0, 110) +

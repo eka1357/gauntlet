@@ -65,6 +65,15 @@ def test_recorded_endpoints_make_zero_model_calls_and_no_keys(
         assert cond in summary["probe_set"]
         assert "m4" in summary["probe_set"][cond]
 
+    # Verify model roles exposed from config/models.yaml (excluding unused Omni/Vision)
+    assert "model_roles" in summary
+    roles = {r["role"]: r for r in summary["model_roles"]}
+    assert "Ultra" in roles
+    assert "Super" in roles
+    assert "Lightning" in roles
+    assert "Omni" not in roles
+    assert "Vision" not in roles
+
     # Verify benign suite pooled pass rates with CI (unhardened vs v2, 3 repeats) & negative control
     assert "benign_suite" in summary
     benign = summary["benign_suite"]
