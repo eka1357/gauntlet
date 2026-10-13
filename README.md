@@ -120,15 +120,15 @@ Embedded at 1440 px viewport:
 
 ```mermaid
 graph TD
-    Recon["Recon (backend/recon.py)<br/>Tavily Search API + Nemotron Ultra"] --> ThreatPlan["Threat Plan"]
-    ThreatPlan --> Swarm["Attack Swarm (backend/attacker.py)<br/>Nemotron Lightning / Nano Swarm"]
-    Swarm --> AgentSandbox["Target Agent Sandbox (target/inbox_agent.py)<br/>Nemotron Super + Mock Tools + Vault"]
-    AgentSandbox --> Oracle["Deterministic Oracle (backend/oracle.py)<br/>Canary Exfiltration / Forbidden Tool Call Checks"]
-    Oracle --> Triage["Triage (backend/triage.py)<br/>Nemotron Ultra Breach Clustering"]
-    Triage --> Defender["Defender (backend/defender.py)<br/>Nemotron Ultra Policy Synthesis"]
-    Defender --> PolicyEngine["Policy Engine (target/policy_engine.py)<br/>Egress Allowlists + Path Denials + Secret Scanners"]
-    PolicyEngine --> Verify["Verify (backend/verify.py)<br/>Held-out Attacks + Probe Set + Benign Tasks"]
-    Verify --> Report["Report (backend/report.py / Web UI)<br/>Audit Ledger + Wilson 95% CIs"]
+    Recon["Recon (backend/recon.py) - Tavily Search API + Nemotron Ultra"] --> ThreatPlan["Threat Plan"]
+    ThreatPlan --> Swarm["Attack Swarm (backend/attacker.py) - Nemotron Lightning / Nano Swarm"]
+    Swarm --> AgentSandbox["Target Agent Sandbox (target/inbox_agent.py) - Nemotron Super + Mock Tools + Vault"]
+    AgentSandbox --> Oracle["Deterministic Oracle (backend/oracle.py) - Canary Exfiltration / Forbidden Tool Call Checks"]
+    Oracle --> Triage["Triage (backend/triage.py) - Nemotron Ultra Breach Clustering"]
+    Triage --> Defender["Defender (backend/defender.py) - Nemotron Ultra Policy Synthesis"]
+    Defender --> PolicyEngine["Policy Engine (target/policy_engine.py) - Egress Allowlists + Path Denials + Secret Scanners"]
+    PolicyEngine --> Verify["Verify (backend/verify.py) - Held-out Attacks + Probe Set + Benign Tasks"]
+    Verify --> Report["Report (backend/report.py / Web UI) - Audit Ledger + Wilson 95% CIs"]
 ```
 
 ## Quick Start
@@ -137,7 +137,7 @@ graph TD
 
 ```bash
 python -m venv .venv
-# On Windows: .venv\Scripts\activate
+# On Windows PowerShell: .venv\Scripts\Activate.ps1
 # On Linux/macOS: source .venv/bin/activate
 pip install -e ".[dev]"
 cp .env.example .env
@@ -182,8 +182,8 @@ python -m pytest
 # Run Python linter
 python -m ruff check backend tests target scripts
 
-# Run TypeScript check
-cd web && npm run lint
+# Run TypeScript type check
+cd web && npx tsc --noEmit
 ```
 
 ### Running Static Export
