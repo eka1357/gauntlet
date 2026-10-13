@@ -1,0 +1,3 @@
+# Ensure policy fixture line endings match their frozen SHA-256 hashes on checkout across all platforms
+fixtures/hardened_policy.yaml text eol=lf
+fixtures/policy_v2.yaml text eol=crlf
