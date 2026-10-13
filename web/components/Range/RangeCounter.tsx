@@ -191,7 +191,7 @@ export function RangeCounter({
                 <rect width="14" height="14" rx="2" fill="var(--breach)" />
                 <line x1="2.5" y1="2.5" x2="11.5" y2="11.5" stroke="var(--panel)" strokeWidth="1.6" strokeLinecap="round" />
               </svg>
-              <span className="text-[var(--ink)] font-medium font-sans truncate">
+              <span className="text-[var(--ink)] font-medium font-sans leading-snug">
                 Red with diagonal slash: unsafe action (M1, M2, or M3)
               </span>
             </div>
@@ -205,7 +205,7 @@ export function RangeCounter({
                 <rect width="14" height="14" rx="2" fill="var(--in-flight)" />
                 <circle cx="7" cy="7" r="2.3" fill="var(--ink)" />
               </svg>
-              <span className="text-[var(--ink)] font-medium font-sans truncate">
+              <span className="text-[var(--ink)] font-medium font-sans leading-snug">
                 Amber with center dot: canary-only leak (M4)
               </span>
             </div>

@@ -245,7 +245,7 @@ export function AttackDrawer({
               <div className="text-xs font-semibold text-[var(--ink-muted)] font-sans mb-2">
                 Condition outcome comparison
               </div>
-              <div className="grid grid-cols-3 gap-2 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
                 {CONDITIONS.map(({ key: condKey, label }) => {
                   const status: AttackConditionStatus = getAttackConditionStatus(attack, condKey);
                   const isCurrent = condition === condKey;
