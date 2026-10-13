@@ -1,7 +1,8 @@
 """FastAPI application and route definitions (FR-14).
 
 Endpoints:
-    GET  /api/health            — check Token Factory and Tavily reachability
+    GET  /                      — project metadata and navigation links
+    GET  /api/health            — check Token Factory and Tavily reachability (cached 60s)
     GET  /api/recorded/summary  — headline tables from runs/verify_results.json
     GET  /api/recorded/attacks  — paginated attack records without full traces
     GET  /api/attacks/{id}/trace — full attack trace for one condition
@@ -90,11 +91,17 @@ ip_rate_limiter = IPRateLimiter(max_requests=3, window_seconds=3600.0)
 
 
 def get_client_ip(request: Request) -> str:
-    """Extract client IP address safely from headers or client object."""
-    forwarded = request.headers.get("x-forwarded-for")
-    if forwarded:
-        return forwarded.split(",")[0].strip()
-    if request.client:
+    """Extract client IP address safely from headers or client object.
+
+    Uses X-Forwarded-For only when TRUSTED_PROXY is set to 'true' (case-insensitive).
+    Otherwise defaults to request.client.host to prevent IP spoofing attacks.
+    """
+    trusted_proxy = os.environ.get("TRUSTED_PROXY", "").strip().lower() == "true"
+    if trusted_proxy:
+        forwarded = request.headers.get("x-forwarded-for")
+        if forwarded:
+            return forwarded.split(",")[0].strip()
+    if request.client and request.client.host:
         return request.client.host
     return "127.0.0.1"
 
@@ -114,9 +121,9 @@ def get_daily_live_spend(db_path: str = "runs/gauntlet.db") -> float:
 
 async def check_live_runs_allowed(client_ip: str) -> None:
     """Validate kill switch, daily spend cap, and per-IP rate limit for live runs."""
-    # 1. Kill switch
-    kill_switch_val = os.environ.get("LIVE_RUNS_ENABLED", "true").strip().lower()
-    if kill_switch_val not in ("true", "1", "yes"):
+    # 1. Kill switch: disabled unless LIVE_RUNS_ENABLED is exactly "true" (case-insensitive)
+    kill_switch_val = os.environ.get("LIVE_RUNS_ENABLED", "").strip().lower()
+    if kill_switch_val != "true":
         raise HTTPException(
             status_code=429,
             detail="Live runs are paused for today; open the recorded run instead",
@@ -141,6 +148,22 @@ async def check_live_runs_allowed(client_ip: str) -> None:
             status_code=429,
             detail="Rate limit exceeded: maximum 3 runs per hour per IP",
         )
+
+
+# ---------------------------------------------------------------------------
+# In-Memory Cache for Health Checks
+# ---------------------------------------------------------------------------
+
+_health_cache: dict[str, Any] | None = None
+_health_cache_timestamp: float = 0.0
+_HEALTH_CACHE_TTL: float = 60.0
+
+
+def reset_health_cache() -> None:
+    """Reset health check in-memory cache (useful in test suites)."""
+    global _health_cache, _health_cache_timestamp
+    _health_cache = None
+    _health_cache_timestamp = 0.0
 
 
 # ---------------------------------------------------------------------------
@@ -223,12 +246,35 @@ class CreateRunRequest(BaseModel):
 # ---------------------------------------------------------------------------
 
 
+@app.get("/")
+async def root() -> dict[str, Any]:
+    """Return project metadata, one-line description, and primary API navigation links."""
+    return {
+        "name": "Gauntlet",
+        "description": "Gauntlet hardens AI agents before they ship.",
+        "links": {
+            "summary": "/api/recorded/summary",
+            "docs": "/docs",
+            "github": "https://github.com/eka1357/gauntlet",
+        },
+        "docs_url": "/docs",
+        "summary_url": "/api/recorded/summary",
+        "github_url": "https://github.com/eka1357/gauntlet",
+    }
+
+
 @app.get("/api/health")
 async def health() -> dict[str, Any]:
     """Report health and whether Token Factory and Tavily keys are configured and reachable.
 
     Never prints keys or makes paid calls (uses models list endpoint for Token Factory).
+    Results are cached in-memory for 60 seconds.
     """
+    global _health_cache, _health_cache_timestamp
+    now = time.time()
+    if _health_cache is not None and (now - _health_cache_timestamp) < _HEALTH_CACHE_TTL:
+        return _health_cache
+
     # 1. Token Factory check
     nebius_key = os.environ.get("NEBIUS_API_KEY")
     nebius_base_url = os.environ.get("NEBIUS_BASE_URL", "https://api.tokenfactory.nebius.com/v1")
@@ -268,7 +314,7 @@ async def health() -> dict[str, Any]:
             tavily_reachable = False
             tavily_error = type(e).__name__
 
-    return {
+    result = {
         "status": "ok",
         "token_factory": {
             "configured": tf_configured,
@@ -281,6 +327,9 @@ async def health() -> dict[str, Any]:
             **({"error": tavily_error} if tavily_error else {}),
         },
     }
+    _health_cache = result
+    _health_cache_timestamp = now
+    return result
 
 
 @app.get("/api/recorded/summary")

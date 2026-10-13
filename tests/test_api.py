@@ -10,14 +10,15 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
-from backend.api import app, ip_rate_limiter
+from backend.api import app, ip_rate_limiter, reset_health_cache
 from backend.attacker import SwarmAttackResult
 
 
 @pytest.fixture(autouse=True)
 def reset_rate_limiter() -> None:
-    """Ensure rate limiter is clean before each test."""
+    """Ensure rate limiter and health cache are clean before each test."""
     ip_rate_limiter.reset()
+    reset_health_cache()
 
 
 def test_recorded_endpoints_make_zero_model_calls_and_no_keys(
@@ -162,9 +163,24 @@ def test_recorded_endpoints_make_zero_model_calls_and_no_keys(
     assert client.get("/api/policy/v99").status_code == 404
 
 
+def test_root_endpoint() -> None:
+    """GET / returns project metadata, one-line description, and primary links."""
+    client = TestClient(app)
+    resp = client.get("/")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["name"] == "Gauntlet"
+    assert "hardens AI agents" in data["description"]
+    assert data["links"]["summary"] == "/api/recorded/summary"
+    assert data["links"]["docs"] == "/docs"
+    assert "github.com/eka1357/gauntlet" in data["links"]["github"]
+
+
 def test_rate_limit(monkeypatch: pytest.MonkeyPatch) -> None:
     """Ensure per-IP rate limit on POST /api/runs enforces max 3 per hour."""
     client = TestClient(app)
+    monkeypatch.setenv("LIVE_RUNS_ENABLED", "true")
+    monkeypatch.setenv("TRUSTED_PROXY", "true")
 
     # Bypass background execution
     async def mock_exec(*args: Any, **kwargs: Any) -> dict[str, Any]:
@@ -185,9 +201,35 @@ def test_rate_limit(monkeypatch: pytest.MonkeyPatch) -> None:
     assert "Rate limit exceeded" in resp_blocked.json()["detail"]
 
 
+def test_spoofed_header_cannot_bypass_limiter(monkeypatch: pytest.MonkeyPatch) -> None:
+    """When TRUSTED_PROXY is false/unset, spoofed X-Forwarded-For must NOT bypass the limiter."""
+    client = TestClient(app)
+    monkeypatch.setenv("LIVE_RUNS_ENABLED", "true")
+    monkeypatch.delenv("TRUSTED_PROXY", raising=False)
+
+    async def mock_exec(*args: Any, **kwargs: Any) -> dict[str, Any]:
+        return {"status": "completed"}
+
+    monkeypatch.setattr("backend.api.execute_mini_live_run", mock_exec)
+
+    # Attacker attempts to rotate X-Forwarded-For headers
+    fake_ips = ["203.0.113.1", "203.0.113.2", "203.0.113.3"]
+    for ip in fake_ips:
+        resp = client.post("/api/runs", json={"n_attacks": 2}, headers={"x-forwarded-for": ip})
+        assert resp.status_code == 200
+
+    # 4th attempt with another fake IP must be blocked because client host is the true key
+    resp_blocked = client.post(
+        "/api/runs", json={"n_attacks": 2}, headers={"x-forwarded-for": "203.0.113.4"}
+    )
+    assert resp_blocked.status_code == 429
+    assert "Rate limit exceeded" in resp_blocked.json()["detail"]
+
+
 def test_daily_spend_cap(monkeypatch: pytest.MonkeyPatch) -> None:
     """Ensure global daily spend cap pauses POST /api/runs with clear message."""
     client = TestClient(app)
+    monkeypatch.setenv("LIVE_RUNS_ENABLED", "true")
 
     # Mock daily spend to exceed cap ($0.55 > $0.50)
     monkeypatch.setattr("backend.api.get_daily_live_spend", lambda *args, **kwargs: 0.55)
@@ -203,18 +245,77 @@ def test_daily_spend_cap(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_kill_switch(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Ensure LIVE_RUNS_ENABLED kill switch disables POST /api/runs with same message."""
+    """Ensure LIVE_RUNS_ENABLED disables live runs unless explicitly 'true' (case-insensitive)."""
     client = TestClient(app)
 
-    monkeypatch.setenv("LIVE_RUNS_ENABLED", "false")
+    async def mock_exec(*args: Any, **kwargs: Any) -> dict[str, Any]:
+        return {"status": "completed"}
 
+    monkeypatch.setattr("backend.api.execute_mini_live_run", mock_exec)
+
+    # 1. Unset environment variable -> disabled by default
+    monkeypatch.delenv("LIVE_RUNS_ENABLED", raising=False)
     resp = client.post("/api/runs", json={"n_attacks": 2})
     assert resp.status_code == 429
-    assert "Live runs are paused for today; open the recorded run instead" in resp.json()["detail"]
+    assert "Live runs are paused for today" in resp.json()["detail"]
 
-    # Recorded endpoints continue working!
-    resp_rec = client.get("/api/recorded/summary")
-    assert resp_rec.status_code == 200
+    # 2. Values that are NOT "true" must be disabled ("false", "1", "yes", "other")
+    for bad_val in ("false", "1", "yes", "0", "no", "enabled"):
+        monkeypatch.setenv("LIVE_RUNS_ENABLED", bad_val)
+        resp = client.post("/api/runs", json={"n_attacks": 2})
+        assert resp.status_code == 429, f"Expected {bad_val} to be disabled"
+
+    # 3. Exactly 'true' (case-insensitive) allows execution
+    monkeypatch.setenv("LIVE_RUNS_ENABLED", "true")
+    resp_true = client.post("/api/runs", json={"n_attacks": 2})
+    assert resp_true.status_code == 200
+
+    # 4. Uppercase 'TRUE' allows execution
+    ip_rate_limiter.reset()
+    monkeypatch.setenv("LIVE_RUNS_ENABLED", "TRUE")
+    resp_upper = client.post("/api/runs", json={"n_attacks": 2})
+    assert resp_upper.status_code == 200
+
+
+def test_health_cache_60_seconds(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Verify GET /api/health caches results in-memory for 60 seconds."""
+    client = TestClient(app)
+    reset_health_cache()
+
+    # Initial state: unconfigured
+    monkeypatch.delenv("NEBIUS_API_KEY", raising=False)
+    monkeypatch.delenv("TAVILY_API_KEY", raising=False)
+
+    call_count = 0
+
+    def mock_models_list():
+        nonlocal call_count
+        call_count += 1
+        return AsyncMock()
+
+    # Call 1: uncached
+    resp1 = client.get("/api/health")
+    assert resp1.status_code == 200
+    h1 = resp1.json()
+    assert h1["token_factory"]["configured"] is False
+
+    # Now change environment to simulate configured
+    monkeypatch.setenv("NEBIUS_API_KEY", "test_key_abc")
+
+    # Call 2 (immediate): must return CACHED result (configured remains False)
+    resp2 = client.get("/api/health")
+    assert resp2.status_code == 200
+    h2 = resp2.json()
+    assert h2["token_factory"]["configured"] is False
+
+    # Reset cache: now it reflects the new environment
+    reset_health_cache()
+    with patch("openai.AsyncOpenAI.models", create=True) as mock_models:
+        mock_models.list = AsyncMock()
+        resp3 = client.get("/api/health")
+        assert resp3.status_code == 200
+        h3 = resp3.json()
+        assert h3["token_factory"]["configured"] is True
 
 
 def test_health_check_privacy_and_reachability(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -232,6 +333,7 @@ def test_health_check_privacy_and_reachability(monkeypatch: pytest.MonkeyPatch) 
     assert h["tavily"]["configured"] is False
 
     # 2. Configured state with mocked reachability
+    reset_health_cache()
     fake_key = "secret_nebius_key_12345"
     fake_tavily = "secret_tavily_key_67890"
     monkeypatch.setenv("NEBIUS_API_KEY", fake_key)
