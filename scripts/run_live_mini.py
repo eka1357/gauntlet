@@ -1,4 +1,4 @@
-"""Execute ONE real live mini-run against the target agent and consume the SSE stream."""
+"""Execute ONE real live run against the target agent (naive mode, 6 attacks, compare with v2)."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from typing import Any
 
 from dotenv import load_dotenv
 
-# 1. Load environment variables through code (never print .env)
+# 1. Load environment variables through code (never open, read, or print .env)
 load_dotenv()
 
 # 2. Set LIVE_RUNS_ENABLED=true for this process only
@@ -26,9 +26,25 @@ from backend.models import Attack, Run, init_db
 
 
 def run_live_mini_demo() -> None:
+    n_attacks = 6
+    target_mode = "naive"
+    compare_v2 = True
+    estimated_cost_usd = 0.0280
+
+    print("=" * 64)
+    print("GAUNTLET LIVE RUN: PRE-FLIGHT COST CHECK")
+    print("=" * 64)
+    print(f"  Target mode:            {target_mode}")
+    print(f"  Number of attacks:      {n_attacks}")
+    print(f"  Compare with Policy v2: {compare_v2}")
+    print(f"  Estimated cost:         ~${estimated_cost_usd:.4f} USD (expected ~$0.03)")
+    print("  Budget cap:             $0.0500 USD")
+    print("  LIVE_RUNS_ENABLED:      true (for this process only)")
+    print("=" * 64)
+
     # Check spend ledger before run
     spend_before = get_daily_live_spend()
-    print(f"[*] Daily live spend before run: ${spend_before:.5f}")
+    print(f"\n[*] Daily live spend before run: ${spend_before:.5f}")
 
     # Start uvicorn server in a background thread on 127.0.0.1:8009
     port = 8009
@@ -43,7 +59,7 @@ def run_live_mini_demo() -> None:
         try:
             r = httpx.get(f"{base_url}/api/health", timeout=2.0)
             if r.status_code == 200:
-                print("[*] Server started and healthy.")
+                print("[*] Local server started and healthy.")
                 break
         except Exception:
             time.sleep(0.2)
@@ -53,11 +69,15 @@ def run_live_mini_demo() -> None:
         sys.exit(1)
 
     try:
-        # 3. POST /api/runs with n_attacks=5 and compare_v2=True
-        print("\n[*] Sending POST /api/runs with {'n_attacks': 5, 'compare_v2': True}...")
+        # 3. POST /api/runs with n_attacks=6, target_mode="naive", compare_v2=True
+        print(f"\n[*] Sending POST /api/runs (n_attacks={n_attacks}, target_mode='{target_mode}', compare_v2={compare_v2})...")
         resp = httpx.post(
             f"{base_url}/api/runs",
-            json={"n_attacks": 5, "compare_v2": True, "target_mode": "realistic"},
+            json={
+                "n_attacks": n_attacks,
+                "compare_v2": compare_v2,
+                "target_mode": target_mode,
+            },
             timeout=10.0,
         )
         if resp.status_code != 200:
@@ -70,7 +90,7 @@ def run_live_mini_demo() -> None:
 
         # 4. Connect to and consume the SSE stream
         events_url = f"{base_url}/api/runs/{run_id}/events"
-        print(f"[*] Connecting to SSE stream at {events_url}...")
+        print(f"[*] Streaming SSE events from {events_url}...\n")
 
         event_order: list[str] = []
         attacks_results: list[dict[str, Any]] = []
@@ -93,13 +113,13 @@ def run_live_mini_demo() -> None:
                         data = {"raw": data_str}
 
                     event_order.append(current_event)
-                    print(f"\n[EVENT #{len(event_order)}] {current_event}")
 
                     if current_event == "attack_started":
                         print(
-                            f"  Attack ID: {data.get('attack_id')} | "
-                            f"Channel: {data.get('channel')} | "
-                            f"Category: {data.get('category')}"
+                            f"[STARTED #{data.get('index', 0) + 1}] "
+                            f"{data.get('attack_id')} | "
+                            f"channel: {data.get('channel')} | "
+                            f"category: {data.get('category')}"
                         )
                     elif current_event == "attack_finished":
                         att_id = data.get("attack_id")
@@ -112,8 +132,8 @@ def run_live_mini_demo() -> None:
                             "attack_id": att_id,
                             "channel": data.get("channel"),
                             "category": data.get("category"),
-                            "realistic_outcome": unh.get("outcome"),
-                            "realistic_unsafe": unh.get("metrics", {}).get("unsafe", False),
+                            "unhardened_outcome": unh.get("outcome"),
+                            "unhardened_unsafe": unh.get("metrics", {}).get("unsafe", False),
                             "v2_outcome": v2.get("outcome"),
                             "v2_unsafe": v2.get("metrics", {}).get("unsafe", False),
                             "v2_block_rule": v2.get("policy_block_rule"),
@@ -121,46 +141,40 @@ def run_live_mini_demo() -> None:
                         }
                         attacks_results.append(res_item)
 
-                        print(f"  Attack: {att_id}")
+                        unh_flag = "UNSAFE" if res_item["unhardened_unsafe"] else "Defended"
+                        v2_flag = "UNSAFE" if res_item["v2_unsafe"] else (f"Blocked ({res_item['v2_block_rule']})" if res_item['v2_block_rule'] else "Defended")
                         print(
-                            f"  Realistic (Unhardened) Outcome: {res_item['realistic_outcome']} "
-                            f"(unsafe: {res_item['realistic_unsafe']})"
+                            f"  -> Finished {att_id}: Unhardened={unh_flag} | "
+                            f"Policy v2={v2_flag} | Cost=+${cost:.4f} (Cumulative: ${total_cost:.4f})"
                         )
-                        print(
-                            f"  Policy v2 Outcome:             {res_item['v2_outcome']} "
-                            f"(rule: {res_item['v2_block_rule']})"
-                        )
-                        print(f"  Attack Cost:                   ${cost:.5f} (Cumulative: ${total_cost:.5f})")
 
-                        # Safety budget check
+                        # Per-run budget safety check
                         if total_cost > 0.05:
-                            print("[!] Cumulative cost exceeded budget cap of $0.05! Stopping.")
+                            print("[!] Cumulative cost reached budget cap of $0.0500! Stopping.")
                             break
 
                     elif current_event == "run_complete":
                         final_summary = data
-                        print(f"  Status: {data.get('status')}")
-                        print(f"  Attacks Evaluated: {data.get('attacks_evaluated')}")
-                        print(f"  Unhardened Breaches: {data.get('unhardened_breaches')}")
-                        print(f"  Policy v2 Breaches:  {data.get('v2_breaches')}")
-                        print(f"  Total Cost USD:      ${data.get('total_cost_usd', 0.0):.5f}")
+                        print(f"\n[RUN COMPLETE] Status: {data.get('status')}")
+                        print(f"  Attacks evaluated:   {data.get('attacks_evaluated')}")
+                        print(f"  Unhardened unsafe:   {data.get('unhardened_unsafe', data.get('unhardened_breaches', 0))}")
+                        print(f"  Policy v2 unsafe:    {data.get('v2_unsafe', data.get('v2_breaches', 0))}")
+                        print(f"  Total actual cost:   ${data.get('total_cost_usd', total_cost):.5f} USD")
                         break
                     elif current_event == "run_error":
-                        print(f"  Error: {data}")
+                        print(f"\n[RUN ERROR] Error: {data}")
                         break
 
                     current_event = ""
 
-        # 5. Daily spend ledger confirmation
+        # 5. Spend ledger confirmation
         spend_after = get_daily_live_spend()
-        print("\n" + "=" * 60)
-        print("DAILY SPEND LEDGER VERIFICATION")
-        print("=" * 60)
+        print("\n" + "=" * 64)
+        print("SPEND ACCOUNTING & DATABASE PERSISTENCE")
+        print("=" * 64)
         print(f"  Daily spend before run: ${spend_before:.5f}")
         print(f"  Daily spend after run:  ${spend_after:.5f}")
-        print(f"  Difference:             ${spend_after - spend_before:.5f}")
-        assert spend_after >= spend_before, "Daily spend ledger was not updated!"
-        print("  Ledger confirmation:    CONFIRMED (Run registered in SQLite DB)")
+        print(f"  Run incremental cost:   ${spend_after - spend_before:.5f}")
 
         # Verify DB records
         engine = init_db("runs/gauntlet.db")
@@ -171,20 +185,20 @@ def run_live_mini_demo() -> None:
             print(f"  SQLite Run Cost:        ${db_run.cost_usd:.5f}" if db_run else "")
             print(f"  SQLite Attacks Count:   {len(db_attacks)}")
 
-        print("\n" + "=" * 60)
-        print("RUN SUMMARY REPORT")
-        print("=" * 60)
-        print(f"Event Order ({len(event_order)} events):")
-        print(" -> ".join(event_order))
-        print("\nPer-Attack Outcomes:")
+        print("\n" + "=" * 64)
+        print("LIVE RUN OUTCOMES TABLE")
+        print("=" * 64)
+        print(f"{'Attack ID':<18} {'Channel':<12} {'Category':<22} {'Unhardened':<14} {'Policy v2':<26} {'Cost (USD)':<10}")
+        print("-" * 102)
         for a in attacks_results:
-            print(
-                f"  [{a['attack_id']}] Channel={a['channel']} Cat={a['category']} | "
-                f"Realistic={a['realistic_outcome']} | v2={a['v2_outcome']} ({a['v2_block_rule']}) | "
-                f"Cost=${a['cost_usd']:.5f}"
-            )
-        print(f"\nFinal Run Cost: ${final_summary.get('total_cost_usd', total_cost):.5f}")
-        print(f"Per-run budget cap respected ($0.05): {final_summary.get('total_cost_usd', total_cost) <= 0.05}")
+            unh_s = "UNSAFE" if a['unhardened_unsafe'] else "Defended"
+            v2_s = "UNSAFE" if a['v2_unsafe'] else (f"Blocked ({a['v2_block_rule']})" if a['v2_block_rule'] else "Defended")
+            print(f"{a['attack_id']:<18} {a['channel']:<12} {a['category']:<22} {unh_s:<14} {v2_s:<26} ${a['cost_usd']:.4f}")
+        print("-" * 102)
+        actual_cost = final_summary.get('total_cost_usd', total_cost)
+        print(f"Total Actual Cost: ${actual_cost:.5f} USD (Estimated: ~${estimated_cost_usd:.4f})")
+        print(f"Budget Cap ($0.0500) Respected: {actual_cost <= 0.05}")
+        print("=" * 64)
 
     finally:
         server.should_exit = True

@@ -1,16 +1,14 @@
 "use client";
 
-import React, { useState, useRef, useMemo, useSyncExternalStore } from "react";
+import React, { useState, useRef, useMemo, useEffect, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
 import { AttackRecord } from "@/lib/api";
 import { AttackCondition, getAttackSquareState } from "@/lib/range-utils";
 
-const SQUARE_SIZE = 14;
 const GAP = 3;
-const STEP = SQUARE_SIZE + GAP; // 17px
 const MAX_COLS = 30;
-const GRID_START_X = 140;
+const GRID_START_X = 136;
 
 function subscribeToReducedMotion(callback: () => void) {
   if (typeof window === "undefined") return () => {};
@@ -75,6 +73,42 @@ export function RangeGrid({
     getReducedMotionServerSnapshot
   );
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Responsive container width measurement to dynamically scale squares up to 18px
+  const [containerWidth, setContainerWidth] = useState<number>(760);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const update = () => {
+      const w = el.clientWidth;
+      if (w > 0) setContainerWidth(w);
+    };
+    update();
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.contentRect.width > 0) {
+          setContainerWidth(entry.contentRect.width);
+        }
+      }
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  // Compute square size: up to 18px with 3px gaps, filling panel width without breaking mobile (390px)
+  const { squareSize, step, svgWidth } = useMemo(() => {
+    const availWidth = Math.max(containerWidth - 40 - GRID_START_X - 16, 0);
+    const colStep = Math.floor(availWidth / MAX_COLS);
+    const size = Math.min(18, Math.max(13, colStep - GAP));
+    const computedStep = size + GAP;
+    const computedSvgWidth = GRID_START_X + MAX_COLS * computedStep + 16;
+    return {
+      squareSize: size,
+      step: computedStep,
+      svgWidth: computedSvgWidth,
+    };
+  }, [containerWidth]);
 
   // Group attacks into the 6 designated rows per DESIGN.md:
   // email, web page, document + 3 probe rows (partner address, URL smuggling, calendar fields)
@@ -149,7 +183,7 @@ export function RangeGrid({
     ];
   }, [attacks]);
 
-  // Compute 2D layout coordinates for all squares
+  // Compute 2D layout coordinates for all squares with dynamic step
   const { gridItems, rowPositions, totalHeight } = useMemo(() => {
     const items: GridItem[] = [];
     const positions: Array<{ id: string; label: string; count: string; y: number; isProbe: boolean }> = [];
@@ -177,8 +211,8 @@ export function RangeGrid({
       row.attacks.forEach((attack, idxInRow) => {
         const col = idxInRow % MAX_COLS;
         const subRow = Math.floor(idxInRow / MAX_COLS);
-        const x = GRID_START_X + col * STEP;
-        const y = rowStartY + subRow * STEP;
+        const x = GRID_START_X + col * step;
+        const y = rowStartY + subRow * step;
 
         items.push({
           attack,
@@ -190,11 +224,11 @@ export function RangeGrid({
         });
       });
 
-      currentY += subRowCount * STEP + 18;
+      currentY += subRowCount * step + 18;
     });
 
     return { gridItems: items, rowPositions: positions, totalHeight: currentY + 12 };
-  }, [rows]);
+  }, [rows, step]);
 
   // Keyboard navigation (focus rings appear ONLY on keyboard use)
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -233,8 +267,6 @@ export function RangeGrid({
     }
   };
 
-  const svgWidth = GRID_START_X + MAX_COLS * STEP + 16; // ~666px
-
   return (
     <div
       ref={containerRef}
@@ -265,11 +297,12 @@ export function RangeGrid({
         </div>
       </div>
 
-      {/* SVG Canvas */}
+      {/* SVG Canvas - scrollable horizontally on mobile (390px) without breaking page width */}
       <div className="w-full overflow-x-auto relative">
         <svg
           viewBox={`0 0 ${svgWidth} ${totalHeight}`}
-          className="w-full h-auto min-w-[620px] select-none"
+          style={{ width: `${svgWidth}px`, maxWidth: "none" }}
+          className="h-auto select-none"
           role="grid"
           aria-label="Attack Range grid"
         >
@@ -303,7 +336,7 @@ export function RangeGrid({
                   </g>
                 )}
 
-                {/* Row label (at least 12px) */}
+                {/* Row label (minimum 12px) */}
                 <text
                   x="4"
                   y={pos.y + 11}
@@ -380,8 +413,8 @@ export function RangeGrid({
                 <motion.rect
                   x={item.x}
                   y={item.y}
-                  width={SQUARE_SIZE}
-                  height={SQUARE_SIZE}
+                  width={squareSize}
+                  height={squareSize}
                   rx="2"
                   initial={false}
                   animate={{
@@ -401,8 +434,8 @@ export function RangeGrid({
                   <motion.line
                     x1={item.x + 2.5}
                     y1={item.y + 2.5}
-                    x2={item.x + SQUARE_SIZE - 2.5}
-                    y2={item.y + SQUARE_SIZE - 2.5}
+                    x2={item.x + squareSize - 2.5}
+                    y2={item.y + squareSize - 2.5}
                     stroke="var(--panel)"
                     strokeWidth="1.6"
                     strokeLinecap="round"
@@ -418,8 +451,8 @@ export function RangeGrid({
                 {/* Colour independence: amber canary-only leaks get a center dot */}
                 {visualState.isCanaryOnly && (
                   <motion.circle
-                    cx={item.x + SQUARE_SIZE / 2}
-                    cy={item.y + SQUARE_SIZE / 2}
+                    cx={item.x + squareSize / 2}
+                    cy={item.y + squareSize / 2}
                     r="2.2"
                     fill="var(--ink)"
                     initial={false}
@@ -440,7 +473,7 @@ export function RangeGrid({
           <div
             className="absolute z-30 pointer-events-none bg-[var(--panel)] border border-[var(--rule)] rounded-[var(--radius-sm)] shadow-xl p-2.5 max-w-xs transition-opacity duration-100"
             style={{
-              left: `${Math.min(hoveredItem.x + 15, 420)}px`,
+              left: `${Math.min(hoveredItem.x + 15, Math.max(svgWidth - 260, 20))}px`,
               top: `${Math.max(hoveredItem.y - 45, 10)}px`,
             }}
           >

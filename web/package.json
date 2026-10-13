@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --experimental-strip-types --test lib/__tests__/range-utils.test.ts"
+    "test": "node --experimental-strip-types --test lib/__tests__/*.test.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

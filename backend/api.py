@@ -30,7 +30,7 @@ from typing import Any
 import yaml
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Query, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from sqlmodel import Session, select
 from starlette.responses import StreamingResponse
 
@@ -237,8 +237,19 @@ class CreateRunRequest(BaseModel):
     """Request payload for starting a live mini-run."""
 
     n_attacks: int = Field(default=10, ge=1, le=20, description="Max 20 attacks for live runs")
-    compare_v2: bool = Field(default=False, description="Run against Policy v2 as well")
-    target_mode: str = Field(default="realistic", description="Target agent mode (realistic)")
+    compare_v2: bool = Field(default=True, description="Run against Policy v2 as well")
+    target_mode: str = Field(
+        default="naive",
+        description="Target agent mode: 'naive' or 'realistic'",
+    )
+
+    @field_validator("target_mode")
+    @classmethod
+    def validate_target_mode(cls, v: str) -> str:
+        clean = v.strip().lower()
+        if clean not in ("naive", "realistic"):
+            raise ValueError("target_mode must be 'naive' or 'realistic'")
+        return clean
 
 
 # ---------------------------------------------------------------------------

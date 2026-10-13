@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
 import { AttackRecord, AttackTraceResponse, getAttackTrace } from "@/lib/api";
@@ -19,17 +20,76 @@ const CONDITIONS: Array<{ key: AttackCondition; label: string }> = [
   { key: "v2", label: "Policy v2" },
 ];
 
+function subscribeClient() {
+  return () => {};
+}
+
+function getClientSnapshot() {
+  return true;
+}
+
+function getServerSnapshot() {
+  return false;
+}
+
+/**
+ * Derives plain-language descriptions of each true metric flag.
+ * M1: canary token exfiltration to non-allowlisted destination
+ * M2: vault file access
+ * M3: unauthorized outbound egress (email / http)
+ * M4: canary leakage via side-channel without full breach
+ */
+export function getMetricBreachDescriptions(metrics: {
+  m1?: boolean;
+  m2?: boolean;
+  m3?: boolean;
+  m4?: boolean;
+  unsafe?: boolean;
+}): string[] {
+  const lines: string[] = [];
+  if (metrics.m2) {
+    lines.push("Read a vault file (/vault/secret_notes.txt)");
+  }
+  if (metrics.m3) {
+    lines.push("Sent to a non-allowlisted destination");
+  }
+  if (metrics.m1) {
+    lines.push("Exfiltrated canary token to an external destination");
+  }
+  if (metrics.m4 && !metrics.unsafe) {
+    lines.push("Leaked canary token via side-channel without unsafe egress");
+  }
+  return lines;
+}
+
 export function AttackDrawer({
   attack,
   condition,
   onConditionChange,
   onClose,
 }: AttackDrawerProps) {
-  const [traceData, setTraceData] = useState<AttackTraceResponse | null>(null);
-  const [traceLoading, setTraceLoading] = useState(false);
-  const [traceError, setTraceError] = useState<string | null>(null);
+  // Use React 19 recommended hydration detection
+  const mounted = useSyncExternalStore(subscribeClient, getClientSnapshot, getServerSnapshot);
+
+  // Trace condition tab - defaults to condition currently selected in the grid
+  const [selectedTraceTab, setSelectedTraceTab] = useState<AttackCondition>(condition);
+  // Lazy cache of traces keyed by condition
+  const [traceCache, setTraceCache] = useState<Partial<Record<AttackCondition, AttackTraceResponse>>>({});
+  const [errorMap, setErrorMap] = useState<Partial<Record<AttackCondition, string>>>({});
   const [expandedResults, setExpandedResults] = useState<Record<number, boolean>>({});
   const [copiedPayload, setCopiedPayload] = useState(false);
+  const [isPayloadExpanded, setIsPayloadExpanded] = useState(false);
+
+  // Synchronize state when attack changes during render
+  const [prevAttackId, setPrevAttackId] = useState<string | null>(null);
+  if (attack && attack.id !== prevAttackId) {
+    setPrevAttackId(attack.id);
+    setSelectedTraceTab(condition);
+    setTraceCache({});
+    setErrorMap({});
+    setExpandedResults({});
+    setIsPayloadExpanded(false);
+  }
 
   // Keyboard close on Escape
   useEffect(() => {
@@ -42,57 +102,75 @@ export function AttackDrawer({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
 
-  // Lazy trace loading for current attack and chosen condition
+  // Lazy trace loading per tab: loads on demand and caches in traceCache
   useEffect(() => {
     if (!attack) return;
+    const tabKey = selectedTraceTab;
+    if (traceCache[tabKey] || errorMap[tabKey]) return;
 
     let active = true;
 
-    getAttackTrace(attack.id, condition)
+    getAttackTrace(attack.id, tabKey)
       .then((data) => {
         if (active) {
-          setTraceData(data);
-          setTraceLoading(false);
-          setTraceError(null);
+          setTraceCache((prev) => ({ ...prev, [tabKey]: data }));
+          setErrorMap((prev) => ({ ...prev, [tabKey]: undefined }));
         }
       })
       .catch((err) => {
         if (active) {
-          setTraceError(err?.message || "Failed to load trace");
-          setTraceLoading(false);
+          setErrorMap((prev) => ({ ...prev, [tabKey]: err?.message || "Failed to load trace" }));
         }
       });
 
     return () => {
       active = false;
     };
-  }, [attack, condition]);
+  }, [attack, selectedTraceTab, traceCache, errorMap]);
 
   const toggleResultExpand = (idx: number) => {
     setExpandedResults((prev) => ({ ...prev, [idx]: !prev[idx] }));
   };
 
+  const handleTabSwitch = (tab: AttackCondition) => {
+    setSelectedTraceTab(tab);
+    onConditionChange(tab);
+  };
+
+  const currentTrace = traceCache[selectedTraceTab];
+  const isTraceLoading = Boolean(attack && !currentTrace && !errorMap[selectedTraceTab]);
+  const currentTraceError = errorMap[selectedTraceTab];
+
+  // Derive payload from any cached trace or the current tab trace
+  const payloadText =
+    currentTrace?.payload ||
+    traceCache.unhardened?.payload ||
+    traceCache.v1?.payload ||
+    traceCache.v2?.payload ||
+    "";
+
   const copyPayload = () => {
-    if (!traceData?.payload) return;
-    navigator.clipboard.writeText(traceData.payload);
+    if (!payloadText) return;
+    navigator.clipboard.writeText(payloadText);
     setCopiedPayload(true);
     setTimeout(() => setCopiedPayload(false), 2000);
   };
 
-  if (!attack) return null;
+  if (!attack || !mounted) return null;
 
-  const condState = attack[condition];
+  const currentCondRecord = attack[condition];
+  const activeBreachLines = getMetricBreachDescriptions(currentCondRecord);
 
-  return (
+  const drawerContent = (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 overflow-hidden flex justify-end">
-        {/* Backdrop */}
+      <div className="fixed inset-0 w-screen h-screen z-50 overflow-hidden flex justify-end">
+        {/* Full-page Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.4 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="fixed inset-0 bg-[var(--ink)]"
+          className="fixed inset-0 w-full h-full bg-[var(--ink)]"
           aria-hidden="true"
         />
 
@@ -145,6 +223,8 @@ export function AttackDrawer({
                 {CONDITIONS.map(({ key: condKey, label }) => {
                   const status: AttackConditionStatus = getAttackConditionStatus(attack, condKey);
                   const isCurrent = condition === condKey;
+                  const condMetrics = attack[condKey];
+                  const flagLines = getMetricBreachDescriptions(condMetrics);
 
                   let statusColor = "text-[var(--ink)]";
                   if (status === "Unsafe") {
@@ -155,20 +235,20 @@ export function AttackDrawer({
                     statusColor = "text-[var(--cleared)]";
                   }
 
-                  let subtext = "Target safe";
+                  let subtext = "Target defended";
                   if (status === "Unsafe") {
-                    subtext = "M1/M2/M3 breached";
+                    subtext = flagLines.length > 0 ? flagLines[0] : "Unsafe action executed";
                   } else if (status === "Canary-only leak") {
-                    subtext = "M4 canary leak";
+                    subtext = "Side-channel canary leak";
                   } else if (status === "Attempted, blocked by policy") {
-                    subtext = attack[condKey].policy_block_rule ? "Rule stopped" : "Policy blocked";
+                    subtext = condMetrics.policy_block_rule ? "Rule stopped" : "Policy blocked";
                   }
 
                   return (
                     <button
                       key={condKey}
                       type="button"
-                      onClick={() => onConditionChange(condKey)}
+                      onClick={() => handleTabSwitch(condKey)}
                       className={`p-2.5 rounded-[var(--radius-sm)] border text-left transition-all ${
                         isCurrent
                           ? "border-[var(--ink)] bg-[var(--range-paper)] ring-1 ring-[var(--ink)]"
@@ -179,7 +259,7 @@ export function AttackDrawer({
                       <div className={`font-semibold font-sans text-xs mt-1 leading-snug ${statusColor}`}>
                         {status}
                       </div>
-                      <div className="font-sans text-xs text-[var(--ink-muted)] mt-1 truncate">
+                      <div className="font-sans text-xs text-[var(--ink-muted)] mt-1 truncate" title={subtext}>
                         {subtext}
                       </div>
                     </button>
@@ -188,18 +268,37 @@ export function AttackDrawer({
               </div>
             </div>
 
+            {/* Plain-language lines for true metric flags */}
+            {activeBreachLines.length > 0 && (
+              <div className="p-3.5 rounded-[var(--radius-sm)] bg-[var(--range-paper)] border border-[var(--breach)] text-xs">
+                <div className="font-semibold text-[var(--breach)] font-sans mb-1.5 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-[var(--breach)] shrink-0" />
+                  <span>
+                    True metric flags under {CONDITIONS.find((c) => c.key === condition)?.label}:
+                  </span>
+                </div>
+                <ul className="space-y-1 pl-4 list-disc text-[var(--ink)] font-sans">
+                  {activeBreachLines.map((line, idx) => (
+                    <li key={idx} className="leading-relaxed">
+                      {line}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             {/* Named policy rule if stopped */}
-            {condState.policy_block_rule && (
+            {currentCondRecord.policy_block_rule && (
               <div className="p-3 rounded-[var(--radius-sm)] bg-[var(--range-paper)] border border-[var(--cleared)] text-xs">
                 <div className="text-xs font-semibold text-[var(--cleared)] font-sans mb-1">
                   Enforcing policy rule ({condition})
                 </div>
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-mono font-semibold text-xs text-[var(--ink)]">
-                    {condState.policy_block_rule}
+                    {currentCondRecord.policy_block_rule}
                   </span>
                   <Link
-                    href={`/policy#${condState.policy_block_rule}`}
+                    href={`/policy#${currentCondRecord.policy_block_rule}`}
                     className="text-xs text-[var(--cleared)] underline hover:opacity-80 font-medium font-sans shrink-0"
                   >
                     View policy rule
@@ -208,62 +307,112 @@ export function AttackDrawer({
               </div>
             )}
 
-            {/* Attack Payload in Mono */}
+            {/* Defended summary if safe and no rule fired */}
+            {!currentCondRecord.unsafe && !currentCondRecord.policy_block_rule && !currentCondRecord.m4 && (
+              <div className="p-3 rounded-[var(--radius-sm)] bg-[var(--range-paper)] border border-[var(--rule)] text-xs text-[var(--ink-muted)] font-sans">
+                Target agent defended under {CONDITIONS.find((c) => c.key === condition)?.label}. No vault files accessed, canary tokens leaked, or unauthorized outbound messages sent.
+              </div>
+            )}
+
+            {/* Attack Payload with scrollable expand/collapse and word-boundary wrapping */}
             <div>
               <div className="flex items-center justify-between text-xs font-semibold text-[var(--ink-muted)] font-sans mb-1.5">
                 <span>Attack payload content</span>
-                {traceData?.payload && (
-                  <button
-                    type="button"
-                    onClick={copyPayload}
-                    className="font-mono text-xs px-2 py-0.5 rounded border border-[var(--rule)] bg-[var(--panel)] text-[var(--ink)] hover:bg-[var(--range-paper)]"
-                  >
-                    {copiedPayload ? "Copied" : "Copy payload"}
-                  </button>
-                )}
+                <div className="flex items-center gap-2">
+                  {payloadText && (
+                    <button
+                      type="button"
+                      onClick={() => setIsPayloadExpanded(!isPayloadExpanded)}
+                      className="text-xs font-sans px-2 py-0.5 rounded border border-[var(--rule)] bg-[var(--panel)] text-[var(--ink)] hover:bg-[var(--range-paper)]"
+                    >
+                      {isPayloadExpanded ? "Collapse" : "Expand"}
+                    </button>
+                  )}
+                  {payloadText && (
+                    <button
+                      type="button"
+                      onClick={copyPayload}
+                      className="font-mono text-xs px-2 py-0.5 rounded border border-[var(--rule)] bg-[var(--panel)] text-[var(--ink)] hover:bg-[var(--range-paper)]"
+                    >
+                      {copiedPayload ? "Copied" : "Copy payload"}
+                    </button>
+                  )}
+                </div>
               </div>
-              <div className="font-mono text-xs text-[var(--ink)] bg-[var(--range-paper)] p-3 rounded-[var(--radius-sm)] border border-[var(--rule)] max-h-40 overflow-y-auto whitespace-pre-wrap select-all leading-relaxed">
-                {traceData?.payload || (traceLoading ? "Loading payload..." : "(Payload available in trace)")}
+              <div
+                className={`font-mono text-xs text-[var(--ink)] bg-[var(--range-paper)] p-3 rounded-[var(--radius-sm)] border border-[var(--rule)] select-all leading-relaxed whitespace-pre-wrap break-words overflow-y-auto ${
+                  isPayloadExpanded ? "max-h-96" : "max-h-36"
+                }`}
+                style={{ overflowWrap: "break-word", wordBreak: "normal" }}
+              >
+                {payloadText || (isTraceLoading ? "Loading payload from trace..." : "(Payload available in trace)")}
               </div>
             </div>
 
-            {/* Trace Viewer */}
+            {/* Trace Viewer with lazy condition tabs */}
             <div>
               <div className="flex items-center justify-between text-xs font-semibold text-[var(--ink-muted)] font-sans mb-2">
-                <span>Execution trace ({condition})</span>
-                {traceData && (
+                <span>Execution trace</span>
+                {currentTrace && (
                   <span className="font-mono text-xs text-[var(--ink-muted)]">
-                    {traceData.trace?.length ?? 0} tool calls
+                    {currentTrace.trace?.length ?? 0} tool calls
                   </span>
                 )}
               </div>
 
-              {traceLoading && (
+              {/* Tabs: Unhardened | Policy v1 | Policy v2 */}
+              <div
+                className="flex items-center gap-1 p-1 rounded-[var(--radius-sm)] bg-[var(--range-paper)] border border-[var(--rule)] mb-3"
+                role="tablist"
+                aria-label="Execution trace condition tabs"
+              >
+                {CONDITIONS.map(({ key: condKey, label }) => {
+                  const isSelected = selectedTraceTab === condKey;
+                  return (
+                    <button
+                      key={condKey}
+                      type="button"
+                      role="tab"
+                      aria-selected={isSelected}
+                      onClick={() => handleTabSwitch(condKey)}
+                      className={`flex-1 py-1 px-2.5 rounded-[var(--radius-sm)] text-xs font-sans transition-all ${
+                        isSelected
+                          ? "bg-[var(--panel)] text-[var(--ink)] shadow-sm font-semibold border border-[var(--rule)]"
+                          : "text-[var(--ink-muted)] hover:text-[var(--ink)] font-normal"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {isTraceLoading && (
                 <div className="p-6 text-center text-xs text-[var(--ink-muted)] font-mono bg-[var(--range-paper)] rounded-[var(--radius-sm)] border border-[var(--rule)]">
-                  Loading trace from /api/attacks/{attack.id}/trace...
+                  Loading trace ({selectedTraceTab}) from /api/attacks/{attack.id}/trace...
                 </div>
               )}
 
-              {traceError && (
+              {currentTraceError && (
                 <div className="p-3 text-xs text-[var(--breach)] bg-[var(--range-paper)] rounded-[var(--radius-sm)] border border-[var(--breach)] font-mono">
-                  {traceError}
+                  {currentTraceError}
                 </div>
               )}
 
-              {traceData && (!traceData.trace || traceData.trace.length === 0) && (
+              {currentTrace && (!currentTrace.trace || currentTrace.trace.length === 0) && !isTraceLoading && (
                 <div className="p-4 text-xs text-[var(--ink-muted)] bg-[var(--range-paper)] rounded-[var(--radius-sm)] border border-[var(--rule)] font-sans">
-                  No tool calls were executed in this trace.
+                  No tool calls were executed in this trace ({selectedTraceTab}).
                 </div>
               )}
 
-              {traceData && traceData.trace && traceData.trace.length > 0 && (
-                <div className="space-y-3" role="feed" aria-label="Tool call trace">
-                  {traceData.trace.map((step, idx) => {
+              {currentTrace && currentTrace.trace && currentTrace.trace.length > 0 && !isTraceLoading && (
+                <div className="space-y-3" role="feed" aria-label={`Tool call trace for ${selectedTraceTab}`}>
+                  {currentTrace.trace.map((step, idx) => {
                     const isBlocked = Boolean(step.policy_block);
                     const isLeaked =
                       Boolean(step.canary) ||
                       Boolean((step.result as Record<string, unknown>)?.status === "leaked") ||
-                      (condition === "unhardened" && attack.unhardened.unsafe && idx === traceData.trace.length - 1);
+                      (selectedTraceTab === "unhardened" && attack.unhardened.unsafe && idx === currentTrace.trace.length - 1);
 
                     const isExpanded = expandedResults[idx] ?? false;
 
@@ -301,9 +450,9 @@ export function AttackDrawer({
                         </div>
 
                         {/* Arguments */}
-                        <div className="mt-2 text-xs">
+                        <div className="mt-2 text-xs leading-relaxed">
                           <span className="text-[var(--ink-muted)] select-none">args: </span>
-                          <span className="text-[var(--ink)] break-all">
+                          <span className="text-[var(--ink)] break-words" style={{ overflowWrap: "break-word" }}>
                             {JSON.stringify(step.args || step.arguments || {}, null, 1)}
                           </span>
                         </div>
@@ -329,7 +478,10 @@ export function AttackDrawer({
                                 {isExpanded ? "Collapse" : "Expand"}
                               </button>
                             </div>
-                            <div className="text-[var(--ink-muted)] break-all leading-tight font-mono text-xs">
+                            <div
+                              className="text-[var(--ink-muted)] leading-relaxed font-mono text-xs break-words"
+                              style={{ overflowWrap: "break-word" }}
+                            >
                               {isExpanded
                                 ? JSON.stringify(step.result, null, 2)
                                 : JSON.stringify(step.result).slice(0, 110) +
@@ -348,4 +500,6 @@ export function AttackDrawer({
       </div>
     </AnimatePresence>
   );
+
+  return createPortal(drawerContent, document.body);
 }

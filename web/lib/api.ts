@@ -297,3 +297,27 @@ export async function getAttackTrace(
 ): Promise<AttackTraceResponse> {
   return request<AttackTraceResponse>(`/api/attacks/${encodeURIComponent(id)}/trace?condition=${condition}`);
 }
+
+export interface CreateRunParams {
+  n_attacks?: number;
+  compare_v2?: boolean;
+  target_mode?: "naive" | "realistic";
+}
+
+export interface CreateRunResponse {
+  run_id: string;
+  status: string;
+  n_attacks: number;
+  compare_v2: boolean;
+  target_mode: string;
+  budget_cap_usd: number;
+}
+
+export async function createRun(params: CreateRunParams = {}): Promise<CreateRunResponse> {
+  return request<CreateRunResponse>("/api/runs", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(params),
+  });
+}
+

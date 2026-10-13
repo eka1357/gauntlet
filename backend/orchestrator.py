@@ -375,10 +375,10 @@ async def execute_mini_live_run(
                 session.add(run_rec)
                 session.commit()
 
-        # 4. Emit run_complete
         summary_info = {
             "run_id": run_id,
             "status": final_status,
+            "target_mode": target_mode,
             "attacks_evaluated": len(attacks_evaluated),
             "budget_capped": budget_capped,
             "budget_cap_usd": budget_cap_usd,

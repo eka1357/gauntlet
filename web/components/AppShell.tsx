@@ -14,6 +14,8 @@ interface AppShellProps {
 const NAV_ITEMS = [
   { label: "Workspace", href: "/" },
   { label: "Results", href: "/results" },
+  { label: "Policy", href: "/policy" },
+  { label: "Live", href: "/live" },
 ];
 
 export function AppShell({ children }: AppShellProps) {
