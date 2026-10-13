@@ -4,23 +4,21 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "./Logo";
-import { getRecordedSummary } from "@/lib/api";
+import { getRecordedSummary, RunCosts } from "@/lib/api";
 
 interface AppShellProps {
   children: React.ReactNode;
 }
 
+// Only active pages are shown; non-built pages (Policy, Live, Report) are hidden
 const NAV_ITEMS = [
-  { label: "Workspace", href: "/workspace" },
+  { label: "Workspace", href: "/" },
   { label: "Results", href: "/results" },
-  { label: "Policy", href: "/policy" },
-  { label: "Live", href: "/live" },
-  { label: "Report", href: "/report" },
 ];
 
 export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
-  const [totalCost, setTotalCost] = useState<string | null>(null);
+  const [costs, setCosts] = useState<RunCosts | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -28,19 +26,20 @@ export function AppShell({ children }: AppShellProps) {
     getRecordedSummary()
       .then((data) => {
         if (!mounted) return;
-        const cost = data.costs?.total_usd ?? data.total_cost_usd;
-        if (typeof cost === "number") {
-          setTotalCost(`$${cost.toFixed(2)}`);
+        if (data.costs) {
+          setCosts(data.costs);
         }
       })
       .catch(() => {
-        // Quiet fallback if backend is momentarily unreachable
-        if (mounted) setTotalCost(null);
+        if (mounted) setCosts(null);
       });
     return () => {
       mounted = false;
     };
   }, []);
+
+  const verificationCost = costs ? `$${costs.confirmation_set2_run_usd.toFixed(2)}` : "$--.--";
+  const allRunsCost = costs ? `$${costs.total_usd.toFixed(2)}` : "$--.--";
 
   return (
     <div className="min-h-screen flex flex-col bg-[var(--range-paper)] text-[var(--ink)]">
@@ -67,7 +66,7 @@ export function AppShell({ children }: AppShellProps) {
 
             {/* Logo mark and Wordmark */}
             <Link
-              href="/results"
+              href="/"
               className="flex items-center gap-2.5 focus-visible:outline-2 focus-visible:outline-[var(--ink)] rounded-[var(--radius-sm)] p-1 -m-1"
             >
               <Logo size={24} className="text-[var(--ink)] shrink-0" />
@@ -83,17 +82,32 @@ export function AppShell({ children }: AppShellProps) {
             </div>
           </div>
 
-          {/* Right side stats */}
-          <div className="flex items-center gap-4">
+          {/* Right side cost accounting */}
+          <div className="flex items-center gap-3 sm:gap-4">
             <div className="sm:hidden inline-flex items-center gap-1.5 text-xs text-[var(--ink)] font-medium">
               <span className="w-1.5 h-1.5 rounded-full bg-[var(--cleared)]" aria-hidden="true" />
               <span>Recorded</span>
             </div>
 
-            <div className="flex items-center gap-2 text-xs">
-              <span className="text-[var(--ink-muted)]">Cost</span>
+            {/* Verification run cost */}
+            <div
+              className="flex items-center gap-1.5 text-xs"
+              title="Verification confirmation run cost (235 attacks against Policy v2)"
+            >
+              <span className="text-[var(--ink-muted)]">Verification run:</span>
               <span className="font-mono font-medium text-[var(--ink)] bg-[var(--range-paper)] px-2 py-0.5 rounded-[var(--radius-sm)] border border-[var(--rule)]">
-                {totalCost ?? "$--.--"}
+                {verificationCost}
+              </span>
+            </div>
+
+            {/* All runs cost breakdown */}
+            <div
+              className="hidden lg:flex items-center gap-1.5 text-xs"
+              title="Sum of Policy v1 ($1.31) + Confirmation Set 2 ($1.55) + Benign variance & naive set ($1.31)"
+            >
+              <span className="text-[var(--ink-muted)]">All evaluation runs:</span>
+              <span className="font-mono text-[var(--ink-muted)] bg-[var(--range-paper)] px-2 py-0.5 rounded-[var(--radius-sm)] border border-[var(--rule)]">
+                {allRunsCost}
               </span>
             </div>
           </div>
@@ -106,7 +120,7 @@ export function AppShell({ children }: AppShellProps) {
             aria-label="Mobile Navigation"
           >
             {NAV_ITEMS.map((item) => {
-              const active = pathname === item.href || (item.href === "/results" && pathname === "/");
+              const active = pathname === item.href;
               return (
                 <Link
                   key={item.href}
@@ -126,7 +140,7 @@ export function AppShell({ children }: AppShellProps) {
         )}
       </header>
 
-      {/* Main Layout: Left Rail + Center Content */}
+      {/* Main Layout */}
       <div className="flex-1 flex w-full">
         {/* Desktop Left Rail Navigation */}
         <aside
@@ -138,7 +152,7 @@ export function AppShell({ children }: AppShellProps) {
           </div>
           <nav className="flex flex-col gap-1" aria-label="Main Navigation">
             {NAV_ITEMS.map((item) => {
-              const active = pathname === item.href || (item.href === "/results" && pathname === "/");
+              const active = pathname === item.href;
               return (
                 <Link
                   key={item.href}

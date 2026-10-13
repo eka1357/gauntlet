@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import { WorkspaceView } from "@/components/Range/WorkspaceView";
 
 export default function HomePage() {
-  redirect("/results");
+  return <WorkspaceView />;
 }

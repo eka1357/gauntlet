@@ -147,8 +147,16 @@ export interface AttackTraceStep {
   type?: string;
   tool?: string;
   args?: Record<string, unknown>;
+  arguments?: Record<string, unknown>;
   content?: string;
   result?: unknown;
+  policy_block?: boolean;
+  policy_rule?: string | null;
+  policy_reason?: string | null;
+  canary?: string | boolean;
+  turn?: number;
+  call_id?: string;
+  timestamp?: number;
   [key: string]: unknown;
 }
 

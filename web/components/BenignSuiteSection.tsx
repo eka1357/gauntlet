@@ -45,10 +45,10 @@ export function BenignSuiteSection({ benignSuite }: BenignSuiteSectionProps) {
 
         {/* Policy v2 */}
         <div className="p-3.5 rounded-[var(--radius-sm)] bg-[var(--range-paper)] border border-[var(--cleared)]">
-          <div className="flex items-center justify-between text-xs text-[var(--ink-muted)] mb-1">
+          <div className="flex flex-wrap items-center justify-between text-xs text-[var(--ink-muted)] mb-1 gap-1">
             <span>Policy v2 (3 repeats)</span>
-            <span className="text-[11px] font-mono px-1.5 py-0.2 rounded bg-[var(--cleared)] text-[var(--panel)] font-medium">
-              0.0 pp loss
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[var(--cleared)] text-[var(--panel)] font-medium">
+              No measurable difference: {unh.pooled_pass_rate_pct.toFixed(1)}% vs {v2.pooled_pass_rate_pct.toFixed(1)}% (n={unh.pooled_total} each)
             </span>
           </div>
           <div className="font-mono text-xl font-bold text-[var(--cleared)]">
