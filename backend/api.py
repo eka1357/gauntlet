@@ -123,19 +123,17 @@ async def check_live_runs_allowed(client_ip: str) -> None:
     """Validate kill switch, daily spend cap, and per-IP rate limit for live runs."""
     # 1. Kill switch: disabled unless LIVE_RUNS_ENABLED is exactly "true" (case-insensitive)
     kill_switch_val = os.environ.get("LIVE_RUNS_ENABLED", "").strip().lower()
-    if kill_switch_val != "true" and Path("runs/.live_runs_enabled").is_file():
-        kill_switch_val = "true"
     if kill_switch_val != "true":
         raise HTTPException(
             status_code=429,
             detail="Live runs are paused for today; open the recorded run instead",
         )
 
-    # 2. Daily spend cap (default $0.50)
+    # 2. Daily spend cap (default $0.40)
     try:
-        cap_val = float(os.environ.get("DAILY_SPEND_CAP_USD", "0.50"))
+        cap_val = float(os.environ.get("DAILY_SPEND_CAP_USD", "0.40"))
     except ValueError:
-        cap_val = 0.50
+        cap_val = 0.40
     current_daily_spend = get_daily_live_spend()
     if current_daily_spend >= cap_val:
         raise HTTPException(
@@ -238,7 +236,7 @@ async def limit_request_payload_size(request: Request, call_next: Any) -> Respon
 class CreateRunRequest(BaseModel):
     """Request payload for starting a live mini-run."""
 
-    n_attacks: int = Field(default=10, ge=1, le=20, description="Max 20 attacks for live runs")
+    n_attacks: int = Field(default=8, ge=1, le=8, description="Max 8 attacks for live runs")
     compare_v2: bool = Field(default=True, description="Run against Policy v2 as well")
     target_mode: str = Field(
         default="naive",
@@ -642,16 +640,17 @@ async def start_run(
     body: CreateRunRequest,
     background_tasks: BackgroundTasks,
 ) -> dict[str, Any]:
-    """Start a live mini-run: max 20 attacks, realistic target mode.
+    """Start a live mini-run: max 8 attacks, realistic target mode.
 
     Lightning-generated payloads, no recon, no Ultra, target model Super.
-    Enforces kill switch, daily spend cap ($0.50), and per-IP rate limit (3/hour).
+    Enforces kill switch, daily spend cap ($0.40), per-run budget cap ($0.08),
+    and per-IP rate limit (3/hour).
     """
     client_ip = get_client_ip(request)
     await check_live_runs_allowed(client_ip)
 
     run_id = f"run_{uuid.uuid4().hex[:12]}"
-    n_attacks = max(1, min(20, body.n_attacks))
+    n_attacks = max(1, min(8, body.n_attacks))
 
     # Initialize SQLite Run record
     engine = init_db("runs/gauntlet.db")
@@ -663,7 +662,7 @@ async def start_run(
                 "n_attacks": n_attacks,
                 "compare_v2": body.compare_v2,
                 "target_mode": body.target_mode,
-                "budget_cap_usd": 0.05,
+                "budget_cap_usd": 0.08,
             }),
             created_at=datetime.now(UTC).isoformat(),
             cost_usd=0.0,
@@ -679,6 +678,7 @@ async def start_run(
         compare_v2=body.compare_v2,
         target_mode=body.target_mode,
         event_manager=global_event_manager,
+        budget_cap_usd=0.08,
     )
 
     return {
@@ -687,7 +687,7 @@ async def start_run(
         "n_attacks": n_attacks,
         "compare_v2": body.compare_v2,
         "target_mode": body.target_mode,
-        "budget_cap_usd": 0.05,
+        "budget_cap_usd": 0.08,
         "events_url": f"/api/runs/{run_id}/events",
     }
 

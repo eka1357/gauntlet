@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+from pathlib import Path
 from typing import Any
 from unittest.mock import AsyncMock, patch
 
@@ -240,9 +241,9 @@ def test_daily_spend_cap(monkeypatch: pytest.MonkeyPatch) -> None:
     client = TestClient(app)
     monkeypatch.setenv("LIVE_RUNS_ENABLED", "true")
 
-    # Mock daily spend to exceed cap ($0.55 > $0.50)
-    monkeypatch.setattr("backend.api.get_daily_live_spend", lambda *args, **kwargs: 0.55)
-    monkeypatch.setenv("DAILY_SPEND_CAP_USD", "0.50")
+    # Mock daily spend to exceed default cap ($0.45 > $0.40)
+    monkeypatch.setattr("backend.api.get_daily_live_spend", lambda *args, **kwargs: 0.45)
+    monkeypatch.delenv("DAILY_SPEND_CAP_USD", raising=False)
 
     resp = client.post("/api/runs", json={"n_attacks": 2})
     assert resp.status_code == 429
@@ -284,6 +285,47 @@ def test_kill_switch(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("LIVE_RUNS_ENABLED", "TRUE")
     resp_upper = client.post("/api/runs", json={"n_attacks": 2})
     assert resp_upper.status_code == 200
+
+
+def test_marker_file_does_not_enable_live_runs(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Ensure creating runs/.live_runs_enabled marker file does NOT enable live runs."""
+    client = TestClient(app)
+    monkeypatch.delenv("LIVE_RUNS_ENABLED", raising=False)
+
+    marker = Path("runs/.live_runs_enabled")
+    marker.parent.mkdir(parents=True, exist_ok=True)
+    marker.write_text("enabled", encoding="utf-8")
+    try:
+        resp = client.post("/api/runs", json={"n_attacks": 2})
+        assert resp.status_code == 429
+        assert (
+            "Live runs are paused for today; open the recorded run instead"
+            in resp.json()["detail"]
+        )
+    finally:
+        if marker.exists():
+            marker.unlink()
+
+
+def test_live_runs_max_attacks_validation(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Ensure n_attacks > 8 is rejected with 422 and n_attacks <= 8 is accepted with 0.08 cap."""
+    monkeypatch.setenv("LIVE_RUNS_ENABLED", "true")
+    client = TestClient(app)
+
+    # Exceeds max 8 -> 422 Unprocessable Entity
+    resp_bad = client.post("/api/runs", json={"n_attacks": 9})
+    assert resp_bad.status_code == 422
+
+    # Valid 8 -> 200 OK
+    async def mock_dummy(*args: Any, **kwargs: Any) -> dict[str, Any]:
+        return {"status": "completed"}
+
+    monkeypatch.setattr("backend.api.execute_mini_live_run", mock_dummy)
+
+    resp_ok = client.post("/api/runs", json={"n_attacks": 8})
+    assert resp_ok.status_code == 200
+    assert resp_ok.json()["n_attacks"] == 8
+    assert resp_ok.json()["budget_cap_usd"] == 0.08
 
 
 def test_health_cache_60_seconds(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -432,7 +474,7 @@ def test_sse_event_order_with_scripted_model(monkeypatch: pytest.MonkeyPatch) ->
             compare_v2=True,
             event_manager=global_event_manager,
             db_path="runs/gauntlet.db",
-            budget_cap_usd=0.05,
+            budget_cap_usd=0.08,
         )
     )
 
@@ -555,7 +597,7 @@ def test_orchestrator_supports_naive_mode_with_scripted_model() -> None:
             model_caller=mock_scripted_model,
             event_manager=global_event_manager,
             db_path="runs/gauntlet.db",
-            budget_cap_usd=0.05,
+            budget_cap_usd=0.08,
         )
     )
     assert summary["status"] == "completed"
@@ -602,7 +644,7 @@ def test_live_path_prompt_mode_proof(capsys: pytest.CaptureFixture[str]) -> None
             model_caller=mock_naive_model,
             event_manager=global_event_manager,
             db_path="runs/gauntlet.db",
-            budget_cap_usd=0.05,
+            budget_cap_usd=0.08,
         )
     )
 
@@ -639,7 +681,7 @@ def test_live_path_prompt_mode_proof(capsys: pytest.CaptureFixture[str]) -> None
             model_caller=mock_realistic_model,
             event_manager=global_event_manager,
             db_path="runs/gauntlet.db",
-            budget_cap_usd=0.05,
+            budget_cap_usd=0.08,
         )
     )
 

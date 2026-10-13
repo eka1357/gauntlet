@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useMemo } from "react";
+import Link from "next/link";
 import {
   AttackRecord,
   getRecordedAttacks,
@@ -240,6 +241,31 @@ export function WorkspaceView() {
 
   return (
     <div className="space-y-6">
+      {/* First-Impression Overview Strip */}
+      <section className="p-4 rounded-[var(--radius-md)] bg-[var(--panel)] border border-[var(--rule)] space-y-2 text-xs sm:text-sm font-sans leading-relaxed text-[var(--ink)]">
+        <p>
+          Gauntlet attacked an email assistant with 235 prompt-injection attacks and wrote a policy that stopped the unsafe ones. Flip the switch to see the same attacks with and without it.
+        </p>
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-1 text-xs text-[var(--ink-muted)]">
+          <div className="flex flex-wrap items-center gap-4">
+            <Link href="/results" className="font-medium text-[var(--ink)] underline hover:opacity-80">
+              Results
+            </Link>
+            <span aria-hidden="true">•</span>
+            <Link href="/policy" className="font-medium text-[var(--ink)] underline hover:opacity-80">
+              Policy
+            </Link>
+            <span aria-hidden="true">•</span>
+            <Link href="/live" className="font-medium text-[var(--ink)] underline hover:opacity-80">
+              Live
+            </Link>
+          </div>
+          <span className="font-mono text-[11px] sm:text-xs text-[var(--ink-muted)]">
+            Click any square to inspect the full trace.
+          </span>
+        </div>
+      </section>
+
       {/* Top Filter and Condition Switch Toolbar */}
       <RangeFilters
         condition={condition}

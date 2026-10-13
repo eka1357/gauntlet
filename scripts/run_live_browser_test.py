@@ -1,13 +1,12 @@
 """Run a real end-to-end live evaluation run through the browser and API.
 
+Requires LIVE_RUNS_ENABLED="true" in the process environment.
 1. Prints estimated cost first (~$0.03).
-2. Enables live runs via runs/.live_runs_enabled for this execution only.
-3. Uses Playwright to interact with http://localhost:3000/live (naive mode, 6 attacks, compare Policy v2).
-4. Waits for the SSE stream and live run completion.
-5. Captures screenshot to docs/screens/live_completed.png.
-6. Verifies per-attack outcomes under both conditions.
-7. Confirms that Policy v2 blocked every attack that was unsafe unhardened.
-8. Cleans up runs/.live_runs_enabled.
+2. Uses Playwright to interact with http://localhost:3000/live (naive mode, 6 attacks, compare Policy v2).
+3. Waits for the SSE stream and live run completion.
+4. Captures screenshot to docs/screens/live_completed.png.
+5. Verifies per-attack outcomes under both conditions.
+6. Confirms that Policy v2 blocked every attack that was unsafe unhardened.
 """
 
 from __future__ import annotations
@@ -19,7 +18,6 @@ import time
 from pathlib import Path
 from playwright.sync_api import sync_playwright
 
-MARKER_PATH = Path("runs/.live_runs_enabled")
 DB_PATH = Path("runs/gauntlet.db")
 SCREEN_PATH = Path("docs/screens/live_completed.png")
 
@@ -40,11 +38,6 @@ def main() -> None:
     print("    - Estimated target cost: 12 * $0.0025 = ~$0.0300 USD")
     print("  Total Estimated Model Spend: ~$0.0310 USD (~$0.03 USD, well below $0.10 limit)")
     print("=" * 70)
-
-    # 2. Enable live runs for this process execution only
-    MARKER_PATH.parent.mkdir(parents=True, exist_ok=True)
-    MARKER_PATH.write_text("enabled", encoding="utf-8")
-    print(f"Created temporary marker {MARKER_PATH} to enable live runs.")
 
     run_id = None
     try:
@@ -126,10 +119,7 @@ def main() -> None:
             browser.close()
 
     finally:
-        # Clean up marker so live runs are disabled again
-        if MARKER_PATH.exists():
-            MARKER_PATH.unlink()
-            print(f"Removed temporary marker {MARKER_PATH}. Live runs disabled.")
+        pass
 
     # 3. Query SQLite DB to get results of the most recent run
     print("\n" + "=" * 70)

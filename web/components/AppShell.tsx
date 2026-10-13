@@ -10,12 +10,12 @@ interface AppShellProps {
   children: React.ReactNode;
 }
 
-// Only active pages are shown; non-built pages (Policy, Live, Report) are hidden
 const NAV_ITEMS = [
   { label: "Workspace", href: "/" },
   { label: "Results", href: "/results" },
   { label: "Policy", href: "/policy" },
   { label: "Live", href: "/live" },
+  { label: "Report", href: "/report" },
 ];
 
 export function AppShell({ children }: AppShellProps) {
@@ -45,7 +45,7 @@ export function AppShell({ children }: AppShellProps) {
   return (
     <div className="min-h-screen flex flex-col bg-[var(--range-paper)] text-[var(--ink)]">
       {/* Top Bar */}
-      <header className="sticky top-0 z-40 w-full bg-[var(--panel)] border-b border-[var(--rule)]">
+      <header className="sticky top-0 z-40 w-full bg-[var(--panel)] border-b border-[var(--rule)] print:hidden">
         <div className="flex items-center justify-between h-14 px-4 sm:px-6">
           <div className="flex items-center gap-4">
             {/* Mobile menu toggle */}
@@ -136,7 +136,7 @@ export function AppShell({ children }: AppShellProps) {
       <div className="flex-1 flex w-full">
         {/* Desktop Left Rail Navigation */}
         <aside
-          className="hidden md:flex flex-col w-52 shrink-0 border-r border-[var(--rule)] bg-[var(--panel)] py-6 px-3"
+          className="hidden md:flex flex-col w-52 shrink-0 border-r border-[var(--rule)] bg-[var(--panel)] py-6 px-3 print:hidden"
           aria-label="Sidebar Navigation"
         >
           <div className="text-xs font-semibold text-[var(--ink-muted)] px-3 mb-2 font-sans">
@@ -173,7 +173,7 @@ export function AppShell({ children }: AppShellProps) {
         </aside>
 
         {/* Content Area */}
-        <main className="flex-1 min-w-0 max-w-full overflow-x-hidden bg-[var(--range-paper)] p-4 sm:p-6 lg:p-8">
+        <main className="flex-1 min-w-0 max-w-full overflow-x-hidden bg-[var(--range-paper)] p-4 sm:p-6 lg:p-8 print:p-0 print:overflow-visible print:bg-white">
           {children}
         </main>
       </div>

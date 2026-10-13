@@ -44,3 +44,15 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Print styles for A4 reports */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 15mm;
+  }
+  body {
+    background-color: #ffffff !important;
+    color: #13232E !important;
+  }
+}

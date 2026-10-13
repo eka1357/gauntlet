@@ -2,9 +2,9 @@
 
 Manages:
     - SSE event subscriptions and replay buffering (RunEventManager)
-    - Background execution of live mini-runs (max 20 attacks, realistic target mode,
+    - Background execution of live mini-runs (max 8 attacks, realistic target mode,
       Lightning-generated payloads, no recon, no Ultra, target model Super)
-    - Hard per-run budget cap ($0.05) enforcement
+    - Hard per-run budget cap ($0.08) enforcement
     - Dual evaluation against unhardened target and Policy v2
     - SQLite persistence of Run and Attack models
 """
@@ -103,23 +103,23 @@ global_event_manager = RunEventManager()
 
 async def execute_mini_live_run(
     run_id: str,
-    n_attacks: int = 10,
+    n_attacks: int = 8,
     compare_v2: bool = False,
     target_mode: str = "naive",
     event_manager: RunEventManager | None = None,
     db_path: str = "runs/gauntlet.db",
     model_caller: Callable[..., Awaitable[Any]] | None = None,
-    budget_cap_usd: float = 0.05,
+    budget_cap_usd: float = 0.08,
 ) -> dict[str, Any]:
     """Execute a lightweight live hardening run.
 
     Constraints (FR-14):
-      - Max 20 attacks
+      - Max 8 attacks
       - Realistic target mode (default)
       - Lightning-generated payloads (role='lightning')
       - No recon, no Ultra
       - Target model Super (role='super')
-      - Per-run budget cap: $0.05 (stops and reports if reached)
+      - Per-run budget cap: $0.08 (stops and reports if reached)
       - Deterministic Oracle evaluation
       - Persist live run to SQLite with Attack and Run models
       - Optional dual run against Policy v2 for live before/after visualization
@@ -127,7 +127,7 @@ async def execute_mini_live_run(
     if event_manager is None:
         event_manager = global_event_manager
 
-    n_attacks = max(1, min(20, n_attacks))
+    n_attacks = max(1, min(8, n_attacks))
     engine = init_db(db_path)
 
     # 1. Load fixtures & setup target sandbox

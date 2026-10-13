@@ -281,7 +281,7 @@ export default function LivePage() {
     setDrawerCondition(cond);
   };
 
-  const budgetPct = Math.min(100, Math.round((costUsd / 0.05) * 100));
+  const budgetPct = Math.min(100, Math.round((costUsd / 0.08) * 100));
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
@@ -392,16 +392,16 @@ export default function LivePage() {
             </select>
           </div>
 
-          {/* Number of Attacks (3 - 10, max 20) */}
+          {/* Number of Attacks (1–8) */}
           <div>
             <label className="block text-xs font-sans font-medium text-[var(--ink)] mb-1.5">
-              Number of Attacks (3–10):
+              Number of Attacks (1–8):
             </label>
             <div className="flex items-center gap-2">
               <input
                 type="range"
-                min="3"
-                max="10"
+                min="1"
+                max="8"
                 step="1"
                 value={nAttacks}
                 disabled={isRunning}
@@ -475,7 +475,7 @@ export default function LivePage() {
             <div>
               <span className="text-[var(--ink-muted)]">Cost: </span>
               <span className="font-mono font-medium">${costUsd.toFixed(4)}</span>
-              <span className="text-[var(--ink-muted)]"> / $0.0500 ({budgetPct}%)</span>
+              <span className="text-[var(--ink-muted)]"> / $0.0800 ({budgetPct}%)</span>
             </div>
           </div>
         </div>
