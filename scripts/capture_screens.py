@@ -17,28 +17,26 @@ async def capture():
         await page.screenshot(path=str(out_dir / "range_unhardened.png"), full_page=True)
         print("Captured docs/screens/range_unhardened.png")
 
-        # 2. Desktop 1440px - Switch to Policy v1
-        v1_button = page.locator("button:has-text('Policy v1')").first
-        await v1_button.click()
-        await page.wait_for_timeout(1000)
-        await page.screenshot(path=str(out_dir / "range_v1.png"), full_page=True)
-        print("Captured docs/screens/range_v1.png")
-
-        # 3. Desktop 1440px - Switch to Policy v2 (checks wipe animation)
-        # First switch back to unhardened so we can watch the wipe from unhardened -> v2
-        unhardened_button = page.locator("button:has-text('Unhardened')").first
-        await unhardened_button.click()
+        # 2. Desktop 1440px - Greyscale screenshot to verify colour independence
+        await page.add_style_tag(content="html { filter: grayscale(100%) !important; }")
         await page.wait_for_timeout(500)
+        await page.screenshot(path=str(out_dir / "range_greyscale.png"), full_page=True)
+        print("Captured docs/screens/range_greyscale.png")
 
+        # Remove greyscale filter for remaining captures
+        await page.add_style_tag(content="html { filter: none !important; }")
+        await page.wait_for_timeout(300)
+
+        # 3. Desktop 1440px - Policy v2 (checks wipe animation & final v2 state)
         v2_button = page.locator("button:has-text('Policy v2')").first
         await v2_button.click()
-        # Wait 1.5s for the 900ms wipe animation to complete smoothly
+        # Wait 1.5s for 900ms wipe to finish
         await page.wait_for_timeout(1500)
         await page.screenshot(path=str(out_dir / "range_v2.png"), full_page=True)
         print("Captured docs/screens/range_v2.png")
 
-        # 4. Open Drawer by clicking a square that had been unsafe
-        # Click on one of the squares in the SVG grid
+        # 4. Open Drawer by clicking a square with a teal outline
+        # In v2 condition, click the first square in the Email row
         first_square = page.locator("svg[role='grid'] g[role='gridcell']").first
         await first_square.click()
         await page.wait_for_timeout(1000)
@@ -52,7 +50,7 @@ async def capture():
         await page_mobile.screenshot(path=str(out_dir / "workspace_390.png"), full_page=True)
         print("Captured docs/screens/workspace_390.png")
 
-        # 6. Desktop & Mobile Results page
+        # Results page screenshots
         await page.goto("http://localhost:3000/results", wait_until="networkidle")
         await page.wait_for_timeout(1500)
         await page.screenshot(path=str(out_dir / "results_1440.png"), full_page=True)

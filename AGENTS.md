@@ -50,3 +50,6 @@ Tests pass, lint is clean, the feature works in the browser, and you have report
 
 
 Never open, print or read .env. Use environment variables through code only.
+
+
+Run Python with "py -m ..." (for example py -m pytest). Node is on PATH; web commands run in /web.

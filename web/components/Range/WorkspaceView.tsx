@@ -115,40 +115,93 @@ export function WorkspaceView() {
     });
   }, [attacks, channelFilter, categoryFilter, onlyUnsafeUnhardened]);
 
-  // Compute live counter stats from visible squares
-  const { unsafeCount, redCount, amberCount, greyCount, tealOutlineCount, wilsonCi } =
-    useMemo(() => {
-      let unsafe = 0;
-      let red = 0;
-      let amber = 0;
-      let grey = 0;
-      let teal = 0;
+  // Compute live counter stats from visible squares (splitting standard vs probes)
+  const {
+    standardUnsafeCount,
+    totalStandard,
+    standardWilsonCi,
+    probeUnsafeCount,
+    totalProbes,
+    probeAmberCount,
+    probeWilsonCi,
+    redCount,
+    amberCount,
+    greyCount,
+    tealOutlineCount,
+    attribution,
+  } = useMemo(() => {
+    let stdUnsafe = 0;
+    let stdTotal = 0;
+    let prbUnsafe = 0;
+    let prbTotal = 0;
+    let prbAmber = 0;
 
-      filteredAttacks.forEach((a) => {
-        const state = getAttackSquareState(a, condition);
-        if (state.isUnsafe) {
-          unsafe++;
-          red++;
-        } else if (state.isCanaryOnly) {
-          amber++;
-        } else {
-          grey++;
-        }
-        if (state.hasTealOutline) {
-          teal++;
-        }
-      });
+    let red = 0;
+    let amber = 0;
+    let grey = 0;
+    let teal = 0;
 
-      const ci = computeWilsonCi(unsafe, filteredAttacks.length);
-      return {
-        unsafeCount: unsafe,
-        redCount: red,
-        amberCount: amber,
-        greyCount: grey,
-        tealOutlineCount: teal,
-        wilsonCi: ci,
-      };
-    }, [filteredAttacks, condition]);
+    filteredAttacks.forEach((a) => {
+      const state = getAttackSquareState(a, condition);
+      if (a.is_probe) {
+        prbTotal++;
+        if (state.isUnsafe) prbUnsafe++;
+        if (state.isCanaryOnly) prbAmber++;
+      } else {
+        stdTotal++;
+        if (state.isUnsafe) stdUnsafe++;
+      }
+
+      if (state.isUnsafe) {
+        red++;
+      } else if (state.isCanaryOnly) {
+        amber++;
+      } else {
+        grey++;
+      }
+      if (state.hasTealOutline) {
+        teal++;
+      }
+    });
+
+    const stdCi = computeWilsonCi(stdUnsafe, stdTotal);
+    const prbCi = computeWilsonCi(prbUnsafe, prbTotal);
+
+    // Hardening attribution for standard attacks
+    const unhardenedUnsafeStd = filteredAttacks.filter(
+      (a) => !a.is_probe && getAttackSquareState(a, "unhardened").isUnsafe
+    );
+    const n = unhardenedUnsafeStd.length;
+    let x = 0;
+    let y = 0;
+    unhardenedUnsafeStd.forEach((a) => {
+      const st = getAttackSquareState(a, condition);
+      if (st.policyRule) {
+        x++;
+      } else if (!st.isUnsafe) {
+        y++;
+      }
+    });
+
+    return {
+      standardUnsafeCount: stdUnsafe,
+      totalStandard: stdTotal,
+      standardWilsonCi: stdCi,
+      probeUnsafeCount: prbUnsafe,
+      totalProbes: prbTotal,
+      probeAmberCount: prbAmber,
+      probeWilsonCi: prbCi,
+      redCount: red,
+      amberCount: amber,
+      greyCount: grey,
+      tealOutlineCount: teal,
+      attribution: {
+        nUnsafeUnhardened: n,
+        xStoppedByRule: x,
+        yDidNotRecur: y,
+      },
+    };
+  }, [filteredAttacks, condition]);
 
   // 1. Loading State
   if (loading) {
@@ -262,13 +315,18 @@ export function WorkspaceView() {
         <section className="lg:col-span-3" aria-label="Breach rate telemetry counter and legend">
           <RangeCounter
             condition={condition}
-            unsafeCount={unsafeCount}
-            totalVisible={filteredAttacks.length}
-            wilsonCi={wilsonCi}
+            standardUnsafeCount={standardUnsafeCount}
+            totalStandard={totalStandard}
+            standardWilsonCi={standardWilsonCi}
+            probeUnsafeCount={probeUnsafeCount}
+            totalProbes={totalProbes}
+            probeAmberCount={probeAmberCount}
+            probeWilsonCi={probeWilsonCi}
             redCount={redCount}
             amberCount={amberCount}
             greyCount={greyCount}
             tealOutlineCount={tealOutlineCount}
+            attribution={attribution}
             isWiping={isWiping}
           />
         </section>

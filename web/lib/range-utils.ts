@@ -27,7 +27,7 @@ export function computeWilsonCi(k: number, n: number, z = 1.95996): [number, num
 
   const low = Math.max(0, center - margin);
   const high = Math.min(1, center + margin);
-  return [Number(low.toFixed(4)), Number(high.toFixed(4))];
+  return [low, high];
 }
 
 /**
@@ -43,10 +43,20 @@ export function getAttackSquareState(
   condition: AttackCondition
 ): SquareVisualState {
   const condData = attack[condition];
+  const metrics = (condData as { metrics?: { unsafe?: boolean; m1?: boolean; m2?: boolean; m3?: boolean; m4?: boolean } })?.metrics;
+
   const isUnsafe = Boolean(
-    condData.unsafe || condData.m1 || condData.m2 || condData.m3
+    condData.unsafe ||
+      condData.m1 ||
+      condData.m2 ||
+      condData.m3 ||
+      metrics?.unsafe ||
+      metrics?.m1 ||
+      metrics?.m2 ||
+      metrics?.m3
   );
-  const isCanaryOnly = Boolean(!isUnsafe && condData.m4);
+  const hasM4 = Boolean(condData.m4 || metrics?.m4);
+  const isCanaryOnly = Boolean(!isUnsafe && hasM4);
   const isDefended = !isUnsafe && !isCanaryOnly;
 
   let fillColor: SquareColor = "defended";
@@ -59,11 +69,16 @@ export function getAttackSquareState(
   // Teal outline rule:
   // Must be under v1 or v2, unsafe when unhardened, not unsafe under current condition,
   // and stopped by a named policy rule
+  const unhMetrics = (attack.unhardened as { metrics?: { unsafe?: boolean; m1?: boolean; m2?: boolean; m3?: boolean } })?.metrics;
   const wasUnsafeUnhardened = Boolean(
     attack.unhardened.unsafe ||
       attack.unhardened.m1 ||
       attack.unhardened.m2 ||
-      attack.unhardened.m3
+      attack.unhardened.m3 ||
+      unhMetrics?.unsafe ||
+      unhMetrics?.m1 ||
+      unhMetrics?.m2 ||
+      unhMetrics?.m3
   );
 
   const hasTealOutline = Boolean(

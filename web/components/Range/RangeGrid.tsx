@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useMemo, useSyncExternalStore } from "react";
+import Link from "next/link";
 import { motion } from "motion/react";
 import { AttackRecord } from "@/lib/api";
 import { AttackCondition, getAttackSquareState } from "@/lib/range-utils";
@@ -194,11 +195,19 @@ export function RangeGrid({
     >
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 pb-2 border-b border-[var(--rule)]">
         <div>
-          <h2 className="font-display font-semibold text-base sm:text-lg text-[var(--ink)]">
-            The Range
-          </h2>
+          <div className="flex flex-wrap items-center gap-2 mb-1">
+            <h2 className="font-display font-semibold text-base sm:text-lg text-[var(--ink)]">
+              The Range
+            </h2>
+            <span className="font-mono text-[11px] px-2 py-0.5 rounded-[var(--radius-sm)] bg-[var(--range-paper)] border border-[var(--rule)] text-[var(--ink)] font-medium">
+              Realistic prompt (safety instructions in the system prompt)
+            </span>
+          </div>
           <p className="text-xs text-[var(--ink-muted)]">
-            Telemetry grid ({attacks.length} total attack squares) grouped by channel and targeted probe vectors.
+            Telemetry grid ({attacks.length} total attack squares) grouped by channel and targeted probe vectors. Naive-prompt results are on the{" "}
+            <Link href="/results" className="underline hover:text-[var(--ink)]">
+              Results page
+            </Link>.
           </p>
         </div>
         <div className="text-[11px] font-mono text-[var(--ink-muted)] self-start sm:self-auto">
@@ -274,18 +283,18 @@ export function RangeGrid({
             const isSelected = selectedAttackId === item.attack.id;
             const isFocused = focusedIndex === item.globalIndex;
 
-            // Resolve target colors
-            let fillHex = "#94A3B8"; // Grey defended
+            // Resolve target colors using CSS tokens (no raw hex)
+            let fillHex = "var(--defended)"; // Grey defended
             if (visualState.fillColor === "breach") {
-              fillHex = "#C4352A"; // Red
+              fillHex = "var(--breach)"; // Red
             } else if (visualState.fillColor === "in-flight") {
-              fillHex = "#D9962B"; // Amber
+              fillHex = "var(--in-flight)"; // Amber
             }
 
             let strokeHex = "transparent";
             let strokeWidth = 0;
             if (visualState.hasTealOutline) {
-              strokeHex = "#1E7A68"; // Cleared teal
+              strokeHex = "var(--cleared)"; // Cleared teal
               strokeWidth = 2;
             }
             if (isSelected || isFocused) {
@@ -336,6 +345,41 @@ export function RangeGrid({
                     ease: "easeOut",
                   }}
                 />
+
+                {/* Colour independence: unsafe squares get a diagonal slash */}
+                {visualState.isUnsafe && (
+                  <motion.line
+                    x1={item.x + 2.5}
+                    y1={item.y + 2.5}
+                    x2={item.x + SQUARE_SIZE - 2.5}
+                    y2={item.y + SQUARE_SIZE - 2.5}
+                    stroke="var(--panel)"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                    initial={false}
+                    animate={{ opacity: 1 }}
+                    transition={{
+                      delay: isWiping ? colDelay : 0,
+                      duration: animDuration,
+                    }}
+                  />
+                )}
+
+                {/* Colour independence: amber canary-only leaks get a center dot */}
+                {visualState.isCanaryOnly && (
+                  <motion.circle
+                    cx={item.x + SQUARE_SIZE / 2}
+                    cy={item.y + SQUARE_SIZE / 2}
+                    r="2.2"
+                    fill="var(--ink)"
+                    initial={false}
+                    animate={{ opacity: 1 }}
+                    transition={{
+                      delay: isWiping ? colDelay : 0,
+                      duration: animDuration,
+                    }}
+                  />
+                )}
               </g>
             );
           })}
@@ -361,7 +405,7 @@ export function RangeGrid({
                     ? "bg-[var(--breach)] text-[var(--panel)]"
                     : getAttackSquareState(hoveredItem.attack, condition).isCanaryOnly
                     ? "bg-[var(--in-flight)] text-[var(--panel)]"
-                    : "bg-[#94A3B8] text-[var(--panel)]"
+                    : "bg-[var(--defended)] text-[var(--panel)]"
                 }`}
               >
                 {hoveredItem.attack[condition].outcome.toUpperCase()}

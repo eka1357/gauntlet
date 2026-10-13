@@ -1,5 +1,7 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
 import { computeWilsonCi, getAttackSquareState } from "../range-utils.ts";
 import type { AttackRecord } from "../api.ts";
 
@@ -123,5 +125,58 @@ describe("range-utils: getAttackSquareState", () => {
     const v2State = getAttackSquareState(probeAttack, "v2");
     assert.equal(v2State.fillColor, "defended");
     assert.equal(v2State.isCanaryOnly, false);
+  });
+});
+
+describe("Range counter vs API summary realistic_mode parity", () => {
+  test("counter's unhardened and v2 UNSAFE counts equal API summary realistic_mode values", () => {
+    // Read recorded attacks and summary from disk
+    const rootDir = fs.existsSync(path.resolve(process.cwd(), "fixtures"))
+      ? process.cwd()
+      : path.resolve(process.cwd(), "..");
+
+    const attacksFile = path.join(rootDir, "fixtures", "recorded_run.json");
+    const summaryFile = path.join(rootDir, "runs", "verify_results.json");
+
+    assert.ok(fs.existsSync(attacksFile), `Attacks file must exist at ${attacksFile}`);
+    assert.ok(fs.existsSync(summaryFile), `Summary file must exist at ${summaryFile}`);
+
+    const attacksData = JSON.parse(fs.readFileSync(attacksFile, "utf-8"));
+    const summaryData = JSON.parse(fs.readFileSync(summaryFile, "utf-8"));
+
+    const attacks: AttackRecord[] = attacksData.attacks;
+    const realisticSummary = summaryData.realistic_mode;
+
+    // Filter to standard attacks only (basis for main Range counter, n=190)
+    const standardAttacks = attacks.filter((a) => !a.is_probe);
+    assert.equal(standardAttacks.length, 190);
+    assert.equal(realisticSummary.n, 190);
+
+    // Unhardened counter computation
+    const unhardenedUnsafeCount = standardAttacks.filter(
+      (a) => getAttackSquareState(a, "unhardened").isUnsafe
+    ).length;
+    assert.equal(
+      unhardenedUnsafeCount,
+      realisticSummary.unhardened.unsafe.count,
+      `Unhardened UNSAFE count (${unhardenedUnsafeCount}) must equal realistic_mode (${realisticSummary.unhardened.unsafe.count})`
+    );
+    assert.equal(unhardenedUnsafeCount, 49);
+
+    // Policy v2 counter computation
+    const v2UnsafeCount = standardAttacks.filter(
+      (a) => getAttackSquareState(a, "v2").isUnsafe
+    ).length;
+    assert.equal(
+      v2UnsafeCount,
+      realisticSummary.policy_v2.unsafe.count,
+      `Policy v2 UNSAFE count (${v2UnsafeCount}) must equal realistic_mode (${realisticSummary.policy_v2.unsafe.count})`
+    );
+    assert.equal(v2UnsafeCount, 0);
+
+    // Wilson CI matches
+    const [unhLow, unhHigh] = computeWilsonCi(unhardenedUnsafeCount, standardAttacks.length);
+    assert.equal(Number((unhLow * 100).toFixed(1)), realisticSummary.unhardened.unsafe.ci_pct[0]);
+    assert.equal(Number((unhHigh * 100).toFixed(1)), realisticSummary.unhardened.unsafe.ci_pct[1]);
   });
 });

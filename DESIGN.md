@@ -16,6 +16,7 @@ The recorded run has no generations. The Range is a grid with one small square p
 | Breach | #C4352A | Breached attacks, critical severity |
 | Cleared | #1E7A68 | Fixed or passing |
 | In flight | #D9962B | Running, pending approval |
+| Defended | #94A3B8 | Defended attacks, neutral baseline |
 Buttons are solid Ink with Panel text; there is no separate brand accent. Optional dark theme: invert surfaces to #0F1A22 / #16252F and keep the same three semantic colours, lightened for contrast.
 
 Put these in `web/styles/tokens.css` as CSS variables and map them in Tailwind. Components never use raw hex.

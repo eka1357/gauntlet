@@ -13,6 +13,7 @@
   --breach: #C4352A;
   --cleared: #1E7A68;
   --in-flight: #D9962B;
+  --defended: #94A3B8;
 
   /* Contrast / Muted text */
   --ink-muted: #556B79;
@@ -66,6 +67,7 @@
     --breach: #E05048;
     --cleared: #2CA88E;
     --in-flight: #F0B040;
+    --defended: #64748B;
 
     --background: var(--range-paper);
     --foreground: var(--ink);
