@@ -51,6 +51,7 @@ VERIFY_RESULTS_PATH = RUNS_DIR / "verify_results.json"
 RECORDED_RUN_PATH = RUNS_DIR / "recorded_run.json"
 POLICY_V1_PATH = FIXTURES_DIR / "hardened_policy.yaml"
 POLICY_V2_PATH = FIXTURES_DIR / "policy_v2.yaml"
+PROJECT_FACTS_PATH = ROOT_DIR / "docs" / "project_facts.json"
 
 MAX_REQUEST_BYTES = 1024 * 1024  # 1 MB request payload cap
 
@@ -390,6 +391,27 @@ def get_recorded_model_roles() -> list[dict[str, str]]:
     ]
 
 
+def get_project_facts() -> dict[str, Any]:
+    """Load project usage facts from docs/project_facts.json."""
+    if PROJECT_FACTS_PATH.is_file():
+        try:
+            return json.loads(PROJECT_FACTS_PATH.read_text(encoding="utf-8"))
+        except Exception as e:
+            logger.warning("Could not read project_facts.json: %s", e)
+    return {
+        "total_project_usage_usd": 12.40,
+        "formatted_project_usage": "$12.40",
+        "source": "Token Factory console usage page, read manually on 2026-10-13",
+        "description": "Total project usage per the Token Factory console.",
+    }
+
+
+@app.get("/api/project-facts")
+async def project_facts() -> dict[str, Any]:
+    """Return manual project accounting facts including Token Factory total usage."""
+    return get_project_facts()
+
+
 @app.get("/api/recorded/summary")
 async def get_recorded_summary() -> dict[str, Any]:
     """Headline tables from runs/verify_results.json.
@@ -424,6 +446,7 @@ async def get_recorded_summary() -> dict[str, Any]:
         if k not in response_data:
             response_data[k] = v
     response_data["model_roles"] = get_recorded_model_roles()
+    response_data["project_facts"] = get_project_facts()
     return response_data
 
 

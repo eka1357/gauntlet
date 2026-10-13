@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { getRecordedSummary, RecordedSummary, ApiError, ModeMetrics } from "@/lib/api";
+import { computeWilsonCi } from "@/lib/range-utils";
 
 function formatRateAndCi(m: { count: number; rate_pct: number; ci_pct: [number, number] }, n: number): string {
   return `${m.count}/${n} (${m.rate_pct.toFixed(1)}% [${m.ci_pct[0].toFixed(1)}%, ${m.ci_pct[1].toFixed(1)}%])`;
@@ -13,6 +14,33 @@ function computeDiffText(before: { count: number; rate_pct: number }, after: { c
   const diffCount = after.count - before.count;
   if (diffCount === 0) return "0.0 pp (no change)";
   return `${diffPct > 0 ? "+" : ""}${diffPct.toFixed(1)} pp (${diffCount > 0 ? "+" : ""}${diffCount})`;
+}
+
+function computePolicyV1Sentence(summary: RecordedSummary): string {
+  const rm = summary.realistic_mode;
+  const n = rm.n;
+  const v1Std = summary.policy_v2?.v1?.standard;
+  const metrics: Array<"m1" | "m2" | "m3" | "m4"> = ["m1", "m2", "m3", "m4"];
+
+  const items = metrics.map((m) => {
+    const unh = rm.unhardened[m];
+    const v1Count = v1Std ? Number(v1Std[m] ?? 0) : 0;
+    const v1Ci = computeWilsonCi(v1Count, n);
+    const v1RatePct = (v1Count / n) * 100;
+    const v1LowPct = v1Ci[0] * 100;
+    const v1HighPct = v1Ci[1] * 100;
+
+    const unhLowPct = unh.ci_pct[0];
+    const unhHighPct = unh.ci_pct[1];
+
+    // CIs do not overlap if max(low1, low2) > min(high1, high2)
+    const overlaps = Math.max(unhLowPct, v1LowPct) <= Math.min(unhHighPct, v1HighPct);
+    const label = !overlaps ? "real difference" : "no measurable difference";
+
+    return `${m.toUpperCase()} (before: ${unh.count}/${n} [${unh.rate_pct.toFixed(1)}%, Wilson 95% CI ${unhLowPct.toFixed(1)}%–${unhHighPct.toFixed(1)}%]; after: ${v1Count}/${n} [${v1RatePct.toFixed(1)}%, Wilson 95% CI ${v1LowPct.toFixed(1)}%–${v1HighPct.toFixed(1)}%]; ${label})`;
+  });
+
+  return `Across standard attacks (n=${n}), Policy v1 evaluation yielded: ${items.join("; ")}.`;
 }
 
 export default function ReportPage() {
@@ -53,6 +81,11 @@ export default function ReportPage() {
     const bn = summary.benign_suite;
     const cs = summary.costs;
     const ph = summary.policy_hashes;
+    const projectFactsUsage =
+      summary.project_facts?.formatted_project_usage ||
+      (summary.project_facts?.total_project_usage_usd !== undefined
+        ? `$${summary.project_facts.total_project_usage_usd.toFixed(2)}`
+        : "$12.40");
 
     return `# Gauntlet Verification Report: AI Agent Hardening & Policy-as-Code Defense
 
@@ -60,7 +93,8 @@ export default function ReportPage() {
 **Evaluation Type**: ${summary.evaluation_type || "confirmation_set2_3way"}  
 **Seed**: ${summary.seed}  
 **Total Attacks**: ${summary.n_total} (${summary.n_standard} standard attacks, ${summary.n_probe} channel-coverage probes)  
-**Total Verified Model Cost**: $${(cs?.total_usd ?? summary.total_cost_usd).toFixed(4)} USD  
+**Cost of the three recorded confirmation runs**: $${(cs?.total_usd ?? summary.total_cost_usd).toFixed(4)} USD  
+Excludes development, earlier experiments and failed runs. Total project usage per the Token Factory console is about ${projectFactsUsage}.  
 **Elapsed Run Time**: ${summary.elapsed_sec.toFixed(1)}s  
 
 ---
@@ -98,8 +132,8 @@ Deterministically evaluated from tool execution traces without LLM judges (regis
 ### Policy Synthesis Procedure
 1. Recon mapped tool capabilities, internal domains (\`*@meridianfreight.com\`), and partner domains.
 2. Adversarial swarm executed multi-category attacks (format smuggling, instruction splitting, authority framing, multilingual).
-3. Breaches were clustered by failure mode and translated into declarative policy rules.
-4. Targeted probes identified residual channel gaps, synthesized into Policy v2.
+3. Breaches were clustered by failure mode and translated into declarative policy rules (Policy v1 in \`fixtures/hardened_policy.yaml\`, introduced in commit \`6093f52\`).
+4. Targeted probes identified residual channel gaps, synthesized into Policy v2 (\`fixtures/policy_v2.yaml\`, introduced in commit \`f26aea5\`).
 
 ### Attack Set Separation
 - **Standard Headline Set (n=${summary.n_standard})**: Prompt-injection attacks across email, web, and document channels.
@@ -133,7 +167,7 @@ Deterministically evaluated from tool execution traces without LLM judges (regis
 
 1. **Policy v1 Closes Primary Exfiltration**:
    - Denied unauthorized \`http_post\`, restricted \`send_email\` recipients to approved partners, and blocked access to sensitive vault paths (\`/vault/**\`).
-   - Succeeded in eliminating standard headline breaches, bringing standard UNSAFE to 0.
+   - ${computePolicyV1Sentence(summary)}
 2. **Channel-Coverage Probes Expose Channel Gaps**:
    - Adversarial probes targeted permitted partner emails, appended query parameters in \`web_fetch\`, and placed secrets in \`calendar_add\` fields.
    - Under Policy v1, ${pr.policy_v1.m4.count}/${pr.n} (${pr.policy_v1.m4.rate_pct.toFixed(1)}%) of probe attacks leaked canaries through nominally allowed channels.
@@ -168,7 +202,8 @@ ${summary.limitations.map((lim, idx) => `${idx + 1}. ${lim}`).join("\n")}
   - Policy v1 verification run: $${cs?.policy_v1_run_usd?.toFixed(4)} USD
   - Confirmation set 2 run (3-way): $${cs?.confirmation_set2_run_usd?.toFixed(4)} USD
   - Benign variance & naive mode: $${cs?.benign_variance_naive_run_usd?.toFixed(4)} USD
-  - **Total verified spend**: $${(cs?.total_usd ?? summary.total_cost_usd).toFixed(4)} USD
+  - **Cost of the three recorded confirmation runs**: $${(cs?.total_usd ?? summary.total_cost_usd).toFixed(4)} USD
+    Excludes development, earlier experiments and failed runs. Total project usage per the Token Factory console is about ${projectFactsUsage}.
 - **Model Execution Roles**:
 ${(summary.model_roles || []).map((mr) => `  - **${mr.role}**: \`${mr.model_id}\` (${mr.description})`).join("\n")}
 `;
@@ -231,6 +266,11 @@ ${(summary.model_roles || []).map((mr) => `  - **${mr.role}**: \`${mr.model_id}\
   const bn = summary.benign_suite;
   const cs = summary.costs;
   const ph = summary.policy_hashes;
+  const projectFactsUsage =
+    summary.project_facts?.formatted_project_usage ||
+    (summary.project_facts?.total_project_usage_usd !== undefined
+      ? `$${summary.project_facts.total_project_usage_usd.toFixed(2)}`
+      : "$12.40");
 
   return (
     <div className="max-w-4xl mx-auto py-6 sm:py-8 space-y-8 text-[var(--ink)] font-sans">
@@ -303,9 +343,12 @@ ${(summary.model_roles || []).map((mr) => `  - **${mr.role}**: \`${mr.model_id}\
               <div className="text-[var(--ink-muted)] text-[11px]">Total Attacks</div>
               <div className="font-semibold text-[var(--ink)] mt-0.5">{summary.n_total} evaluated</div>
             </div>
-            <div className="p-2.5 rounded-[var(--radius-sm)] bg-[var(--range-paper)] border border-[var(--rule)] print:border-neutral-300">
-              <div className="text-[var(--ink-muted)] text-[11px]">Total Model Spend</div>
+            <div className="p-2.5 rounded-[var(--radius-sm)] bg-[var(--range-paper)] border border-[var(--rule)] print:border-neutral-300 col-span-2 sm:col-span-1">
+              <div className="text-[var(--ink-muted)] text-[11px]">Cost of the three recorded confirmation runs</div>
               <div className="font-semibold text-[var(--ink)] mt-0.5">${(cs?.total_usd ?? summary.total_cost_usd).toFixed(4)} USD</div>
+              <div className="text-[10px] text-[var(--ink-muted)] mt-1 font-sans leading-tight">
+                Excludes development, earlier experiments and failed runs. Total project usage per the Token Factory console is about {projectFactsUsage}.
+              </div>
             </div>
             <div className="p-2.5 rounded-[var(--radius-sm)] bg-[var(--range-paper)] border border-[var(--rule)] print:border-neutral-300">
               <div className="text-[var(--ink-muted)] text-[11px]">Elapsed Runtime</div>
@@ -315,7 +358,7 @@ ${(summary.model_roles || []).map((mr) => `  - **${mr.role}**: \`${mr.model_id}\
         </header>
 
         {/* Section 1: Summary */}
-        <section className="space-y-3 print:break-inside-avoid">
+        <section className="space-y-3">
           <h2 className="font-display font-semibold text-lg text-[var(--ink)] border-b border-[var(--rule)] pb-1.5">
             1. Executive Summary
           </h2>
@@ -344,7 +387,7 @@ ${(summary.model_roles || []).map((mr) => `  - **${mr.role}**: \`${mr.model_id}\
         </section>
 
         {/* Section 2: Method */}
-        <section className="space-y-3 print:break-inside-avoid">
+        <section className="space-y-3">
           <h2 className="font-display font-semibold text-lg text-[var(--ink)] border-b border-[var(--rule)] pb-1.5">
             2. Evaluation Method
           </h2>
@@ -377,7 +420,7 @@ ${(summary.model_roles || []).map((mr) => `  - **${mr.role}**: \`${mr.model_id}\
               </div>
             </div>
             <p>
-              <strong>Policy Production</strong>: Recon mapped tool boundaries and partner contacts. The attack generator probed target tools using format smuggling, instruction splitting, authority framing, and multilingual payloads. Breaches were clustered by failure signature, yielding declarative policy-as-code YAML rules that enforce parameter boundaries at tool invocation time.
+              <strong>Policy Production</strong>: Recon mapped tool boundaries and partner contacts. The attack generator probed target tools using format smuggling, instruction splitting, authority framing, and multilingual payloads. Breaches were clustered by failure signature, yielding declarative policy-as-code YAML rules (Policy v1 in <code className="font-mono">fixtures/hardened_policy.yaml</code> introduced in commit <code className="font-mono">6093f52</code>; Policy v2 in <code className="font-mono">fixtures/policy_v2.yaml</code> introduced in commit <code className="font-mono">f26aea5</code>) that enforce parameter boundaries at tool invocation time.
             </p>
             <p>
               <strong>Attack Separation</strong>: The headline evaluation set consists of {summary.n_standard} standard attacks. A separate set of {summary.n_probe} channel-coverage probe attacks (attacker-supplied canaries in partner emails, web_fetch query parameters, and calendar entries) was strictly held out to avoid skewing headline counts.
@@ -386,7 +429,7 @@ ${(summary.model_roles || []).map((mr) => `  - **${mr.role}**: \`${mr.model_id}\
         </section>
 
         {/* Section 3: Results Tables */}
-        <section className="space-y-4 print:break-inside-avoid">
+        <section className="space-y-4">
           <h2 className="font-display font-semibold text-lg text-[var(--ink)] border-b border-[var(--rule)] pb-1.5">
             3. Verification Results Tables
           </h2>
@@ -473,7 +516,7 @@ ${(summary.model_roles || []).map((mr) => `  - **${mr.role}**: \`${mr.model_id}\
         </section>
 
         {/* Section 4: The Loop Story */}
-        <section className="space-y-3 print:break-inside-avoid">
+        <section className="space-y-3">
           <h2 className="font-display font-semibold text-lg text-[var(--ink)] border-b border-[var(--rule)] pb-1.5">
             4. The Hardening Loop Story
           </h2>
@@ -481,7 +524,7 @@ ${(summary.model_roles || []).map((mr) => `  - **${mr.role}**: \`${mr.model_id}\
             <div className="p-3.5 rounded-[var(--radius-sm)] bg-[var(--range-paper)] border border-[var(--rule)] space-y-1.5">
               <div className="font-semibold text-xs text-[var(--ink)]">Iteration 1: Policy v1 Closes Primary Exfiltration Channels</div>
               <p className="text-xs text-[var(--ink-muted)]">
-                Policy v1 introduced basic boundary controls: blocking <code className="font-mono">http_post</code>, restricting email recipients to validated partner domains (<code className="font-mono">tools.send_email.allow_recipients</code>), and blocking access to <code className="font-mono">/vault/**</code>. In standard headline testing, this reduced unsafe attacks to 0.
+                Policy v1 introduced basic boundary controls: blocking <code className="font-mono">http_post</code>, restricting email recipients to validated partner domains (<code className="font-mono">tools.send_email.allow_recipients</code>), and blocking access to <code className="font-mono">/vault/**</code>. {computePolicyV1Sentence(summary)}
               </p>
             </div>
 
@@ -505,7 +548,7 @@ ${(summary.model_roles || []).map((mr) => `  - **${mr.role}**: \`${mr.model_id}\
         </section>
 
         {/* Section 5: Benign Utility Results */}
-        <section className="space-y-3 print:break-inside-avoid">
+        <section className="space-y-3">
           <h2 className="font-display font-semibold text-lg text-[var(--ink)] border-b border-[var(--rule)] pb-1.5">
             5. Benign Operational Utility Suite
           </h2>
@@ -555,7 +598,7 @@ ${(summary.model_roles || []).map((mr) => `  - **${mr.role}**: \`${mr.model_id}\
         </section>
 
         {/* Section 6: Limitations */}
-        <section className="space-y-3 print:break-inside-avoid">
+        <section className="space-y-3">
           <h2 className="font-display font-semibold text-lg text-[var(--ink)] border-b border-[var(--rule)] pb-1.5">
             6. Scientific Limitations & Boundaries
           </h2>
@@ -570,7 +613,7 @@ ${(summary.model_roles || []).map((mr) => `  - **${mr.role}**: \`${mr.model_id}\
         </section>
 
         {/* Section 7: Provenance */}
-        <section className="space-y-4 print:break-inside-avoid border-t border-[var(--rule)] pt-6">
+        <section className="space-y-4 border-t border-[var(--rule)] pt-6">
           <h2 className="font-display font-semibold text-lg text-[var(--ink)] border-b border-[var(--rule)] pb-1.5">
             7. Provenance & Reproducibility Ledger
           </h2>
@@ -590,8 +633,11 @@ ${(summary.model_roles || []).map((mr) => `  - **${mr.role}**: \`${mr.model_id}\
                 <div>Policy v1 verification run: <strong className="text-[var(--ink)]">${cs?.policy_v1_run_usd?.toFixed(4)} USD</strong></div>
                 <div>Confirmation set 2 (3-way): <strong className="text-[var(--ink)]">${cs?.confirmation_set2_run_usd?.toFixed(4)} USD</strong></div>
                 <div>Benign variance & naive run: <strong className="text-[var(--ink)]">${cs?.benign_variance_naive_run_usd?.toFixed(4)} USD</strong></div>
-                <div className="text-[var(--ink)] font-semibold border-t sm:border-t-0 pt-1 sm:pt-0">
-                  Total verified spend: ${(cs?.total_usd ?? summary.total_cost_usd).toFixed(4)} USD
+                <div className="text-[var(--ink)] font-semibold border-t sm:border-t-0 pt-1 sm:pt-0 col-span-full">
+                  <div>Cost of the three recorded confirmation runs: ${(cs?.total_usd ?? summary.total_cost_usd).toFixed(4)} USD</div>
+                  <div className="text-[11px] font-normal text-[var(--ink-muted)] font-sans mt-0.5">
+                    Excludes development, earlier experiments and failed runs. Total project usage per the Token Factory console is about {projectFactsUsage}.
+                  </div>
                 </div>
               </div>
             </div>

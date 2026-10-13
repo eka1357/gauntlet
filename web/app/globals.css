@@ -55,4 +55,12 @@
     background-color: #ffffff !important;
     color: #13232E !important;
   }
+  h1, h2, h3, h4 {
+    break-after: avoid !important;
+    page-break-after: avoid !important;
+  }
+  tr, figure {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
 }

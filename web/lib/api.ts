@@ -93,6 +93,13 @@ export interface ModelRole {
   description: string;
 }
 
+export interface ProjectFacts {
+  total_project_usage_usd: number;
+  formatted_project_usage: string;
+  source: string;
+  description?: string;
+}
+
 export interface RecordedSummary {
   naive_mode: StandardModeEval;
   realistic_mode: StandardModeEval;
@@ -111,6 +118,8 @@ export interface RecordedSummary {
   frozen_policy_v1_sha256?: string;
   frozen_policy_v2_sha256?: string;
   model_roles?: ModelRole[];
+  project_facts?: ProjectFacts;
+  policy_v2?: any;
 }
 
 export interface AttackConditionRecord {
@@ -261,6 +270,10 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 
 export async function getRecordedSummary(): Promise<RecordedSummary> {
   return request<RecordedSummary>("/api/recorded/summary");
+}
+
+export async function getProjectFacts(): Promise<ProjectFacts> {
+  return request<ProjectFacts>("/api/project-facts");
 }
 
 export interface GetRecordedAttacksParams {

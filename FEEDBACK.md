@@ -763,7 +763,7 @@ Reduced ordered tool execution sequences into categorical arguments across all 5
     - Channel-coverage probe set ($n=45$, unhardened vs v1 vs v2 with side-channel leak metrics).
     - Benign operational suite pooled pass rates across 3 repeats ($n=105$ per condition: 95.2% vs 95.2%, 0.0 point drop) and deny-all negative control (17.1% collapsed).
     - SHA-256 policy hashes for frozen v1 (`f27decd5...`) and v2 (`31dc77b5...`).
-    - Comprehensive per-run cost ledger ($4.1662 total verified spend across iterations).
+    - Comprehensive per-run cost ledger ($4.1662 cost of the three recorded confirmation runs across iterations. Excludes development, earlier experiments and failed runs. Total project usage per the Token Factory console is about $12.40).
     - Limitations list: literal secrets registry matching, single fictional freight domain, unexcluded benign labelling effects, attacker-supplied probe secret, low realistic baseline M1 (~2%), and primary headline improvement in unsafe actions (M2, M3).
   - `GET /api/recorded/attacks`: Paginated attacks from `runs/recorded_run.json` (`id`, `channel`, `category`, `strategy`, `is_probe`, per-condition `outcome`, `m1`–`m4` flags, `policy_block_rule`). Verified that full multi-turn execution traces are excluded from the list endpoint to preserve lean transfer overhead. Filterable by `channel`, `condition`, and `is_probe`.
   - `GET /api/attacks/{id}/trace?condition=unhardened|v1|v2`: Full tool execution trace for a single attack under the specified condition. Tested against recorded run fixtures and SQLite live runs.
