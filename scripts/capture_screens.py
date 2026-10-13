@@ -1,67 +1,68 @@
-import asyncio
+"""Capture 1440px and 390px screenshots into docs/screens/."""
+
+import functools
+import http.server
+import threading
 from pathlib import Path
-from playwright.async_api import async_playwright
+from playwright.sync_api import sync_playwright
 
+ROOT = Path(__file__).resolve().parent.parent
+OUT_DIR = ROOT / "web" / "out"
+SCREENS_DIR = ROOT / "docs" / "screens"
+SCREENS_DIR.mkdir(parents=True, exist_ok=True)
 
-async def capture():
-    out_dir = Path("docs/screens")
-    out_dir.mkdir(parents=True, exist_ok=True)
+class _QuietHandler(http.server.SimpleHTTPRequestHandler):
+    def log_message(self, *args):
+        pass
 
-    async with async_playwright() as p:
-        browser = await p.chromium.launch()
+handler = functools.partial(_QuietHandler, directory=str(OUT_DIR))
+server = http.server.ThreadingHTTPServer(("127.0.0.1", 3170), handler)
+threading.Thread(target=server.serve_forever, daemon=True).start()
 
-        # 1. Desktop 1440px - Workspace Unhardened
-        page = await browser.new_page(viewport={"width": 1440, "height": 960})
-        await page.goto("http://localhost:3000/", wait_until="networkidle")
-        await page.wait_for_timeout(1500)
-        await page.screenshot(path=str(out_dir / "range_unhardened.png"), full_page=True)
-        print("Captured docs/screens/range_unhardened.png")
+try:
+    with sync_playwright() as p:
+        browser = p.chromium.launch()
 
-        # 2. Desktop 1440px - Greyscale screenshot to verify colour independence
-        await page.add_style_tag(content="html { filter: grayscale(100%) !important; }")
-        await page.wait_for_timeout(500)
-        await page.screenshot(path=str(out_dir / "range_greyscale.png"), full_page=True)
-        print("Captured docs/screens/range_greyscale.png")
+        viewports = [
+            ("1440", {"width": 1440, "height": 900}),
+            ("390", {"width": 390, "height": 844}),
+        ]
 
-        # Remove greyscale filter for remaining captures
-        await page.add_style_tag(content="html { filter: none !important; }")
-        await page.wait_for_timeout(300)
+        for suffix, vp in viewports:
+            page = browser.new_page(viewport=vp)
 
-        # 3. Desktop 1440px - Policy v2 (checks wipe animation & final v2 state)
-        v2_button = page.locator("button:has-text('Policy v2')").first
-        await v2_button.click()
-        # Wait 1.5s for 900ms wipe to finish
-        await page.wait_for_timeout(1500)
-        await page.screenshot(path=str(out_dir / "range_v2.png"), full_page=True)
-        print("Captured docs/screens/range_v2.png")
+            # 1. Range (Home)
+            page.goto("http://127.0.0.1:3170/", wait_until="networkidle")
+            page.wait_for_selector("[data-range-square]")
+            page.wait_for_timeout(600)
+            page.screenshot(path=str(SCREENS_DIR / f"range_{suffix}.png"), full_page=False)
+            print(f"Captured range_{suffix}.png")
 
-        # 4. Open Drawer by clicking an attack that was unsafe unhardened (e.g. conf2_std_email_002)
-        unsafe_square = page.locator("g[aria-label*='conf2_std_email_002']").first
-        await unsafe_square.click()
-        await page.wait_for_timeout(1000)
-        await page.screenshot(path=str(out_dir / "range_drawer.png"), full_page=True)
-        print("Captured docs/screens/range_drawer.png")
+            # 2. Open Drawer
+            square = page.locator("[data-range-square]").first
+            square.click()
+            page.wait_for_selector("[role=dialog]")
+            page.wait_for_timeout(600)
+            page.screenshot(path=str(SCREENS_DIR / f"drawer_{suffix}.png"), full_page=False)
+            print(f"Captured drawer_{suffix}.png")
+            page.close()
 
-        # 5. Mobile 390px - Workspace
-        page_mobile = await browser.new_page(viewport={"width": 390, "height": 844})
-        await page_mobile.goto("http://localhost:3000/", wait_until="networkidle")
-        await page_mobile.wait_for_timeout(1500)
-        await page_mobile.screenshot(path=str(out_dir / "workspace_390.png"), full_page=True)
-        print("Captured docs/screens/workspace_390.png")
+            # 3. Results
+            page_res = browser.new_page(viewport=vp)
+            page_res.goto("http://127.0.0.1:3170/results/", wait_until="networkidle")
+            page_res.wait_for_timeout(600)
+            page_res.screenshot(path=str(SCREENS_DIR / f"results_{suffix}.png"), full_page=False)
+            print(f"Captured results_{suffix}.png")
+            page_res.close()
 
-        # Results page screenshots
-        await page.goto("http://localhost:3000/results", wait_until="networkidle")
-        await page.wait_for_timeout(1500)
-        await page.screenshot(path=str(out_dir / "results_1440.png"), full_page=True)
-        print("Captured docs/screens/results_1440.png")
+            # 4. Report
+            page_rep = browser.new_page(viewport=vp)
+            page_rep.goto("http://127.0.0.1:3170/report/", wait_until="networkidle")
+            page_rep.wait_for_timeout(600)
+            page_rep.screenshot(path=str(SCREENS_DIR / f"report_{suffix}.png"), full_page=False)
+            print(f"Captured report_{suffix}.png")
+            page_rep.close()
 
-        await page_mobile.goto("http://localhost:3000/results", wait_until="networkidle")
-        await page_mobile.wait_for_timeout(1500)
-        await page_mobile.screenshot(path=str(out_dir / "results_390.png"), full_page=True)
-        print("Captured docs/screens/results_390.png")
-
-        await browser.close()
-
-
-if __name__ == "__main__":
-    asyncio.run(capture())
+        browser.close()
+finally:
+    server.shutdown()

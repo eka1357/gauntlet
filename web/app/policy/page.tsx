@@ -283,7 +283,7 @@ export default function PolicyPage() {
           </p>
         </div>
         <div className="shrink-0 font-mono text-xs px-3 py-1.5 rounded-[var(--radius-sm)] bg-[var(--range-paper)] border border-[var(--rule)] text-[var(--ink)]">
-          {canaryCheck.checkedLines} lines scanned • 0 canary matches
+          {canaryCheck.checkedLines} lines scanned, 0 canary matches
         </div>
       </section>
 
@@ -335,7 +335,12 @@ export default function PolicyPage() {
             </div>
 
             {/* YAML Code Box */}
-            <div className="flex-1 font-mono text-xs bg-[var(--range-paper)] p-3 rounded-[var(--radius-sm)] border border-[var(--rule)] overflow-x-auto max-h-[520px] overflow-y-auto leading-relaxed select-all">
+            <div
+              tabIndex={0}
+              role="region"
+              aria-label="Policy v1 specification YAML"
+              className="flex-1 font-mono text-xs bg-[var(--range-paper)] p-3 rounded-[var(--radius-sm)] border border-[var(--rule)] overflow-x-auto max-h-[520px] overflow-y-auto leading-relaxed select-all focus-visible:outline-2 focus-visible:outline-[var(--ink)]"
+            >
               <pre>{policyV1.yaml}</pre>
             </div>
           </div>
@@ -376,7 +381,12 @@ export default function PolicyPage() {
             </div>
 
             {/* YAML Code Box with Diff Line Highlighting */}
-            <div className="flex-1 font-mono text-xs bg-[var(--range-paper)] p-3 rounded-[var(--radius-sm)] border border-[var(--rule)] overflow-x-auto max-h-[520px] overflow-y-auto leading-relaxed select-all">
+            <div
+              tabIndex={0}
+              role="region"
+              aria-label="Policy v2 specification YAML with diff highlighting"
+              className="flex-1 font-mono text-xs bg-[var(--range-paper)] p-3 rounded-[var(--radius-sm)] border border-[var(--rule)] overflow-x-auto max-h-[520px] overflow-y-auto leading-relaxed select-all focus-visible:outline-2 focus-visible:outline-[var(--ink)]"
+            >
               <div className="space-y-0.5">
                 {diffLines.map((l) => (
                   <div
@@ -387,7 +397,10 @@ export default function PolicyPage() {
                         : "text-[var(--ink)]"
                     }`}
                   >
-                    <span className="select-none text-[var(--ink-muted)]/60 text-right w-6 shrink-0">
+                    <span
+                      aria-hidden="true"
+                      className={`select-none text-right w-6 shrink-0 ${l.isAdded ? "text-[var(--ink)] font-semibold" : "text-[var(--ink-muted)]"}`}
+                    >
                       {l.lineNo}
                     </span>
                     <span className="select-none text-[var(--cleared)] w-2 shrink-0">

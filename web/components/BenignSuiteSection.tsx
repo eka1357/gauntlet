@@ -87,7 +87,12 @@ export function BenignSuiteSection({ benignSuite }: BenignSuiteSectionProps) {
         <div className="px-3 py-2 bg-[var(--range-paper)] border-b border-[var(--rule)] text-xs font-semibold text-[var(--ink)] font-sans">
           Repeat Run Variance & Task Consistency
         </div>
-        <div className="overflow-x-auto">
+        <div
+          tabIndex={0}
+          role="region"
+          aria-label="Repeat Run Variance and Task Consistency table"
+          className="overflow-x-auto focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--ink)]"
+        >
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="border-b border-[var(--rule)] text-[var(--ink-muted)] bg-[var(--panel)] font-sans">

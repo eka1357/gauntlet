@@ -123,6 +123,7 @@ export function AppShell({ children }: AppShellProps) {
                 <Link
                   key={item.href}
                   href={item.href}
+                  prefetch={false}
                   onClick={() => setMobileMenuOpen(false)}
                   className={`px-3 py-2 text-sm font-medium rounded-[var(--radius-sm)] transition-colors ${
                     active
@@ -155,6 +156,7 @@ export function AppShell({ children }: AppShellProps) {
                 <Link
                   key={item.href}
                   href={item.href}
+                  prefetch={false}
                   className={`flex items-center justify-between px-3 py-2 text-sm rounded-[var(--radius-sm)] transition-colors focus-visible:outline-2 focus-visible:outline-[var(--ink)] ${
                     active
                       ? "bg-[var(--range-paper)] text-[var(--ink)] font-semibold border-l-2 border-[var(--ink)]"
@@ -175,7 +177,7 @@ export function AppShell({ children }: AppShellProps) {
               <div>Target: inbox-assistant</div>
               <div className="font-mono text-xs">policy-v2 (synthesized)</div>
               <div className="pt-2 text-[11px] text-[var(--ink-muted)] leading-relaxed">
-                Recorded run. Live runs are disabled in this deployment. ·{" "}
+                Recorded run. Live runs are disabled in this deployment.{" "}
                 <a
                   href="https://github.com/eka1357/gauntlet"
                   target="_blank"
@@ -183,8 +185,8 @@ export function AppShell({ children }: AppShellProps) {
                   className="underline hover:text-[var(--ink)]"
                 >
                   GitHub
-                </a>{" "}
-                · MIT License
+                </a>
+                , MIT License
               </div>
             </div>
           </div>
@@ -208,7 +210,7 @@ export function AppShell({ children }: AppShellProps) {
               >
                 GitHub
               </a>
-              <span>•</span>
+              <span>/</span>
               <span>MIT License</span>
             </div>
           </footer>

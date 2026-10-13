@@ -280,7 +280,7 @@ ${(summary.model_roles || []).map((mr) => `  - **${mr.role}**: \`${mr.model_id}\
           <Link href="/" className="font-medium text-[var(--ink)] underline hover:opacity-80">
             ← Back to Workspace
           </Link>
-          <span aria-hidden="true">•</span>
+          <span aria-hidden="true">/</span>
           <span className="font-mono">Single-column printable report</span>
         </div>
 
@@ -327,7 +327,7 @@ ${(summary.model_roles || []).map((mr) => `  - **${mr.role}**: \`${mr.model_id}\
         <header className="border-b border-[var(--rule)] pb-6 space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[var(--ink-muted)] font-mono">
             <span>GAUNTLET VERIFICATION REPORT</span>
-            <span>SEED: {summary.seed} • A4 DOCUMENT</span>
+            <span>SEED: {summary.seed} | A4 DOCUMENT</span>
           </div>
 
           <h1 className="font-display font-bold text-2xl sm:text-3xl text-[var(--ink)] leading-tight">
@@ -387,7 +387,7 @@ ${(summary.model_roles || []).map((mr) => `  - **${mr.role}**: \`${mr.model_id}\
         </section>
 
         {/* Section 2: Method */}
-        <section className="space-y-3">
+        <section id="section-2" className="space-y-3 scroll-mt-20">
           <h2 className="font-display font-semibold text-lg text-[var(--ink)] border-b border-[var(--rule)] pb-1.5">
             2. Evaluation Method
           </h2>
@@ -440,7 +440,12 @@ ${(summary.model_roles || []).map((mr) => `  - **${mr.role}**: \`${mr.model_id}\
               <span>Table 3.1: Realistic Mode Baseline ({rm.description}, n={rm.n})</span>
               <span className="font-mono text-[var(--ink-muted)]">95% Wilson CIs</span>
             </div>
-            <div className="overflow-x-auto border border-[var(--rule)] rounded-[var(--radius-sm)]">
+            <div
+              tabIndex={0}
+              role="region"
+              aria-label="Table 3.1: Realistic Mode Baseline metrics"
+              className="overflow-x-auto border border-[var(--rule)] rounded-[var(--radius-sm)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--ink)]"
+            >
               <table className="w-full text-xs text-left">
                 <thead className="bg-[var(--range-paper)] border-b border-[var(--rule)] font-mono text-[var(--ink-muted)]">
                   <tr>
@@ -480,7 +485,12 @@ ${(summary.model_roles || []).map((mr) => `  - **${mr.role}**: \`${mr.model_id}\
               <span>Table 3.2: Naive Mode ({nm.description}, n={nm.n})</span>
               <span className="font-mono text-[var(--ink-muted)]">95% Wilson CIs</span>
             </div>
-            <div className="overflow-x-auto border border-[var(--rule)] rounded-[var(--radius-sm)]">
+            <div
+              tabIndex={0}
+              role="region"
+              aria-label="Table 3.2: Naive Mode metrics"
+              className="overflow-x-auto border border-[var(--rule)] rounded-[var(--radius-sm)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--ink)]"
+            >
               <table className="w-full text-xs text-left">
                 <thead className="bg-[var(--range-paper)] border-b border-[var(--rule)] font-mono text-[var(--ink-muted)]">
                   <tr>
@@ -555,7 +565,12 @@ ${(summary.model_roles || []).map((mr) => `  - **${mr.role}**: \`${mr.model_id}\
           <p className="text-xs sm:text-sm text-[var(--ink)] leading-relaxed">
             Hardening must not break normal business operations. The operational suite evaluated {bn.tasks_per_repeat} authentic tasks across {bn.repeats} repeated runs ({bn.total_evaluations_per_condition} total evaluations per condition).
           </p>
-          <div className="overflow-x-auto border border-[var(--rule)] rounded-[var(--radius-sm)]">
+          <div
+            tabIndex={0}
+            role="region"
+            aria-label="Benign Operational Utility Suite results table"
+            className="overflow-x-auto border border-[var(--rule)] rounded-[var(--radius-sm)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--ink)]"
+          >
             <table className="w-full text-xs text-left font-mono">
               <thead className="bg-[var(--range-paper)] border-b border-[var(--rule)] text-[var(--ink-muted)]">
                 <tr>
@@ -644,7 +659,12 @@ ${(summary.model_roles || []).map((mr) => `  - **${mr.role}**: \`${mr.model_id}\
 
             {/* Model Roles */}
             {summary.model_roles && summary.model_roles.length > 0 && (
-              <div className="border border-[var(--rule)] rounded-[var(--radius-sm)] overflow-x-auto">
+              <div
+                tabIndex={0}
+                role="region"
+                aria-label="Model Roles configuration table"
+                className="border border-[var(--rule)] rounded-[var(--radius-sm)] overflow-x-auto focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--ink)]"
+              >
                 <table className="w-full text-xs text-left font-mono">
                   <thead className="bg-[var(--range-paper)] border-b border-[var(--rule)] text-[var(--ink-muted)]">
                     <tr>
@@ -670,8 +690,8 @@ ${(summary.model_roles || []).map((mr) => `  - **${mr.role}**: \`${mr.model_id}\
 
         {/* Document Footer */}
         <footer className="border-t border-[var(--rule)] pt-4 flex flex-wrap items-center justify-between text-[11px] text-[var(--ink-muted)] font-mono">
-          <span>Gauntlet Hardening System • Nebius x NVIDIA AI Hackathon</span>
-          <span>Deterministic Verification • Zero LLM Judge</span>
+          <span>Gauntlet Hardening System / Nebius x NVIDIA AI Hackathon</span>
+          <span>Deterministic Verification / Zero LLM Judge</span>
         </footer>
       </article>
     </div>

@@ -221,7 +221,7 @@ export default function LivePage() {
       const started = data as AttackStartedEventData;
       appendLog(
         "started",
-        `[#${started.index + 1}] Attack started: ${started.attack_id} (${started.channel} • ${started.category})`
+        `[#${started.index + 1}] Attack started: ${started.attack_id} (${started.channel}, ${started.category})`
       );
     } else if (eventName === "attack_finished") {
       const fin = data as AttackFinishedEventData;
@@ -403,9 +403,9 @@ export default function LivePage() {
             <span>Live Run Complete</span>
           </div>
           <p className="text-xs text-[var(--ink)] font-sans">
-            Evaluated {runSummary.attacks_evaluated} attacks • Unhardened unsafe:{" "}
-            <strong>{runSummary.unhardened_unsafe ?? runSummary.unhardened_breaches ?? 0}</strong> • Policy v2 unsafe:{" "}
-            <strong>{runSummary.v2_unsafe ?? runSummary.v2_breaches ?? 0}</strong> • Actual cost:{" "}
+            Evaluated {runSummary.attacks_evaluated} attacks, unhardened unsafe:{" "}
+            <strong>{runSummary.unhardened_unsafe ?? runSummary.unhardened_breaches ?? 0}</strong>, policy v2 unsafe:{" "}
+            <strong>{runSummary.v2_unsafe ?? runSummary.v2_breaches ?? 0}</strong>, actual cost:{" "}
             <strong>${runSummary.total_cost_usd.toFixed(4)}</strong>
           </p>
           {(runSummary.unhardened_unsafe ?? runSummary.unhardened_breaches ?? 0) === 0 && (
@@ -431,10 +431,12 @@ export default function LivePage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
           {/* Target Mode */}
           <div>
-            <label className="block text-xs font-sans font-medium text-[var(--ink)] mb-1.5">
+            <label htmlFor="live-target-mode" className="block text-xs font-sans font-medium text-[var(--ink)] mb-1.5">
               Target Mode:
             </label>
             <select
+              id="live-target-mode"
+              aria-label="Target Mode"
               value={targetMode}
               disabled={isRunning || liveRunsDisabled}
               onChange={(e) => setTargetMode(e.target.value as "naive" | "realistic")}
@@ -447,11 +449,13 @@ export default function LivePage() {
 
           {/* Number of Attacks (1–8) */}
           <div>
-            <label className="block text-xs font-sans font-medium text-[var(--ink)] mb-1.5">
+            <label htmlFor="live-n-attacks" className="block text-xs font-sans font-medium text-[var(--ink)] mb-1.5">
               Number of Attacks (1–8):
             </label>
             <div className="flex items-center gap-2">
               <input
+                id="live-n-attacks"
+                aria-label="Number of Attacks"
                 type="range"
                 min="1"
                 max="8"

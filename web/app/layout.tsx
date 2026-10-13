@@ -24,8 +24,30 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Gauntlet — AI Agent Hardening & Verification",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://gauntlet.dev"),
+  title: {
+    default: "Gauntlet — AI Agent Hardening & Verification",
+    template: "%s | Gauntlet",
+  },
   description: "Test instrument for hardening AI agents against prompt injection and tool misuse.",
+  openGraph: {
+    title: "Gauntlet — AI Agent Hardening & Verification",
+    description: "Test instrument for hardening AI agents against prompt injection and tool misuse.",
+    images: [
+      {
+        url: "/og.png",
+        width: 1200,
+        height: 630,
+        alt: "Gauntlet AI Agent Hardening and Verification",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Gauntlet — AI Agent Hardening & Verification",
+    description: "Test instrument for hardening AI agents against prompt injection and tool misuse.",
+    images: ["/og.png"],
+  },
   icons: {
     icon: "/icon.svg",
   },

@@ -78,7 +78,12 @@ export function ProbeSetSection({ probeSet }: ProbeSetSectionProps) {
       </p>
 
       {/* SVG Interval Plot for M4 across Unhardened / v1 / v2 */}
-      <div className="w-full overflow-x-auto">
+      <div
+        tabIndex={0}
+        role="region"
+        aria-label="Channel-coverage probe interval plot"
+        className="w-full overflow-x-auto focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--ink)]"
+      >
         <svg
           viewBox={`0 0 ${svgWidth} ${svgHeight}`}
           className="w-full h-auto min-w-[540px]"
@@ -245,7 +250,7 @@ export function ProbeSetSection({ probeSet }: ProbeSetSectionProps) {
 
         <div className="p-2.5 rounded-[var(--radius-sm)] bg-[var(--range-paper)] border border-[var(--rule)]">
           <div className="text-[var(--ink-muted)] mb-1">Policy v1 Partial</div>
-          <div className="font-mono text-base font-semibold text-[var(--in-flight)]">
+          <div className="font-mono text-base font-semibold text-[var(--in-flight-text)]">
             {v1.count}/{n} <span className="text-xs font-normal">({v1.rate_pct.toFixed(1)}%)</span>
           </div>
           <div className="font-mono text-xs text-[var(--ink-muted)] mt-0.5">

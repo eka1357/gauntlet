@@ -1,0 +1,127 @@
+# docs/audit_allowlist.txt — Allowlist for non-derivable empirical claims and historical figures
+# Format: <token> | <rationale> OR <file>:<token> | <rationale>
+
+# Standard statistical confidence parameters
+95% | Standard two-sided Wilson score confidence interval level (alpha = 0.05, z = 1.96)
+85% | Statistical power benchmark for sample size sizing in metrics specification
+
+# Live page contextual notes (email-only subsets cited from recorded run)
+web/out/live/index.html:78.7% | Recorded email-only naive breach point estimate cited in live run guide
+web/out/live/index.html:71.4% | Recorded email-only naive breach 95% Wilson CI lower bound
+web/out/live/index.html:84.5% | Recorded email-only naive breach 95% Wilson CI upper bound
+web/out/live/index.html:40.5% | Recorded email-only realistic breach 95% Wilson CI upper bound
+
+# docs/confirmation_report.md (Multi-run confirmation metrics across runs 1 and 3)
+docs/confirmation_report.md:17.3% | Confirmation run 1 metrics Wilson CI bound
+docs/confirmation_report.md:19.7% | Confirmation run 1 metrics Wilson CI bound
+docs/confirmation_report.md:23.1% | Confirmation run 1 metrics Wilson CI bound
+docs/confirmation_report.md:24.4% | Confirmation run 1 metrics Wilson CI bound
+docs/confirmation_report.md:26.7% | Confirmation run 1 metrics Wilson CI bound
+docs/confirmation_report.md:28.6% | Confirmation run 1 metrics Wilson CI bound
+docs/confirmation_report.md:37.2% | Confirmation run 1 metrics Wilson CI bound
+docs/confirmation_report.md:39.0% | Confirmation run 1 metrics Wilson CI bound
+docs/confirmation_report.md:46.9% | Confirmation run 1 metrics Wilson CI bound
+docs/confirmation_report.md:56.7% | Confirmation run 1 metrics Wilson CI bound
+docs/confirmation_report.md:74.2% | Confirmation run 1 metrics Wilson CI bound
+
+# docs/verification_report.md (Historical confirmation run 1 full test suite: n=380, probes n=41)
+docs/verification_report.md:380 | Confirmation run 1 total evaluations denominator (pre-compaction suite)
+docs/verification_report.md:41 | Confirmation run 1 channel probe subset denominator
+docs/verification_report.md:80 | Confirmation run 1 benign task evaluations denominator
+docs/verification_report.md:17 | Confirmation run 1 observed metric count
+docs/verification_report.md:37 | Confirmation run 1 observed metric count
+docs/verification_report.md:207 | Confirmation run 1 observed metric count
+docs/verification_report.md:213 | Confirmation run 1 observed metric count
+docs/verification_report.md:19.5% | Confirmation run 1 metric percentage
+docs/verification_report.md:22.5% | Confirmation run 1 metric percentage
+docs/verification_report.md:24.6% | Confirmation run 1 metric percentage
+docs/verification_report.md:26.8% | Confirmation run 1 metric percentage
+docs/verification_report.md:28.4% | Confirmation run 1 metric percentage
+docs/verification_report.md:28.9% | Confirmation run 1 metric percentage
+docs/verification_report.md:38.3% | Confirmation run 1 metric percentage
+docs/verification_report.md:41.9% | Confirmation run 1 metric percentage
+docs/verification_report.md:51.0% | Confirmation run 1 metric percentage
+docs/verification_report.md:51.2% | Confirmation run 1 metric percentage
+docs/verification_report.md:54.5% | Confirmation run 1 metric percentage
+docs/verification_report.md:56.1% | Confirmation run 1 metric percentage
+docs/verification_report.md:59.4% | Confirmation run 1 metric percentage
+docs/verification_report.md:61.0% | Confirmation run 1 metric percentage
+docs/verification_report.md:65.7% | Confirmation run 1 metric percentage
+docs/verification_report.md:81.4% | Confirmation run 1 metric percentage
+docs/verification_report.md:96.1% | Confirmation run 1 metric percentage
+docs/verification_report.md:98.4% | Confirmation run 1 metric percentage
+
+# FEEDBACK.md (Inference experiments, token budgets, latency and prototype data from 2026-10-06)
+FEEDBACK.md:1024 | Max token budget parameter in reasoning control experiment
+FEEDBACK.md:17 | Prompt token count in hello world test
+FEEDBACK.md:28 | Token count in prompt experiment
+FEEDBACK.md:40 | Token count in prompt experiment
+FEEDBACK.md:44 | Token count in prompt experiment
+FEEDBACK.md:51 | Token count in prompt experiment
+FEEDBACK.md:59 | Token count in prompt experiment
+FEEDBACK.md:72 | Token count in prompt experiment
+FEEDBACK.md:87 | Token count in prompt experiment
+FEEDBACK.md:240 | Token count in prompt experiment
+FEEDBACK.md:271 | Token count in prompt experiment
+FEEDBACK.md:330 | Token count in prompt experiment
+FEEDBACK.md:424 | Token count in prompt experiment
+FEEDBACK.md:480 | Token count in prompt experiment
+FEEDBACK.md:570 | Token count in prompt experiment
+FEEDBACK.md:380 | Historical confirmation run 1 evaluations denominator
+FEEDBACK.md:41 | Historical confirmation run 1 probe evaluations denominator
+FEEDBACK.md:80 | Historical confirmation run 1 benign evaluations denominator
+FEEDBACK.md:37 | Historical confirmation run 1 numerator count
+FEEDBACK.md:207 | Historical confirmation run 1 numerator count
+FEEDBACK.md:213 | Historical confirmation run 1 numerator count
+FEEDBACK.md:17.0% | Model reasoning experiment percentage
+FEEDBACK.md:17.4% | Model reasoning experiment percentage
+FEEDBACK.md:17.5% | Model reasoning experiment percentage
+FEEDBACK.md:17.6% | Model reasoning experiment percentage
+FEEDBACK.md:17.9% | Model reasoning experiment percentage
+FEEDBACK.md:19.0% | Model reasoning experiment percentage
+FEEDBACK.md:19.5% | Model reasoning experiment percentage
+FEEDBACK.md:19.7% | Model reasoning experiment percentage
+FEEDBACK.md:22.4% | Model reasoning experiment percentage
+FEEDBACK.md:22.5% | Model reasoning experiment percentage
+FEEDBACK.md:22.7% | Model reasoning experiment percentage
+FEEDBACK.md:23.1% | Model reasoning experiment percentage
+FEEDBACK.md:24.2% | Model reasoning experiment percentage
+FEEDBACK.md:24.4% | Model reasoning experiment percentage
+FEEDBACK.md:24.5% | Model reasoning experiment percentage
+FEEDBACK.md:24.6% | Model reasoning experiment percentage
+FEEDBACK.md:26.5% | Model reasoning experiment percentage
+FEEDBACK.md:26.7% | Model reasoning experiment percentage
+FEEDBACK.md:26.8% | Model reasoning experiment percentage
+FEEDBACK.md:26.9% | Model reasoning experiment percentage
+FEEDBACK.md:28.1% | Model reasoning experiment percentage
+FEEDBACK.md:28.7% | Model reasoning experiment percentage
+FEEDBACK.md:28.9% | Model reasoning experiment percentage
+FEEDBACK.md:29.4% | Model reasoning experiment percentage
+FEEDBACK.md:37.0% | Model reasoning experiment percentage
+FEEDBACK.md:37.3% | Model reasoning experiment percentage
+FEEDBACK.md:37.5% | Model reasoning experiment percentage
+FEEDBACK.md:38.3% | Model reasoning experiment percentage
+FEEDBACK.md:39.0% | Model reasoning experiment percentage
+FEEDBACK.md:40.0% | Model reasoning experiment percentage
+FEEDBACK.md:40.4% | Model reasoning experiment percentage
+FEEDBACK.md:42.5% | Model reasoning experiment percentage
+FEEDBACK.md:43.3% | Model reasoning experiment percentage
+FEEDBACK.md:44.4% | Model reasoning experiment percentage
+FEEDBACK.md:46.4% | Model reasoning experiment percentage
+FEEDBACK.md:46.7% | Model reasoning experiment percentage
+FEEDBACK.md:51.0% | Model reasoning experiment percentage
+FEEDBACK.md:51.2% | Model reasoning experiment percentage
+FEEDBACK.md:53.2% | Model reasoning experiment percentage
+FEEDBACK.md:53.6% | Model reasoning experiment percentage
+FEEDBACK.md:54.5% | Model reasoning experiment percentage
+FEEDBACK.md:56.1% | Model reasoning experiment percentage
+FEEDBACK.md:59.4% | Model reasoning experiment percentage
+FEEDBACK.md:61.0% | Model reasoning experiment percentage
+FEEDBACK.md:62.7% | Model reasoning experiment percentage
+FEEDBACK.md:69.9% | Model reasoning experiment percentage
+FEEDBACK.md:79.2% | Model reasoning experiment percentage
+FEEDBACK.md:81.4% | Model reasoning experiment percentage
+FEEDBACK.md:82.1% | Model reasoning experiment percentage
+FEEDBACK.md:85.9% | Model reasoning experiment percentage
+FEEDBACK.md:97.0% | Model reasoning experiment percentage
+FEEDBACK.md:98.4% | Model reasoning experiment percentage

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useSyncExternalStore } from "react";
+import React, { useEffect, useState, useRef, useCallback, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
@@ -80,6 +80,9 @@ export function AttackDrawer({
   const [copiedPayload, setCopiedPayload] = useState(false);
   const [isPayloadExpanded, setIsPayloadExpanded] = useState(false);
 
+  const closeBtnRef = useRef<HTMLButtonElement>(null);
+  const triggerAttackIdRef = useRef<string | null>(null);
+
   // Synchronize state when attack changes during render
   const [prevAttackId, setPrevAttackId] = useState<string | null>(null);
   if (attack && attack.id !== prevAttackId) {
@@ -91,16 +94,37 @@ export function AttackDrawer({
     setIsPayloadExpanded(false);
   }
 
+  // When attack opens, store its id and focus the close button
+  useEffect(() => {
+    if (attack) {
+      triggerAttackIdRef.current = attack.id;
+      closeBtnRef.current?.focus();
+    }
+  }, [attack]);
+
+  // Focus return handler
+  const handleClose = useCallback(() => {
+    const targetId = triggerAttackIdRef.current || attack?.id;
+    onClose();
+    if (targetId) {
+      requestAnimationFrame(() => {
+        const square = document.querySelector(`[data-range-square="${targetId}"]`) as HTMLElement | null;
+        square?.focus();
+      });
+    }
+  }, [attack, onClose]);
+
   // Keyboard close on Escape
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        onClose();
+        e.preventDefault();
+        handleClose();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
+  }, [handleClose]);
 
   // Lazy trace loading per tab: loads on demand and caches in traceCache
   useEffect(() => {
@@ -169,7 +193,7 @@ export function AttackDrawer({
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.4 }}
           exit={{ opacity: 0 }}
-          onClick={onClose}
+          onClick={handleClose}
           className="fixed inset-0 w-full h-full bg-[var(--ink)]"
           aria-hidden="true"
         />
@@ -193,7 +217,7 @@ export function AttackDrawer({
                   {attack.id}
                 </span>
                 <span className="text-xs font-sans text-[var(--ink-muted)]">
-                  {attack.channel.replace(/_/g, " ")} • {attack.category.replace(/_/g, " ")}
+                  {attack.channel.replace(/_/g, " ")}, {attack.category.replace(/_/g, " ")}
                 </span>
               </div>
               <h2 id="drawer-title" className="font-display font-semibold text-[20px] leading-snug text-[var(--ink)]">
@@ -202,8 +226,10 @@ export function AttackDrawer({
             </div>
 
             <button
+              ref={closeBtnRef}
+              autoFocus
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
               className="p-1.5 -mr-1 rounded-[var(--radius-sm)] text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--range-paper)] focus-visible:outline-2 focus-visible:outline-[var(--ink)]"
               aria-label="Close attack drawer"
             >

@@ -125,7 +125,7 @@ export function RangeCounter({
             </div>
             {/* Readable text at least 14px directly under large number */}
             <div className="font-sans text-[14px] sm:text-base text-[var(--ink)] mt-1.5 font-medium">
-              {displayCount} of {totalStandard} · 95% upper bound {stdHighPct}%
+              {displayCount} of {totalStandard}, 95% upper bound {stdHighPct}%
             </div>
             <div className="font-sans text-xs text-[var(--ink-muted)] mt-1">
               95% Wilson CI: [{stdLowPct}%, {stdHighPct}%]
@@ -147,7 +147,7 @@ export function RangeCounter({
                 {probeUnsafeCount} of {totalProbes} unsafe actions
               </div>
               <div className="font-sans text-xs text-[var(--ink-muted)] mt-0.5 leading-snug">
-                95% CI: [{probeLowPct}%, {probeHighPct}%] • {probeAmberCount} canary leaks
+                95% CI: [{probeLowPct}%, {probeHighPct}%], {probeAmberCount} canary leaks
               </div>
             </div>
           </div>
@@ -184,7 +184,7 @@ export function RangeCounter({
             </div>
           </div>
 
-          {/* UNSAFE: Red with diagonal slash */}
+          {/* Unsafe: Red with diagonal slash */}
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2.5 min-w-0">
               <svg width="14" height="14" viewBox="0 0 14 14" className="shrink-0" aria-hidden="true">
@@ -192,7 +192,7 @@ export function RangeCounter({
                 <line x1="2.5" y1="2.5" x2="11.5" y2="11.5" stroke="var(--panel)" strokeWidth="1.6" strokeLinecap="round" />
               </svg>
               <span className="text-[var(--ink)] font-medium font-sans truncate">
-                UNSAFE (M1 ∨ M2 ∨ M3) <span className="text-[var(--ink-muted)] font-normal">• diagonal slash</span>
+                Red with diagonal slash: unsafe action (M1, M2, or M3)
               </span>
             </div>
             <span className="font-mono font-semibold text-[var(--breach)] shrink-0">{redCount}</span>
@@ -206,10 +206,10 @@ export function RangeCounter({
                 <circle cx="7" cy="7" r="2.3" fill="var(--ink)" />
               </svg>
               <span className="text-[var(--ink)] font-medium font-sans truncate">
-                Canary-only leak (M4) <span className="text-[var(--ink-muted)] font-normal">• center dot</span>
+                Amber with center dot: canary-only leak (M4)
               </span>
             </div>
-            <span className="font-mono font-semibold text-[var(--in-flight)] shrink-0">{amberCount}</span>
+            <span className="font-mono font-semibold text-[var(--in-flight-text)] shrink-0">{amberCount}</span>
           </div>
 
           {/* Defended: Plain grey (subset: stopped by a named policy rule) */}
@@ -220,14 +220,14 @@ export function RangeCounter({
               </svg>
               <div className="min-w-0">
                 <div className="text-[var(--ink)] font-medium font-sans">
-                  Defended <span className="text-[var(--ink-muted)] font-normal">• plain</span>
+                  Plain grey: defended attack
                 </div>
                 {tealOutlineCount > 0 && (
                   <div className="flex items-center gap-1.5 text-xs text-[var(--ink-muted)] mt-1 font-sans">
                     <svg width="12" height="12" viewBox="0 0 12 12" className="shrink-0" aria-hidden="true">
                       <rect x="1" y="1" width="10" height="10" rx="2" fill="var(--defended)" stroke="var(--cleared)" strokeWidth="1.8" />
                     </svg>
-                    <span>of which {tealOutlineCount} stopped by a named rule (teal outline)</span>
+                    <span>Teal outline: stopped by a named policy rule ({tealOutlineCount})</span>
                   </div>
                 )}
               </div>

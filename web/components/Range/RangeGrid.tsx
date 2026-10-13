@@ -230,39 +230,36 @@ export function RangeGrid({
     return { gridItems: items, rowPositions: positions, totalHeight: currentY + 12 };
   }, [rows, step]);
 
-  // Keyboard navigation (focus rings appear ONLY on keyboard use)
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (gridItems.length === 0) return;
-
+  // Keyboard navigation on squares with roving tabindex
+  const handleSquareKeyDown = (e: React.KeyboardEvent, item: GridItem) => {
+    let nextIndex: number | null = null;
     if (e.key === "ArrowRight") {
       e.preventDefault();
-      setIsKeyboardFocus(true);
-      setFocusedIndex((prev) => (prev === null ? 0 : (prev + 1) % gridItems.length));
+      nextIndex = (item.globalIndex + 1) % gridItems.length;
     } else if (e.key === "ArrowLeft") {
       e.preventDefault();
-      setIsKeyboardFocus(true);
-      setFocusedIndex((prev) => (prev === null ? 0 : (prev - 1 + gridItems.length) % gridItems.length));
+      nextIndex = (item.globalIndex - 1 + gridItems.length) % gridItems.length;
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
-      setIsKeyboardFocus(true);
-      setFocusedIndex((prev) => {
-        if (prev === null) return 0;
-        return prev + MAX_COLS < gridItems.length ? prev + MAX_COLS : prev;
-      });
+      nextIndex = Math.min(item.globalIndex + MAX_COLS, gridItems.length - 1);
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
-      setIsKeyboardFocus(true);
-      setFocusedIndex((prev) => {
-        if (prev === null) return 0;
-        return prev - MAX_COLS >= 0 ? prev - MAX_COLS : prev;
-      });
+      nextIndex = Math.max(item.globalIndex - MAX_COLS, 0);
     } else if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
-      if (focusedIndex !== null) {
-        const item = gridItems[focusedIndex];
-        if (item) {
-          onSelectAttack(item.attack);
-        }
+      onSelectAttack(item.attack);
+      return;
+    }
+
+    if (nextIndex !== null) {
+      setFocusedIndex(nextIndex);
+      setIsKeyboardFocus(true);
+      const nextAttackId = gridItems[nextIndex]?.attack.id;
+      if (nextAttackId) {
+        requestAnimationFrame(() => {
+          const targetEl = document.querySelector(`[data-range-square="${nextAttackId}"]`) as HTMLElement | null;
+          targetEl?.focus();
+        });
       }
     }
   };
@@ -270,40 +267,43 @@ export function RangeGrid({
   return (
     <div
       ref={containerRef}
-      tabIndex={0}
-      onKeyDown={handleKeyDown}
-      className="bg-[var(--panel)] border border-[var(--rule)] rounded-[var(--radius-md)] p-4 sm:p-5 relative outline-none focus-visible:ring-2 focus-visible:ring-[var(--ink)]"
-      aria-label="The Range attack grid. Use arrow keys to navigate squares, Enter to inspect trace in drawer."
+      className="bg-[var(--panel)] border border-[var(--rule)] rounded-[var(--radius-md)] p-4 sm:p-5 relative outline-none"
+      aria-label="The Range attack grid"
     >
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 pb-2 border-b border-[var(--rule)]">
         <div>
           <div className="flex flex-wrap items-center gap-2 mb-1">
-            <h2 className="font-display font-semibold text-base sm:text-lg text-[var(--ink)]">
+            <h1 className="font-display font-semibold text-base sm:text-lg text-[var(--ink)]">
               The Range
-            </h2>
+            </h1>
             <span className="font-sans text-xs px-2 py-0.5 rounded-[var(--radius-sm)] bg-[var(--range-paper)] border border-[var(--rule)] text-[var(--ink)] font-medium">
               Realistic prompt (safety instructions in the system prompt)
             </span>
           </div>
           <p className="text-xs text-[var(--ink-muted)] font-sans">
             Telemetry grid ({attacks.length} total attack squares) grouped by channel and targeted probe vectors. Naive-prompt results are on the{" "}
-            <Link href="/results" className="underline hover:text-[var(--ink)]">
+            <Link href="/results" prefetch={false} className="underline hover:text-[var(--ink)]">
               Results page
             </Link>.
           </p>
         </div>
         <div className="text-xs font-sans text-[var(--ink-muted)] self-start sm:self-auto">
-          Arrow keys to browse • Click or Enter to inspect trace
+          Use arrow keys to browse, click or Enter to inspect trace
         </div>
       </div>
 
       {/* SVG Canvas - scrollable horizontally on mobile (390px) without breaking page width */}
-      <div className="w-full overflow-x-auto relative">
+      <div
+        tabIndex={0}
+        role="region"
+        aria-label="Interactive attack grid container"
+        className="w-full overflow-x-auto relative focus-visible:outline-2 focus-visible:outline-[var(--ink)]"
+      >
         <svg
           viewBox={`0 0 ${svgWidth} ${totalHeight}`}
           style={{ width: `${svgWidth}px`, maxWidth: "none" }}
           className="h-auto select-none"
-          role="grid"
+          role="region"
           aria-label="Attack Range grid"
         >
           {/* Row Labels & Dividers */}
@@ -392,13 +392,19 @@ export function RangeGrid({
             return (
               <g
                 key={item.attack.id}
-                role="gridcell"
-                aria-label={`${item.attack.id} ${item.attack.category} ${visualState.status}`}
-                tabIndex={-1}
+                role="button"
+                data-range-square={item.attack.id}
+                aria-label={`${item.attack.id} ${item.attack.category.replace(/_/g, " ")}: ${visualState.status}`}
+                tabIndex={focusedIndex === item.globalIndex || (focusedIndex === null && item.globalIndex === 0) ? 0 : -1}
                 onClick={() => {
                   setIsKeyboardFocus(false);
                   setFocusedIndex(item.globalIndex);
                   onSelectAttack(item.attack);
+                }}
+                onKeyDown={(e) => handleSquareKeyDown(e, item)}
+                onFocus={() => {
+                  setFocusedIndex(item.globalIndex);
+                  setIsKeyboardFocus(true);
                 }}
                 onMouseEnter={() =>
                   setHoveredItem({
@@ -408,7 +414,7 @@ export function RangeGrid({
                   })
                 }
                 onMouseLeave={() => setHoveredItem(null)}
-                className="cursor-pointer group"
+                className="cursor-pointer group outline-none"
               >
                 <motion.rect
                   x={item.x}

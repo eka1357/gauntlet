@@ -11,8 +11,9 @@
 
   /* Semantic colours — reserved for meaning only */
   --breach: #C4352A;
-  --cleared: #1E7A68;
+  --cleared: #186959;
   --in-flight: #D9962B;
+  --in-flight-text: #8A5800;
   --defended: #94A3B8;
 
   /* Contrast / Muted text */

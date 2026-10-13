@@ -77,7 +77,12 @@ export function IntervalPlot({
       </div>
 
       {/* Custom SVG Interval Plot */}
-      <div className="w-full overflow-x-auto">
+      <div
+        tabIndex={0}
+        role="region"
+        aria-label={`${title} interval plot chart`}
+        className="w-full overflow-x-auto focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--ink)]"
+      >
         <svg
           viewBox={`0 0 ${svgWidth} ${svgHeight}`}
           className="w-full h-auto min-w-[500px]"
@@ -288,7 +293,12 @@ export function IntervalPlot({
           <summary className="cursor-pointer font-medium hover:text-[var(--ink)] select-none">
             View exact data table and confidence intervals
           </summary>
-          <div className="mt-3 overflow-x-auto">
+          <div
+            tabIndex={0}
+            role="region"
+            aria-label={`${title} data table`}
+            className="mt-3 overflow-x-auto focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--ink)]"
+          >
             <table className="w-full text-left border-collapse text-xs">
               <thead>
                 <tr className="border-b border-[var(--rule)] text-[var(--ink)]">

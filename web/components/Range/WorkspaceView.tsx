@@ -66,6 +66,27 @@ export function WorkspaceView() {
     };
   }, []);
 
+  // Dismissible Framing Block state
+  const [framingDismissed, setFramingDismissed] = useState<boolean>(() => {
+    try {
+      if (typeof window !== "undefined") {
+        return localStorage.getItem("gauntlet_framing_dismissed") === "true";
+      }
+    } catch {
+      // Ignore storage errors
+    }
+    return false;
+  });
+
+  const handleDismissFraming = () => {
+    setFramingDismissed(true);
+    try {
+      localStorage.setItem("gauntlet_framing_dismissed", "true");
+    } catch {
+      // Ignore storage errors
+    }
+  };
+
   // Condition switch handler with orchestrated before/after wipe
   const handleConditionChange = (nextCondition: AttackCondition) => {
     if (condition === "unhardened" && nextCondition === "v2") {
@@ -241,30 +262,42 @@ export function WorkspaceView() {
 
   return (
     <div className="space-y-6">
-      {/* First-Impression Overview Strip */}
-      <section className="p-4 rounded-[var(--radius-md)] bg-[var(--panel)] border border-[var(--rule)] space-y-2 text-xs sm:text-sm font-sans leading-relaxed text-[var(--ink)]">
-        <p>
-          Gauntlet attacked an email assistant with 235 prompt-injection attacks and wrote a policy that stopped the unsafe ones. Flip the switch to see the same attacks with and without it.
-        </p>
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-1 text-xs text-[var(--ink-muted)]">
-          <div className="flex flex-wrap items-center gap-4">
-            <Link href="/results" className="font-medium text-[var(--ink)] underline hover:opacity-80">
-              Results
-            </Link>
-            <span aria-hidden="true">•</span>
-            <Link href="/policy" className="font-medium text-[var(--ink)] underline hover:opacity-80">
-              Policy
-            </Link>
-            <span aria-hidden="true">•</span>
-            <Link href="/live" className="font-medium text-[var(--ink)] underline hover:opacity-80">
-              Live
-            </Link>
+      {/* Framing Block: plain-language overview, max 3 sentences, render-time numbers, dismissible */}
+      {!framingDismissed && summary && (
+        <section
+          aria-label="Evaluation Overview"
+          className="p-3.5 sm:p-4 rounded-[var(--radius-md)] bg-[var(--panel)] border border-[var(--rule)] text-xs sm:text-sm font-sans leading-relaxed text-[var(--ink)]"
+        >
+          <div className="flex items-start justify-between gap-4">
+            <div className="space-y-1.5 pr-2">
+              <p>
+                You are inspecting an automated inbox assistant tested against {summary.n_total} adversarial prompt-injection attacks.
+                Before hardening, {summary.realistic_mode.unhardened.unsafe.count} attacks produced unsafe actions, compared to {summary.realistic_mode.policy_v2.unsafe.count} under synthesized Policy v2.
+                The same attacks are replayed across three conditions to verify deterministic enforcement without LLM judges.
+              </p>
+              <div className="pt-0.5">
+                <Link
+                  href="/report#section-2"
+                  prefetch={false}
+                  className="font-medium text-[var(--ink)] underline hover:opacity-80 text-xs inline-flex items-center gap-1"
+                >
+                  How was this measured?
+                </Link>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleDismissFraming}
+              className="p-1.5 -mr-1 -mt-1 rounded-[var(--radius-sm)] text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--range-paper)] focus-visible:outline-2 focus-visible:outline-[var(--ink)] shrink-0"
+              aria-label="Dismiss evaluation overview"
+            >
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                <path d="M5 5 L15 15 M15 5 L5 15" />
+              </svg>
+            </button>
           </div>
-          <span className="font-mono text-[11px] sm:text-xs text-[var(--ink-muted)]">
-            Click any square to inspect the full trace.
-          </span>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Top Filter and Condition Switch Toolbar */}
       <RangeFilters
@@ -346,7 +379,7 @@ export function WorkspaceView() {
           <div className="flex items-center gap-2 font-sans">
             <span className="font-semibold text-xs text-[var(--ink)]">Run facts & configuration</span>
             <span className="text-[var(--ink-muted)] text-xs hidden sm:inline">
-              • Target agent, active model roles, and policy SHA-256 hashes
+              (target agent, active model roles, and policy SHA-256 hashes)
             </span>
           </div>
           <span className="font-mono text-xs text-[var(--ink-muted)]">
