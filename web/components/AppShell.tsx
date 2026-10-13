@@ -21,6 +21,7 @@ const NAV_ITEMS = [
 export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
   const [costs, setCosts] = useState<RunCosts | null>(null);
+  const [projectFactsUsage, setProjectFactsUsage] = useState<string>("$12.40");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -30,6 +31,11 @@ export function AppShell({ children }: AppShellProps) {
         if (!mounted) return;
         if (data.costs) {
           setCosts(data.costs);
+        }
+        if (data.project_facts?.formatted_project_usage) {
+          setProjectFactsUsage(data.project_facts.formatted_project_usage);
+        } else if (data.project_facts?.total_project_usage_usd !== undefined) {
+          setProjectFactsUsage(`$${data.project_facts.total_project_usage_usd.toFixed(2)}`);
         }
       })
       .catch(() => {
@@ -99,7 +105,7 @@ export function AppShell({ children }: AppShellProps) {
                 </span>
               </div>
               <div className="text-xs text-[var(--ink-muted)] font-sans">
-                Excludes attack generation, the first verification run and development runs.
+                Excludes development, earlier experiments and failed runs. Total project usage per the Token Factory console is about {projectFactsUsage}.
               </div>
             </div>
           </div>
@@ -168,13 +174,44 @@ export function AppShell({ children }: AppShellProps) {
             <div className="text-xs text-[var(--ink-muted)] space-y-1">
               <div>Target: inbox-assistant</div>
               <div className="font-mono text-xs">policy-v2 (synthesized)</div>
+              <div className="pt-2 text-[11px] text-[var(--ink-muted)] leading-relaxed">
+                Recorded run. Live runs are disabled in this deployment. ·{" "}
+                <a
+                  href="https://github.com/eka1357/gauntlet"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline hover:text-[var(--ink)]"
+                >
+                  GitHub
+                </a>{" "}
+                · MIT License
+              </div>
             </div>
           </div>
         </aside>
 
         {/* Content Area */}
-        <main className="flex-1 min-w-0 max-w-full overflow-x-hidden bg-[var(--range-paper)] p-4 sm:p-6 lg:p-8 print:p-0 print:overflow-visible print:bg-white">
-          {children}
+        <main className="flex-1 min-w-0 max-w-full overflow-x-hidden bg-[var(--range-paper)] p-4 sm:p-6 lg:p-8 flex flex-col justify-between print:p-0 print:overflow-visible print:bg-white">
+          <div className="flex-1">
+            {children}
+          </div>
+          <footer className="mt-12 pt-4 border-t border-[var(--rule)] text-xs text-[var(--ink-muted)] flex flex-wrap items-center justify-between gap-3 print:hidden">
+            <div>
+              <span>Recorded run. Live runs are disabled in this deployment.</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <a
+                href="https://github.com/eka1357/gauntlet"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-[var(--ink)] underline underline-offset-2 transition-colors focus-visible:outline-2 focus-visible:outline-[var(--ink)]"
+              >
+                GitHub
+              </a>
+              <span>•</span>
+              <span>MIT License</span>
+            </div>
+          </footer>
         </main>
       </div>
     </div>

@@ -9,6 +9,7 @@ interface ProvenanceSectionProps {
   totalCostUsd?: number;
   seed?: number;
   elapsedSec?: number;
+  projectFactsUsage?: string;
 }
 
 export function ProvenanceSection({
@@ -16,6 +17,7 @@ export function ProvenanceSection({
   costs,
   seed,
   elapsedSec,
+  projectFactsUsage,
 }: ProvenanceSectionProps) {
   return (
     <div className="bg-[var(--panel)] border border-[var(--rule)] rounded-[var(--radius-md)] p-4 sm:p-5">
@@ -95,7 +97,7 @@ export function ProvenanceSection({
                 Cost of the three recorded confirmation runs
               </span>
               <span className="block font-sans text-xs text-[var(--ink-muted)]">
-                Excludes attack generation, the first verification run and development runs.
+                Excludes development, earlier experiments and failed runs. Total project usage per the Token Factory console is about {projectFactsUsage || "$12.40"}.
               </span>
             </div>
             <span className="font-mono text-sm font-bold text-[var(--ink)] bg-[var(--panel)] px-2.5 py-1 rounded-[var(--radius-sm)] border border-[var(--rule)] shrink-0 ml-2">

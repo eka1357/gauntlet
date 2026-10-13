@@ -1,6 +1,6 @@
 # Gauntlet Deployment Guide (Static Mode)
 
-This guide documents how to export static evaluation artifacts, build the Gauntlet web application without a backend dependency, and deploy the recorded evaluation experience.
+This guide documents the verified path to export static evaluation artifacts, build the Gauntlet web application without a backend dependency, and deploy the recorded evaluation experience from `web/out`.
 
 ---
 
@@ -9,19 +9,20 @@ This guide documents how to export static evaluation artifacts, build the Gauntl
 Gauntlet supports a **zero-backend static mode**. In this mode:
 - All recorded evaluation results, attack grids, policy definitions, Wilson confidence intervals, and execution traces are served directly as static JSON from `/data/*.json`.
 - Zero live model calls are made.
-- The web application runs completely standalone on any web server, CDN, or static file host.
+- The web application runs completely standalone from pure HTML, CSS, JavaScript, and static JSON files.
 - Live runs are permanently disabled (`LIVE_RUNS_ENABLED=false`) to protect API quotas and honor daily spend limits.
 
 ---
 
-## 2. Step 1: Export Static Data
+## 2. The One Verified Deployment Path
 
-Run the static export script from the repository root to generate all required JSON assets from recorded fixtures:
+The following 3-step sequence is the single verified path to build and deploy Gauntlet:
 
+### Step 1: Export Static Data
+From the repository root, run the static export script:
 ```bash
 py scripts/export_static.py
 ```
-
 This script runs entirely in-process (zero model calls, zero external network egress) and populates `web/public/data/` with:
 - `summary.json` — Headline evaluation metrics, Wilson CIs, costs, and limitations.
 - `project_facts.json` — Verified Token Factory total usage ($12.40).
@@ -33,91 +34,69 @@ This script runs entirely in-process (zero model calls, zero external network eg
 - `attacks.json` & `attacks_*.json` — Paginated attack records matching UI query patterns.
 - `traces/*.json` — Stored execution traces for all 235 attacks across unhardened, v1, and v2 conditions (705 files total).
 
-> **Verification:** The export script verifies that no API keys or environment secrets leak into any static file.
+### Step 2: Build the Frontend Static Export
+In the `web/` directory, run the Next.js production build with `NEXT_PUBLIC_STATIC_DATA=true`:
 
----
-
-## 3. Step 2: Build the Frontend in Static Mode
-
-Navigate to the `web/` directory and run the Next.js production build with `NEXT_PUBLIC_STATIC_DATA=true`.
-
-### Linux / macOS / Bash:
+**Linux / macOS / Bash:**
 ```bash
 cd web
 NEXT_PUBLIC_STATIC_DATA=true npm run build
 ```
 
-### Windows (PowerShell):
+**Windows (PowerShell):**
 ```powershell
 cd web
 $env:NEXT_PUBLIC_STATIC_DATA="true"
 npm run build
 ```
 
-### Windows (CMD):
+**Windows (CMD):**
 ```cmd
 cd web
 set NEXT_PUBLIC_STATIC_DATA=true
 npm run build
 ```
 
-When `NEXT_PUBLIC_STATIC_DATA` is `"true"`, `web/lib/api.ts` automatically routes all data requests to `/data/*.json` and disables live run dispatchers.
+When `NEXT_PUBLIC_STATIC_DATA=true`, `web/next.config.ts` sets `output: "export"`, `trailingSlash: true`, and `images: { unoptimized: true }`. Next.js writes a fully static site to `web/out/`.
+
+### Step 3: Deploy `web/out`
+Deploy the contents of the `web/out/` directory to any static file server, static hosting provider, object storage bucket, or CDN.
+
+To test locally with a plain static server (with NO Next server and NO backend running):
+```bash
+py -m http.server 3000 --directory web/out
+```
+Then open `http://localhost:3000` in your browser. All routes (`/`, `/results`, `/policy`, `/report`, `/live`) and direct deep links resolve cleanly from the exported HTML files.
 
 ---
 
-## 4. What to Upload
-
-Depending on your hosting strategy:
-
-### Option A: Next.js Node / Container Server
-Upload:
-- The compiled `.next/` build folder.
-- The `web/public/` folder (including `web/public/data/`).
-- `package.json` and production dependencies (`node_modules`).
-- Set environment:
-  ```env
-  NEXT_PUBLIC_STATIC_DATA=true
-  LIVE_RUNS_ENABLED=false
-  NODE_ENV=production
-  PORT=3000
-  ```
-- Start command: `npm run start`
-
-### Option B: Pure Static Hosting (HTML/CSS/JS export)
-If `next.config.ts` specifies `output: "export"`:
-- Run `npm run build` to generate `web/out/`.
-- Upload the entire contents of `web/out/` (which includes static pages, chunks, and the `/data/` folder).
-
----
-
-## 5. Host-Specific Deployment Notes
+## 3. Host-Specific Deployment Notes (UNVERIFIED)
 
 > [!WARNING]
 > **UNVERIFIED**: All instructions below for specific third-party hosting platforms are theoretical configuration templates and have **not** been verified on live infrastructure. Deployers must test their own configurations.
 
-### Nebius Serverless / Container Registry (UNVERIFIED)
-1. Build the production Docker image using `Dockerfile`.
-2. Ensure container environment specifies `LIVE_RUNS_ENABLED=false` and `NEXT_PUBLIC_STATIC_DATA=true`.
-3. Deploy container image to Nebius Serverless container service.
-4. *(Status: Unverified)*
-
 ### Vercel (UNVERIFIED)
 1. Link repository with Root Directory set to `web`.
-2. In Project Settings > Environment Variables, add:
-   - `NEXT_PUBLIC_STATIC_DATA` = `true`
-   - `LIVE_RUNS_ENABLED` = `false`
-3. Pre-build command: `cd .. && py scripts/export_static.py && cd web` (requires Python build environment) or commit the pre-built `web/public/data/` files to Git.
-4. *(Status: Unverified)*
+2. Output Directory: `out` (or leave default for Next.js static export).
+3. Environment variables: `NEXT_PUBLIC_STATIC_DATA=true`.
+4. Ensure `web/public/data/` is generated before build, or commit static data files to the repository.
+5. *(Status: UNVERIFIED)*
 
 ### Cloudflare Pages / Netlify (UNVERIFIED)
-1. Build command: `npm run build` with `NEXT_PUBLIC_STATIC_DATA=true`.
-2. Output directory: `.next` or `out`.
-3. Commit `web/public/data/` to git prior to deployment.
-4. *(Status: Unverified)*
+1. Build command: `npm run build`
+2. Build output directory: `out`
+3. Environment variable: `NEXT_PUBLIC_STATIC_DATA=true`
+4. Pre-deploy requirement: Ensure `web/public/data/` files are present in source repository.
+5. *(Status: UNVERIFIED)*
+
+### Nebius Serverless / Container Registry (UNVERIFIED)
+1. Build static assets into an Nginx or lightweight HTTP server container image from `web/out`.
+2. Deploy container image to Nebius Serverless container service.
+3. *(Status: UNVERIFIED)*
 
 ---
 
-## 6. Budget & Security Safeguards
+## 4. Budget & Security Safeguards
 
 - **`LIVE_RUNS_ENABLED=false`**: Never set `LIVE_RUNS_ENABLED=true` in public deployments.
 - In static mode, the `/live` route displays an explanatory banner:

@@ -210,6 +210,12 @@ export default function ResultsPage() {
           totalCostUsd={summary.total_cost_usd}
           seed={summary.seed}
           elapsedSec={summary.elapsed_sec}
+          projectFactsUsage={
+            summary.project_facts?.formatted_project_usage ||
+            (summary.project_facts?.total_project_usage_usd !== undefined
+              ? `$${summary.project_facts.total_project_usage_usd.toFixed(2)}`
+              : "$12.40")
+          }
         />
       </section>
     </div>
