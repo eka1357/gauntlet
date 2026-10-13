@@ -83,13 +83,14 @@ export default function PolicyPage() {
     Promise.all([
       getPolicy("v1"),
       getPolicy("v2"),
-      getRecordedAttacks({ limit: 300 }),
+      getRecordedAttacks({ page: 1, limit: 150 }),
+      getRecordedAttacks({ page: 2, limit: 150 }),
     ])
-      .then(([v1, v2, attResp]) => {
+      .then(([v1, v2, p1, p2]) => {
         if (!active) return;
         setPolicyV1(v1);
         setPolicyV2(v2);
-        setAttacks(attResp.attacks || []);
+        setAttacks([...(p1.attacks || []), ...(p2.attacks || [])]);
         setLoading(false);
       })
       .catch((err) => {

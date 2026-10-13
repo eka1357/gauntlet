@@ -254,9 +254,9 @@ export function WorkspaceView() {
       />
 
       {/* Main Workspace Layout: The Range is the Hero (most width) with Counter directly next to it */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start min-w-0 max-w-full">
         {/* The Range Hero: Takes 8 of 12 columns */}
-        <section className="lg:col-span-8 xl:col-span-8 2xl:col-span-9" aria-label="The Range interactive attack grid">
+        <section className="lg:col-span-8 xl:col-span-8 2xl:col-span-9 min-w-0 max-w-full" aria-label="The Range interactive attack grid">
           {filteredAttacks.length === 0 ? (
             <div className="bg-[var(--panel)] border border-[var(--rule)] rounded-[var(--radius-md)] p-8 text-center space-y-3">
               <div className="text-sm font-semibold text-[var(--ink)] font-sans">
@@ -289,7 +289,7 @@ export function WorkspaceView() {
         </section>
 
         {/* Counter: Right next to the grid in 4 of 12 columns */}
-        <section className="lg:col-span-4 xl:col-span-4 2xl:col-span-3" aria-label="Unsafe-action rate telemetry counter and legend">
+        <section className="lg:col-span-4 xl:col-span-4 2xl:col-span-3 min-w-0 max-w-full" aria-label="Unsafe-action rate telemetry counter and legend">
           <RangeCounter
             condition={condition}
             standardUnsafeCount={standardUnsafeCount}

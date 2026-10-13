@@ -196,7 +196,7 @@ export function AttackDrawer({
                   {attack.channel.replace(/_/g, " ")} • {attack.category.replace(/_/g, " ")}
                 </span>
               </div>
-              <h2 id="drawer-title" className="font-display font-semibold text-lg text-[var(--ink)]">
+              <h2 id="drawer-title" className="font-display font-semibold text-[20px] leading-snug text-[var(--ink)]">
                 {attack.strategy}
               </h2>
             </div>
@@ -256,10 +256,10 @@ export function AttackDrawer({
                       }`}
                     >
                       <div className="text-xs text-[var(--ink-muted)] font-medium font-sans">{label}</div>
-                      <div className={`font-semibold font-sans text-xs mt-1 leading-snug ${statusColor}`}>
+                      <div className={`font-semibold font-sans text-xs mt-1 leading-snug break-words ${statusColor}`}>
                         {status}
                       </div>
-                      <div className="font-sans text-xs text-[var(--ink-muted)] mt-1 truncate" title={subtext}>
+                      <div className="font-sans text-xs text-[var(--ink-muted)] mt-1 break-words leading-tight" title={subtext}>
                         {subtext}
                       </div>
                     </button>

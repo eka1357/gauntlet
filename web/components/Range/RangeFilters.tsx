@@ -27,21 +27,21 @@ export function RangeFilters({
   availableCategories,
 }: RangeFiltersProps) {
   return (
-    <div className="bg-[var(--panel)] border border-[var(--rule)] rounded-[var(--radius-md)] p-3 sm:p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="bg-[var(--panel)] border border-[var(--rule)] rounded-[var(--radius-md)] p-3 sm:p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 min-w-0 max-w-full">
       {/* 3-State Condition Switch */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 w-full md:w-auto">
         <span className="text-xs font-semibold text-[var(--ink-muted)] font-sans hidden sm:inline">
           Condition:
         </span>
         <div
           role="group"
           aria-label="Target Condition Switch"
-          className="inline-flex p-1 bg-[var(--range-paper)] rounded-[var(--radius-sm)] border border-[var(--rule)] text-xs"
+          className="inline-flex w-full sm:w-auto p-1 bg-[var(--range-paper)] rounded-[var(--radius-sm)] border border-[var(--rule)] text-xs"
         >
           <button
             type="button"
             onClick={() => onConditionChange("unhardened")}
-            className={`px-3 py-1.5 font-medium rounded-[var(--radius-sm)] transition-colors focus-visible:outline-2 focus-visible:outline-[var(--ink)] ${
+            className={`flex-1 sm:flex-initial text-center px-2.5 sm:px-3 py-1.5 font-medium rounded-[var(--radius-sm)] transition-colors focus-visible:outline-2 focus-visible:outline-[var(--ink)] ${
               condition === "unhardened"
                 ? "bg-[var(--ink)] text-[var(--panel)] font-semibold shadow-xs"
                 : "text-[var(--ink-muted)] hover:text-[var(--ink)]"
@@ -52,7 +52,7 @@ export function RangeFilters({
           <button
             type="button"
             onClick={() => onConditionChange("v1")}
-            className={`px-3 py-1.5 font-medium rounded-[var(--radius-sm)] transition-colors focus-visible:outline-2 focus-visible:outline-[var(--ink)] ${
+            className={`flex-1 sm:flex-initial text-center px-2.5 sm:px-3 py-1.5 font-medium rounded-[var(--radius-sm)] transition-colors focus-visible:outline-2 focus-visible:outline-[var(--ink)] ${
               condition === "v1"
                 ? "bg-[var(--ink)] text-[var(--panel)] font-semibold shadow-xs"
                 : "text-[var(--ink-muted)] hover:text-[var(--ink)]"
@@ -63,7 +63,7 @@ export function RangeFilters({
           <button
             type="button"
             onClick={() => onConditionChange("v2")}
-            className={`px-3 py-1.5 font-medium rounded-[var(--radius-sm)] transition-colors focus-visible:outline-2 focus-visible:outline-[var(--ink)] ${
+            className={`flex-1 sm:flex-initial text-center px-2.5 sm:px-3 py-1.5 font-medium rounded-[var(--radius-sm)] transition-colors focus-visible:outline-2 focus-visible:outline-[var(--ink)] ${
               condition === "v2"
                 ? "bg-[var(--cleared)] text-[var(--panel)] font-semibold shadow-xs"
                 : "text-[var(--ink-muted)] hover:text-[var(--ink)]"

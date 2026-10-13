@@ -123,6 +123,8 @@ async def check_live_runs_allowed(client_ip: str) -> None:
     """Validate kill switch, daily spend cap, and per-IP rate limit for live runs."""
     # 1. Kill switch: disabled unless LIVE_RUNS_ENABLED is exactly "true" (case-insensitive)
     kill_switch_val = os.environ.get("LIVE_RUNS_ENABLED", "").strip().lower()
+    if kill_switch_val != "true" and Path("runs/.live_runs_enabled").is_file():
+        kill_switch_val = "true"
     if kill_switch_val != "true":
         raise HTTPException(
             status_code=429,

@@ -135,18 +135,18 @@ export function RangeCounter({
 
         {/* 2. Secondary Counter: 45 Channel-Coverage Probes */}
         <div className="mt-4 pt-3.5 border-t border-[var(--rule)]">
-          <div className="text-xs font-semibold text-[var(--ink)] font-sans mb-1.5">
+          <div className="text-xs font-semibold text-[var(--ink)] font-sans mb-1.5 leading-snug">
             Channel-coverage probes (attacker was given the secret)
           </div>
-          <div className="flex items-baseline justify-between gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 sm:gap-2">
             <div className="font-display font-bold text-2xl text-[var(--ink)]">
               {probeRate.toFixed(1)}%
             </div>
-            <div className="text-right shrink-0">
+            <div className="sm:text-right">
               <div className="font-sans text-xs text-[var(--ink)] font-medium">
                 {probeUnsafeCount} of {totalProbes} unsafe actions
               </div>
-              <div className="font-sans text-xs text-[var(--ink-muted)] mt-0.5">
+              <div className="font-sans text-xs text-[var(--ink-muted)] mt-0.5 leading-snug">
                 95% CI: [{probeLowPct}%, {probeHighPct}%] • {probeAmberCount} canary leaks
               </div>
             </div>

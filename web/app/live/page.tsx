@@ -287,22 +287,17 @@ export default function LivePage() {
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Header */}
       <div>
-        <div className="flex items-center gap-2 mb-1.5">
-          <span className="font-mono text-xs px-2 py-0.5 rounded-[var(--radius-sm)] bg-[var(--range-paper)] border border-[var(--rule)] text-[var(--ink)] font-semibold">
-            Live Swarm Evaluation
-          </span>
-          <span className="text-xs font-sans text-[var(--ink-muted)]">
-            Fresh Attack Generation • Deterministic Oracle • Streaming SSE
-          </span>
-        </div>
         <h1 className="font-display font-bold text-2xl text-[var(--ink)]">
           Live Attack Runner
         </h1>
         <p className="text-xs sm:text-sm text-[var(--ink-muted)] font-sans max-w-3xl mt-1 leading-relaxed">
-          Execute controlled mini-runs against live targets with fresh Lightning-generated payloads. Real-time dual evaluation streams unhardened vs Policy v2 behavior under a strict $0.05 cost cap.
+          Live runs use email attacks, the channel where this agent failed in the recorded evaluation. Web and document attacks never succeeded in recorded runs.
         </p>
         <p className="text-xs sm:text-sm text-[var(--ink-muted)] font-sans max-w-3xl mt-1.5 leading-relaxed">
-          Live runs use email attacks, the channel where this agent failed in the recorded evaluation. Web and document attacks never succeeded in recorded runs.
+          Recorded evidence, email attacks only: realistic 32.7% [25.7%, 40.5%], naive 78.7% [71.4%, 84.5%]. Live runs use freshly generated email attacks and can differ.
+        </p>
+        <p className="text-xs sm:text-sm text-[var(--ink-muted)] font-sans max-w-3xl mt-1 leading-relaxed italic">
+          Live attacks were generated differently from the recorded set; their success rates are not directly comparable.
         </p>
       </div>
 
@@ -362,7 +357,7 @@ export default function LivePage() {
           </p>
           {(runSummary.unhardened_unsafe ?? runSummary.unhardened_breaches ?? 0) === 0 && (
             <div className="p-2.5 rounded-[var(--radius-sm)] bg-[var(--range-paper)] border border-[var(--rule)] text-xs text-[var(--ink)] font-sans">
-              No unsafe actions in this run. Naive-prompt attacks succeed about 6 times in 10 in the recorded evidence;{" "}
+              No unsafe actions in this run. In recorded evidence (email attacks only), naive-prompt attacks breach 78.7% [71.4%, 84.5%] and realistic 32.7% [25.7%, 40.5%];{" "}
               <Link href="/" className="font-semibold underline hover:text-[var(--ink)] text-[var(--cleared)]">
                 open the recorded run
               </Link>.
@@ -455,50 +450,33 @@ export default function LivePage() {
         </div>
       </section>
 
-      {/* Live Telemetry & Meter Bar */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Cost Meter */}
-        <div className="p-4 rounded-[var(--radius-md)] bg-[var(--panel)] border border-[var(--rule)] space-y-2">
-          <div className="flex items-center justify-between text-xs font-sans">
-            <span className="text-[var(--ink-muted)]">Cost meter ($0.05 cap)</span>
-            <span className="font-mono font-semibold text-[var(--ink)]">
-              ${costUsd.toFixed(4)} / $0.0500
-            </span>
-          </div>
-          <div className="w-full h-2 rounded-full bg-[var(--range-paper)] border border-[var(--rule)] overflow-hidden">
-            <div
-              className={`h-full transition-all duration-300 ${
-                budgetPct > 80 ? "bg-[var(--in-flight)]" : "bg-[var(--cleared)]"
-              }`}
-              style={{ width: `${budgetPct}%` }}
-            />
-          </div>
-          <div className="text-xs text-[var(--ink-muted)] font-sans flex justify-between">
-            <span>Budget consumed: {budgetPct}%</span>
-            <span>Safety cap: $0.0500</span>
-          </div>
-        </div>
-
-        {/* Elapsed Time */}
-        <div className="p-4 rounded-[var(--radius-md)] bg-[var(--panel)] border border-[var(--rule)] space-y-1">
-          <div className="text-xs font-sans text-[var(--ink-muted)]">Elapsed time</div>
-          <div className="font-mono text-xl font-bold text-[var(--ink)]">
-            {elapsedSec}s
-          </div>
-          <div className="text-xs font-sans text-[var(--ink-muted)]">
-            Status: <span className="font-semibold text-[var(--ink)] capitalize">{runStatus}</span>
-            {runId && <span className="ml-1.5 font-mono text-[11px]">({runId})</span>}
-          </div>
-        </div>
-
-        {/* Attacks Completed */}
-        <div className="p-4 rounded-[var(--radius-md)] bg-[var(--panel)] border border-[var(--rule)] space-y-1">
-          <div className="text-xs font-sans text-[var(--ink-muted)]">Attacks generated</div>
-          <div className="font-mono text-xl font-bold text-[var(--ink)]">
-            {liveAttacks.length} / {nAttacks}
-          </div>
-          <div className="text-xs font-sans text-[var(--ink-muted)]">
-            Unhardened unsafe: {liveAttacks.filter((a) => a.unhardened.unsafe).length}
+      {/* Live Status Line (state, elapsed, attacks, cost) */}
+      <section className="p-3.5 sm:p-4 rounded-[var(--radius-md)] bg-[var(--panel)] border border-[var(--rule)]">
+        <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-sans">
+          <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-[var(--ink)]">
+            <div>
+              <span className="text-[var(--ink-muted)]">State: </span>
+              <span className="font-semibold capitalize">{runStatus}</span>
+              {runId && <span className="ml-1.5 font-mono text-[11px] text-[var(--ink-muted)]">({runId})</span>}
+            </div>
+            <div>
+              <span className="text-[var(--ink-muted)]">Elapsed: </span>
+              <span className="font-mono font-medium">{elapsedSec}s</span>
+            </div>
+            <div>
+              <span className="text-[var(--ink-muted)]">Attacks: </span>
+              <span className="font-mono font-medium">{liveAttacks.length} / {nAttacks}</span>
+              {liveAttacks.length > 0 && (
+                <span className="ml-1 text-[var(--ink-muted)]">
+                  ({liveAttacks.filter((a) => a.unhardened.unsafe).length} unsafe unhardened)
+                </span>
+              )}
+            </div>
+            <div>
+              <span className="text-[var(--ink-muted)]">Cost: </span>
+              <span className="font-mono font-medium">${costUsd.toFixed(4)}</span>
+              <span className="text-[var(--ink-muted)]"> / $0.0500 ({budgetPct}%)</span>
+            </div>
           </div>
         </div>
       </section>
