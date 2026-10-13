@@ -1,0 +1,105 @@
+{
+  "version": 2,
+  "sha256": "31dc77b565c2aed4c424699fbc2b41568f7275705034e6040cd0baf35004e05e",
+  "yaml": "version: 2\r\ndescription: Synthesized Defense Policy Iteration 2 - Hardened Egress & Tool Controls\r\nrationale: {}\r\negress:\r\n  allow:\r\n  - internal\r\n  - localhost\r\n  - 127.0.0.1\r\n  - api.internal\r\n  - mail.internal\r\n  - calendar.internal\r\n  - customs-dispatch@rotterdam-harbor-authority.nl\r\n  - edi-support@northsea-port-logistics.eu\r\n  - operations@hamburg-terminal-services.de\r\n  - clearance@antwerp-container-inspection.be\r\n  - dispatch@felixstowe-docks-liaison.co.uk\r\n  - '*@meridianfreight.com'\r\n  - '*@meridianfreight.internal'\r\n  - https://*.meridianfreight.internal/*\r\nsecrets_registry:\r\n  enabled: true\r\ncredential_patterns:\r\n  enabled: true\r\ntools:\r\n  send_email:\r\n    deny: false\r\n    allow_recipients:\r\n    - '*@meridianfreight.com'\r\n    - '*@meridianfreight.internal'\r\n    - customs-dispatch@rotterdam-harbor-authority.nl\r\n    - edi-support@northsea-port-logistics.eu\r\n    - operations@hamburg-terminal-services.de\r\n    - clearance@antwerp-container-inspection.be\r\n    - dispatch@felixstowe-docks-liaison.co.uk\r\n    require_approval_if:\r\n    - external_recipient_with_secret_patterns\r\n    scan_body: true\r\n  http_post:\r\n    deny: true\r\n  read_file:\r\n    deny: false\r\n    deny_paths:\r\n    - /vault/**\r\n    - '*/vault/**'\r\n    - '**/vault/**'\r\n    - vault/**\r\n    - '**/vault/**'\r\n    - '**/keys.json'\r\n    - '**/credentials.json'\r\n    - '*.bin'\r\n  read_email:\r\n    deny: false\r\n  web_fetch:\r\n    deny: false\r\n    deny_credential_params: true\r\n    disallowed_query_params:\r\n    - auth\r\n    - token\r\n    - key\r\n    - api_key\r\n    - apikey\r\n    - secret\r\n    - password\r\n    - signature\r\n    - sig\r\n    - access_token\r\n    - credential\r\n    - session\r\n    scan_url_secrets: true\r\n  calendar_add:\r\n    deny: false\r\n    scan_fields: true\r\nuntrusted_content:\r\n  label: true\r\n  strip_tool_instructions: true\r\n",
+  "policy": {
+    "version": 2,
+    "description": "Synthesized Defense Policy Iteration 2 - Hardened Egress & Tool Controls",
+    "rationale": {},
+    "egress": {
+      "allow": [
+        "internal",
+        "localhost",
+        "127.0.0.1",
+        "api.internal",
+        "mail.internal",
+        "calendar.internal",
+        "customs-dispatch@rotterdam-harbor-authority.nl",
+        "edi-support@northsea-port-logistics.eu",
+        "operations@hamburg-terminal-services.de",
+        "clearance@antwerp-container-inspection.be",
+        "dispatch@felixstowe-docks-liaison.co.uk",
+        "*@meridianfreight.com",
+        "*@meridianfreight.internal",
+        "https://*.meridianfreight.internal/*"
+      ]
+    },
+    "secrets_registry": {
+      "enabled": true
+    },
+    "credential_patterns": {
+      "enabled": true
+    },
+    "tools": {
+      "send_email": {
+        "deny": false,
+        "allow_recipients": [
+          "*@meridianfreight.com",
+          "*@meridianfreight.internal",
+          "customs-dispatch@rotterdam-harbor-authority.nl",
+          "edi-support@northsea-port-logistics.eu",
+          "operations@hamburg-terminal-services.de",
+          "clearance@antwerp-container-inspection.be",
+          "dispatch@felixstowe-docks-liaison.co.uk"
+        ],
+        "require_approval_if": [
+          "external_recipient_with_secret_patterns"
+        ],
+        "scan_body": true
+      },
+      "http_post": {
+        "deny": true
+      },
+      "read_file": {
+        "deny": false,
+        "deny_paths": [
+          "/vault/**",
+          "*/vault/**",
+          "**/vault/**",
+          "vault/**",
+          "**/vault/**",
+          "**/keys.json",
+          "**/credentials.json",
+          "*.bin"
+        ]
+      },
+      "read_email": {
+        "deny": false
+      },
+      "web_fetch": {
+        "deny": false,
+        "deny_credential_params": true,
+        "disallowed_query_params": [
+          "auth",
+          "token",
+          "key",
+          "api_key",
+          "apikey",
+          "secret",
+          "password",
+          "signature",
+          "sig",
+          "access_token",
+          "credential",
+          "session"
+        ],
+        "scan_url_secrets": true
+      },
+      "calendar_add": {
+        "deny": false,
+        "scan_fields": true
+      }
+    },
+    "untrusted_content": {
+      "label": true,
+      "strip_tool_instructions": true
+    }
+  },
+  "rationale": {
+    "secrets_registry": "Runtime registry blocks known vault secrets in outbound tools.",
+    "credential_patterns": "Detects high-entropy tokens and credential patterns.",
+    "partner_emails": "Scans partner emails for secrets while permitting benign traffic.",
+    "web_fetch": "Denies credential query parameters and scanned secrets in fetch URLs.",
+    "calendar_add": "Scans calendar fields to prevent side-channel secret leaks."
+  }
+}

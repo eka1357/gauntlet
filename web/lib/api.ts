@@ -209,6 +209,12 @@ export class ApiError extends Error {
   }
 }
 
+export function isStatic(): boolean {
+  return process.env.NEXT_PUBLIC_STATIC_DATA === "true";
+}
+
+export const IS_STATIC_DATA = process.env.NEXT_PUBLIC_STATIC_DATA === "true";
+
 export function getApiBaseUrl(): string {
   if (typeof window !== "undefined" && process.env.NEXT_PUBLIC_API_BASE) {
     return process.env.NEXT_PUBLIC_API_BASE;
@@ -268,11 +274,76 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   }
 }
 
+async function requestStatic<T>(path: string): Promise<T> {
+  const url =
+    typeof window !== "undefined"
+      ? path
+      : `${(process.env.STATIC_HOST || "http://localhost:3000").replace(/\/$/, "")}${path}`;
+
+  try {
+    const res = await fetch(url, {
+      headers: {
+        Accept: "application/json",
+      },
+      cache: "no-store",
+    });
+
+    if (!res.ok) {
+      throw new ApiError(
+        `Static asset not found at ${url} (HTTP ${res.status})`,
+        res.status,
+        "Run 'py scripts/export_static.py' to generate static data files."
+      );
+    }
+
+    return (await res.json()) as T;
+  } catch (err: unknown) {
+    if (err instanceof ApiError) {
+      throw err;
+    }
+    const message = err instanceof Error ? err.message : String(err);
+    throw new ApiError(
+      `Cannot load static data at ${url} (${message})`,
+      0,
+      "Verify static assets were built into web/public/data/."
+    );
+  }
+}
+
+export interface HealthResponse {
+  status: string;
+  live_runs_enabled?: boolean;
+  static_mode?: boolean;
+  token_factory?: {
+    configured: boolean;
+    reachable: boolean;
+    error?: string;
+  };
+  tavily?: {
+    configured: boolean;
+    reachable: boolean;
+    error?: string;
+  };
+}
+
+export async function getHealth(): Promise<HealthResponse> {
+  if (isStatic()) {
+    return requestStatic<HealthResponse>("/data/health.json");
+  }
+  return request<HealthResponse>("/api/health");
+}
+
 export async function getRecordedSummary(): Promise<RecordedSummary> {
+  if (isStatic()) {
+    return requestStatic<RecordedSummary>("/data/summary.json");
+  }
   return request<RecordedSummary>("/api/recorded/summary");
 }
 
 export async function getProjectFacts(): Promise<ProjectFacts> {
+  if (isStatic()) {
+    return requestStatic<ProjectFacts>("/data/project_facts.json");
+  }
   return request<ProjectFacts>("/api/project-facts");
 }
 
@@ -288,6 +359,67 @@ export interface GetRecordedAttacksParams {
 export async function getRecordedAttacks(
   params: GetRecordedAttacksParams = {}
 ): Promise<RecordedAttacksResponse> {
+  if (isStatic()) {
+    const page = params.page ?? 1;
+    const limit = params.limit ?? 50;
+
+    // Direct pre-rendered files for specific queries the UI makes
+    const hasFilters =
+      Boolean(params.channel) ||
+      Boolean(params.condition) ||
+      Boolean(params.outcome) ||
+      params.is_probe !== undefined;
+
+    if (!hasFilters) {
+      if (limit === 250 && page === 1) {
+        return requestStatic<RecordedAttacksResponse>("/data/attacks_limit_250.json");
+      }
+      if (limit === 150 && page === 1) {
+        return requestStatic<RecordedAttacksResponse>("/data/attacks_page_1_limit_150.json");
+      }
+      if (limit === 150 && page === 2) {
+        return requestStatic<RecordedAttacksResponse>("/data/attacks_page_2_limit_150.json");
+      }
+      if (limit === 50 && page >= 1 && page <= 5) {
+        return requestStatic<RecordedAttacksResponse>(`/data/attacks_page_${page}_limit_50.json`);
+      }
+    }
+
+    // Generic fallback: fetch /data/attacks.json and filter/paginate in-memory
+    const all = await requestStatic<RecordedAttacksResponse>("/data/attacks.json");
+    let filtered = all.attacks || [];
+
+    if (params.channel) {
+      filtered = filtered.filter((a) => a.channel.toLowerCase() === params.channel!.toLowerCase());
+    }
+    if (params.is_probe !== undefined) {
+      filtered = filtered.filter((a) => a.is_probe === params.is_probe);
+    }
+    if (params.outcome) {
+      if (params.condition) {
+        filtered = filtered.filter((a) => a[params.condition!]?.outcome === params.outcome);
+      } else {
+        filtered = filtered.filter((a) =>
+          (["unhardened", "v1", "v2"] as const).some((c) => a[c]?.outcome === params.outcome)
+        );
+      }
+    }
+
+    const total = filtered.length;
+    const start = (page - 1) * limit;
+    const end = start + limit;
+    const paged = filtered.slice(start, end);
+    const pages = total > 0 ? Math.ceil(total / limit) : 0;
+
+    return {
+      total,
+      page,
+      limit,
+      pages,
+      attacks: paged,
+    };
+  }
+
   const query = new URLSearchParams();
   if (params.page !== undefined) query.set("page", String(params.page));
   if (params.limit !== undefined) query.set("limit", String(params.limit));
@@ -301,6 +433,11 @@ export async function getRecordedAttacks(
 }
 
 export async function getPolicy(version: "v1" | "v2" | string = "v2"): Promise<PolicyResponse> {
+  const clean = version.toLowerCase().replace(/^v/, "");
+  const norm = clean === "1" ? "v1" : clean === "2" ? "v2" : version.toLowerCase();
+  if (isStatic()) {
+    return requestStatic<PolicyResponse>(`/data/policy_${norm}.json`);
+  }
   return request<PolicyResponse>(`/api/policy/${version}`);
 }
 
@@ -308,7 +445,14 @@ export async function getAttackTrace(
   id: string,
   condition: "unhardened" | "v1" | "v2" = "unhardened"
 ): Promise<AttackTraceResponse> {
-  return request<AttackTraceResponse>(`/api/attacks/${encodeURIComponent(id)}/trace?condition=${condition}`);
+  if (isStatic()) {
+    return requestStatic<AttackTraceResponse>(
+      `/data/traces/${encodeURIComponent(id)}_${condition}.json`
+    );
+  }
+  return request<AttackTraceResponse>(
+    `/api/attacks/${encodeURIComponent(id)}/trace?condition=${condition}`
+  );
 }
 
 export interface CreateRunParams {
@@ -327,10 +471,18 @@ export interface CreateRunResponse {
 }
 
 export async function createRun(params: CreateRunParams = {}): Promise<CreateRunResponse> {
+  if (isStatic()) {
+    throw new ApiError(
+      "Live runs are off in this deployment. Recorded results are shown instead.",
+      400,
+      "Live model execution is disabled to preserve the daily cost cap and protect budget limits."
+    );
+  }
   return request<CreateRunResponse>("/api/runs", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(params),
   });
 }
+
 

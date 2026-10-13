@@ -326,8 +326,10 @@ async def health() -> dict[str, Any]:
             tavily_reachable = False
             tavily_error = type(e).__name__
 
+    live_runs_enabled = os.environ.get("LIVE_RUNS_ENABLED", "").strip().lower() == "true"
     result = {
         "status": "ok",
+        "live_runs_enabled": live_runs_enabled,
         "token_factory": {
             "configured": tf_configured,
             "reachable": tf_reachable,
@@ -465,6 +467,13 @@ async def get_recorded_attacks(
     Does NOT include full traces.
     ZERO model calls.
     """
+    page = page.default if hasattr(page, "default") else page
+    limit = limit.default if hasattr(limit, "default") else limit
+    channel = channel.default if hasattr(channel, "default") else channel
+    condition = condition.default if hasattr(condition, "default") else condition
+    outcome = outcome.default if hasattr(outcome, "default") else outcome
+    is_probe = is_probe.default if hasattr(is_probe, "default") else is_probe
+
     data = load_recorded_run_data()
     all_attacks = data.get("attacks", [])
 
@@ -549,6 +558,7 @@ async def get_attack_trace(
     condition: str = Query("unhardened", description="Condition: unhardened, v1, or v2"),
 ) -> dict[str, Any]:
     """Return the stored execution trace for one attack under a specified condition."""
+    condition = condition.default if hasattr(condition, "default") else condition
     if condition not in ("unhardened", "v1", "v2"):
         raise HTTPException(
             status_code=400,

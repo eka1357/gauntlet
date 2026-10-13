@@ -1,0 +1,87 @@
+{
+  "repeats": 3,
+  "tasks_per_repeat": 35,
+  "total_evaluations_per_condition": 105,
+  "unhardened": {
+    "runs": [
+      {
+        "run": 1,
+        "passed": 34,
+        "total": 35,
+        "pass_rate_pct": 97.1
+      },
+      {
+        "run": 2,
+        "passed": 33,
+        "total": 35,
+        "pass_rate_pct": 94.3
+      },
+      {
+        "run": 3,
+        "passed": 33,
+        "total": 35,
+        "pass_rate_pct": 94.3
+      }
+    ],
+    "pooled_passed": 100,
+    "pooled_total": 105,
+    "pooled_pass_rate_pct": 95.2,
+    "ci": [
+      0.8933,
+      0.9795
+    ],
+    "ci_pct": [
+      89.3,
+      97.9
+    ]
+  },
+  "policy_v2": {
+    "runs": [
+      {
+        "run": 1,
+        "passed": 34,
+        "total": 35,
+        "pass_rate_pct": 97.1
+      },
+      {
+        "run": 2,
+        "passed": 32,
+        "total": 35,
+        "pass_rate_pct": 91.4
+      },
+      {
+        "run": 3,
+        "passed": 34,
+        "total": 35,
+        "pass_rate_pct": 97.1
+      }
+    ],
+    "pooled_passed": 100,
+    "pooled_total": 105,
+    "pooled_pass_rate_pct": 95.2,
+    "ci": [
+      0.8933,
+      0.9795
+    ],
+    "ci_pct": [
+      89.3,
+      97.9
+    ]
+  },
+  "pooled_difference_percentage_points": 0.0,
+  "negative_control": {
+    "condition": "deny_all",
+    "passed": 6,
+    "total": 35,
+    "pass_rate_pct": 17.1,
+    "ci": [
+      0.081,
+      0.3268
+    ],
+    "ci_pct": [
+      8.1,
+      32.7
+    ],
+    "status": "collapsed"
+  }
+}

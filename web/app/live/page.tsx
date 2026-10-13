@@ -5,6 +5,8 @@ import Link from "next/link";
 import {
   createRun,
   getApiBaseUrl,
+  getHealth,
+  IS_STATIC_DATA,
   AttackRecord,
   AttackConditionRecord,
 } from "@/lib/api";
@@ -38,6 +40,30 @@ export default function LivePage() {
     "idle" | "running" | "completed" | "budget_capped" | "paused" | "error"
   >("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [liveRunsDisabled, setLiveRunsDisabled] = useState<boolean>(IS_STATIC_DATA);
+
+  // Check health and deployment status for live runs
+  useEffect(() => {
+    if (IS_STATIC_DATA) {
+      setLiveRunsDisabled(true);
+      return;
+    }
+    let active = true;
+    getHealth()
+      .then((h) => {
+        if (!active) return;
+        if (h.live_runs_enabled === false) {
+          setLiveRunsDisabled(true);
+        }
+      })
+      .catch(() => {
+        if (!active) return;
+        setLiveRunsDisabled(true);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // Attack telemetry
   const [liveAttacks, setLiveAttacks] = useState<AttackRecord[]>([]);
@@ -87,7 +113,7 @@ export default function LivePage() {
 
   // Handle Starting a Live Run
   const handleStartRun = async () => {
-    if (isRunning) return;
+    if (isRunning || liveRunsDisabled) return;
 
     // Reset previous run telemetry
     setIsRunning(true);
@@ -301,8 +327,35 @@ export default function LivePage() {
         </p>
       </div>
 
+      {/* Live Runs Disabled Panel (Static Mode or Live Runs Disabled) */}
+      {liveRunsDisabled && (
+        <div className="p-4 sm:p-5 rounded-[var(--radius-md)] bg-[var(--panel)] border-2 border-[var(--in-flight)] space-y-2">
+          <div className="flex items-center gap-2 font-display font-semibold text-sm sm:text-base text-[var(--ink)]">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor" className="text-[var(--in-flight)] shrink-0">
+              <path
+                fillRule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <span>Live runs are off in this deployment. Recorded results are shown instead.</span>
+          </div>
+          <p className="text-xs sm:text-sm text-[var(--ink)] font-sans leading-relaxed">
+            Live model execution is disabled to preserve the daily cost cap and protect budget limits.
+          </p>
+          <div className="pt-1">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-1.5 text-xs font-sans font-semibold underline text-[var(--cleared)] hover:text-[var(--ink)] transition-colors"
+            >
+              <span>Explore the recorded Range on the Workspace &rarr;</span>
+            </Link>
+          </div>
+        </div>
+      )}
+
       {/* Paused State Notification (HTTP 429) */}
-      {runStatus === "paused" && (
+      {runStatus === "paused" && !liveRunsDisabled && (
         <div className="p-4 rounded-[var(--radius-md)] bg-[var(--range-paper)] border border-[var(--in-flight)] space-y-2">
           <div className="flex items-center gap-2 font-semibold text-xs sm:text-sm text-[var(--in-flight)] font-sans">
             <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor">
@@ -383,7 +436,7 @@ export default function LivePage() {
             </label>
             <select
               value={targetMode}
-              disabled={isRunning}
+              disabled={isRunning || liveRunsDisabled}
               onChange={(e) => setTargetMode(e.target.value as "naive" | "realistic")}
               className="w-full text-xs font-sans bg-[var(--range-paper)] border border-[var(--rule)] rounded-[var(--radius-sm)] p-2 text-[var(--ink)] focus:outline-none focus:ring-1 focus:ring-[var(--ink)] disabled:opacity-50"
             >
@@ -404,9 +457,9 @@ export default function LivePage() {
                 max="8"
                 step="1"
                 value={nAttacks}
-                disabled={isRunning}
+                disabled={isRunning || liveRunsDisabled}
                 onChange={(e) => setNAttacks(Number(e.target.value))}
-                className="w-full cursor-pointer accent-[var(--ink)]"
+                className="w-full cursor-pointer accent-[var(--ink)] disabled:opacity-50"
               />
               <span className="font-mono text-xs px-2 py-1 rounded bg-[var(--range-paper)] border border-[var(--rule)] text-[var(--ink)] font-semibold w-8 text-center shrink-0">
                 {nAttacks}
@@ -420,9 +473,9 @@ export default function LivePage() {
               type="checkbox"
               id="compareV2"
               checked={compareV2}
-              disabled={isRunning}
+              disabled={isRunning || liveRunsDisabled}
               onChange={(e) => setCompareV2(e.target.checked)}
-              className="rounded border-[var(--rule)] text-[var(--ink)] focus:ring-[var(--ink)]"
+              className="rounded border-[var(--rule)] text-[var(--ink)] focus:ring-[var(--ink)] disabled:opacity-50"
             />
             <label htmlFor="compareV2" className="text-xs font-sans text-[var(--ink)] select-none">
               Also run against Policy v2
@@ -433,11 +486,14 @@ export default function LivePage() {
           <div>
             <button
               type="button"
-              disabled={isRunning}
+              disabled={isRunning || liveRunsDisabled}
               onClick={handleStartRun}
-              className="w-full py-2 px-4 rounded-[var(--radius-sm)] bg-[var(--ink)] text-[var(--panel)] font-sans font-semibold text-xs hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
+              title={liveRunsDisabled ? "Live runs are off in this deployment" : undefined}
+              className="w-full py-2 px-4 rounded-[var(--radius-sm)] bg-[var(--ink)] text-[var(--panel)] font-sans font-semibold text-xs hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed"
             >
-              {isRunning ? (
+              {liveRunsDisabled ? (
+                <span>Live runs disabled</span>
+              ) : isRunning ? (
                 <>
                   <div className="w-3.5 h-3.5 border-2 border-[var(--panel)] border-t-transparent rounded-full animate-spin" />
                   <span>Streaming attacks...</span>
@@ -510,9 +566,21 @@ export default function LivePage() {
 
         {liveAttacks.length === 0 ? (
           <div className="p-8 text-center text-xs text-[var(--ink-muted)] font-mono bg-[var(--range-paper)] rounded-[var(--radius-sm)] border border-[var(--rule)]">
-            {isRunning
-              ? "Waiting for incoming attack_finished stream events..."
-              : "Click 'Start Live Run' above to launch attacks and stream live squares."}
+            {liveRunsDisabled ? (
+              <div className="space-y-2">
+                <p>Live runs are disabled in this deployment.</p>
+                <Link
+                  href="/"
+                  className="inline-block font-sans font-medium underline text-[var(--cleared)] hover:text-[var(--ink)]"
+                >
+                  Open the recorded Range to inspect all 235 verification attacks &rarr;
+                </Link>
+              </div>
+            ) : isRunning ? (
+              "Waiting for incoming attack_finished stream events..."
+            ) : (
+              "Click 'Start Live Run' above to launch attacks and stream live squares."
+            )}
           </div>
         ) : (
           <div className="space-y-4">
@@ -631,7 +699,9 @@ export default function LivePage() {
         >
           {logs.length === 0 ? (
             <div className="text-[var(--ink-muted)] italic">
-              Log is empty. Start a run to view SSE stream messages.
+              {liveRunsDisabled
+                ? "Live runs are disabled. Event log is inactive in this deployment."
+                : "Log is empty. Start a run to view SSE stream messages."}
             </div>
           ) : (
             logs.map((log, idx) => (

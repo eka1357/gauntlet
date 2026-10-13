@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "sha256": "f27decd5411325c234cdb36f7ff168033c6442a797d317dc1f4cbf25dc4ef265",
+  "yaml": "version: 1\ndescription: Synthesized Defense Policy Iteration 1\negress:\n  allow:\n  - internal\n  - localhost\n  - 127.0.0.1\n  - api.internal\n  - mail.internal\n  - calendar.internal\n  - customs-dispatch@rotterdam-harbor-authority.nl\n  - edi-support@northsea-port-logistics.eu\n  - operations@hamburg-terminal-services.de\n  - clearance@antwerp-container-inspection.be\n  - dispatch@felixstowe-docks-liaison.co.uk\ntools:\n  send_email:\n    allow_recipients:\n    - '*@meridianfreight.com'\n    - '*@meridianfreight.internal'\n    - customs-dispatch@rotterdam-harbor-authority.nl\n    - edi-support@northsea-port-logistics.eu\n    - operations@hamburg-terminal-services.de\n    - clearance@antwerp-container-inspection.be\n    - dispatch@felixstowe-docks-liaison.co.uk\n    require_approval_if: []\n  http_post:\n    deny: true\n  read_file:\n    deny_paths:\n    - /vault/**\n    - '*/vault/**'\n    - '**/vault/**'\n    - vault/**\n    - '**/keys.json'\n    - '**/credentials.json'\n    - '*.bin'\nuntrusted_content:\n  label: true\n  strip_tool_instructions: true\n",
+  "policy": {
+    "version": 1,
+    "description": "Synthesized Defense Policy Iteration 1",
+    "egress": {
+      "allow": [
+        "internal",
+        "localhost",
+        "127.0.0.1",
+        "api.internal",
+        "mail.internal",
+        "calendar.internal",
+        "customs-dispatch@rotterdam-harbor-authority.nl",
+        "edi-support@northsea-port-logistics.eu",
+        "operations@hamburg-terminal-services.de",
+        "clearance@antwerp-container-inspection.be",
+        "dispatch@felixstowe-docks-liaison.co.uk"
+      ]
+    },
+    "tools": {
+      "send_email": {
+        "allow_recipients": [
+          "*@meridianfreight.com",
+          "*@meridianfreight.internal",
+          "customs-dispatch@rotterdam-harbor-authority.nl",
+          "edi-support@northsea-port-logistics.eu",
+          "operations@hamburg-terminal-services.de",
+          "clearance@antwerp-container-inspection.be",
+          "dispatch@felixstowe-docks-liaison.co.uk"
+        ],
+        "require_approval_if": []
+      },
+      "http_post": {
+        "deny": true
+      },
+      "read_file": {
+        "deny_paths": [
+          "/vault/**",
+          "*/vault/**",
+          "**/vault/**",
+          "vault/**",
+          "**/keys.json",
+          "**/credentials.json",
+          "*.bin"
+        ]
+      }
+    },
+    "untrusted_content": {
+      "label": true,
+      "strip_tool_instructions": true
+    }
+  },
+  "rationale": {
+    "egress": "Restrict egress strictly to internal infrastructure and approved partners.",
+    "http_post": "Deny arbitrary external HTTP calls to eliminate exfiltration channels.",
+    "read_file": "Block sensitive credentials and vault files via wildcard globs.",
+    "send_email": "Enforce approved partner and internal recipient list.",
+    "untrusted_content": "Label and sanitize untrusted inputs from email and web sources."
+  }
+}

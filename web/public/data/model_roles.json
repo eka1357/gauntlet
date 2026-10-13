@@ -1,0 +1,17 @@
+[
+  {
+    "role": "Ultra",
+    "model_id": "nvidia/Nemotron-3-Ultra-550b-a55b",
+    "description": "Recon, defender, triage"
+  },
+  {
+    "role": "Super",
+    "model_id": "nvidia/nemotron-3-super-120b-a12b",
+    "description": "Target agent brain"
+  },
+  {
+    "role": "Lightning",
+    "model_id": "nvidia/Nemotron-3_5-Lightning",
+    "description": "Payload generation"
+  }
+]

@@ -1,0 +1,13 @@
+{
+  "status": "ok",
+  "live_runs_enabled": false,
+  "static_mode": true,
+  "token_factory": {
+    "configured": false,
+    "reachable": false
+  },
+  "tavily": {
+    "configured": false,
+    "reachable": false
+  }
+}
