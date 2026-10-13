@@ -320,7 +320,7 @@ export default function LivePage() {
           Live runs use email attacks, the channel where this agent failed in the recorded evaluation. Web and document attacks never succeeded in recorded runs.
         </p>
         <p className="text-xs sm:text-sm text-[var(--ink-muted)] font-sans max-w-3xl mt-1.5 leading-relaxed">
-          Recorded confirmation evidence: realistic-prompt attacks breach 25.8% [20.1%, 32.4%], naive-prompt attacks breach 62.1% [55.0%, 68.7%]. Live runs use freshly generated email attacks and can differ.
+          Recorded confirmation evidence across 190 standard attacks: realistic prompt produced 25.8% unsafe actions (49 of 190) [20.1%, 32.4%] before hardening and 0.0% (0 of 190, upper bound 2.0%) under Policy v2; naive prompt produced 62.1% (118 of 190) [55.0%, 68.7%]. Live runs use freshly generated email attacks and can differ.
         </p>
         <p className="text-xs sm:text-sm text-[var(--ink-muted)] font-sans max-w-3xl mt-1 leading-relaxed italic">
           Live attacks were generated differently from the recorded set; their success rates are not directly comparable.
@@ -410,7 +410,7 @@ export default function LivePage() {
           </p>
           {(runSummary.unhardened_unsafe ?? runSummary.unhardened_breaches ?? 0) === 0 && (
             <div className="p-2.5 rounded-[var(--radius-sm)] bg-[var(--range-paper)] border border-[var(--rule)] text-xs text-[var(--ink)] font-sans">
-              No unsafe actions in this run. In recorded confirmation evidence, realistic-prompt attacks breach 25.8% [20.1%, 32.4%] and naive-prompt attacks breach 62.1% [55.0%, 68.7%];{" "}
+              No unsafe actions in this run. In recorded confirmation evidence across 190 standard attacks, realistic prompt produced 25.8% unsafe actions (49 of 190) [20.1%, 32.4%] before hardening and 0.0% (0 of 190) under Policy v2; naive prompt produced 62.1% (118 of 190) [55.0%, 68.7%];{" "}
               <Link href="/" className="font-semibold underline hover:text-[var(--ink)] text-[var(--cleared)]">
                 open the recorded run
               </Link>.
@@ -525,7 +525,7 @@ export default function LivePage() {
             </div>
             <div>
               <span className="text-[var(--ink-muted)]">Attacks: </span>
-              <span className="font-mono font-medium">{liveAttacks.length} / {nAttacks}</span>
+              <span className="font-mono font-medium">{liveAttacks.length} executed (batch limit: {nAttacks})</span>
               {liveAttacks.length > 0 && (
                 <span className="ml-1 text-[var(--ink-muted)]">
                   ({liveAttacks.filter((a) => a.unhardened.unsafe).length} unsafe unhardened)

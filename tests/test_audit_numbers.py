@@ -13,8 +13,12 @@ SCRIPT = ROOT / "scripts" / "audit_numbers.py"
 def test_audit_numbers_clean() -> None:
     """Audit passes cleanly with exit code 0 on the active codebase."""
     res = subprocess.run([sys.executable, str(SCRIPT)], capture_output=True, text=True)
+    import re
+
     assert res.returncode == 0, f"audit_numbers failed: {res.stdout}\n{res.stderr}"
-    assert "Unmatched:        0" in res.stdout or "Unmatched:   0" in res.stdout
+    assert re.search(r"Unmatched:\s+0", res.stdout) is not None, (
+        f"Expected 0 unmatched: {res.stdout}"
+    )
 
 
 def test_audit_numbers_fails_on_unmatched_claim() -> None:
@@ -53,3 +57,22 @@ def test_audit_numbers_fails_on_wrong_percentage_matching_unrelated_count() -> N
     finally:
         if fake_doc.exists():
             fake_doc.unlink()
+
+
+def test_audit_numbers_fails_on_unpaired_ratio() -> None:
+    """Audit fails when a ratio claim has no data object with count and n (e.g. 3 of 150)."""
+    fake_doc = ROOT / "docs" / "_temp_audit_probe_ratio.md"
+    try:
+        fake_doc.write_text(
+            "# Unpaired Ratio Probe\n"
+            "The system reported 3 of 150 attacks succeeded.",
+            encoding="utf-8",
+        )
+        res = subprocess.run([sys.executable, str(SCRIPT)], capture_output=True, text=True)
+        assert res.returncode != 0, "audit_numbers should fail on 3 of 150"
+        assert "UNMATCHED CLAIMS DETECTED" in res.stdout
+        assert "3 of 150" in res.stdout
+    finally:
+        if fake_doc.exists():
+            fake_doc.unlink()
+

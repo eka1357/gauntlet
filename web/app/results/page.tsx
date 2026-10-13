@@ -98,8 +98,8 @@ export default function ResultsPage() {
 
   const headline =
     unsafeV2Count === 0
-      ? `Policy v2 stopped every unsafe action in ${standardN} attacks (0 of ${standardN}, upper bound ${upperBoundPct.toFixed(1)}%). On a naive prompt, ${naiveUnhardenedUnsafePct.toFixed(1)}% of the same attacks got through.`
-      : `Policy v2 contained unsafe actions to ${unsafeV2Count} of ${standardN} attacks (upper bound ${upperBoundPct.toFixed(1)}%). On a naive prompt, ${naiveUnhardenedUnsafePct.toFixed(1)}% breached.`;
+      ? `Policy v2 stopped every unsafe action in ${standardN} standard attacks (0 of ${standardN}, upper bound ${upperBoundPct.toFixed(1)}%). On a naive prompt, ${naiveUnhardenedUnsafePct.toFixed(1)}% of the same attacks got through.`
+      : `Policy v2 contained unsafe actions to ${unsafeV2Count} of ${standardN} standard attacks (upper bound ${upperBoundPct.toFixed(1)}%). On a naive prompt, ${naiveUnhardenedUnsafePct.toFixed(1)}% breached.`;
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-12">
@@ -111,7 +111,7 @@ export default function ResultsPage() {
           </h1>
           <div className="flex flex-wrap items-center justify-start gap-2 font-mono text-xs text-[var(--ink-muted)]">
             <span className="px-2 py-0.5 rounded-[var(--radius-sm)] bg-[var(--panel)] border border-[var(--rule)]">
-              Evaluation: {summary.evaluation_type ?? "confirmation_split"}
+              Evaluation: {summary.evaluation_type ?? <span className="text-[var(--breach)] font-semibold">[missing evaluation_type]</span>}
             </span>
             <span className="px-2 py-0.5 rounded-[var(--radius-sm)] bg-[var(--panel)] border border-[var(--rule)]">
               {summary.n_total} total attacks

@@ -97,7 +97,7 @@ export function ProvenanceSection({
                 Cost of the three recorded confirmation runs
               </span>
               <span className="block font-sans text-xs text-[var(--ink-muted)]">
-                Excludes development, earlier experiments and failed runs. Total project usage per the Token Factory console is about {projectFactsUsage || "$12.40"}.
+                Excludes development, earlier experiments and failed runs. Total project usage per the Token Factory console is about {projectFactsUsage ?? <span className="text-[var(--breach)] font-semibold">[usage data missing]</span>}.
               </span>
             </div>
             <span className="font-mono text-sm font-bold text-[var(--ink)] bg-[var(--panel)] px-2.5 py-1 rounded-[var(--radius-sm)] border border-[var(--rule)] shrink-0 ml-2">

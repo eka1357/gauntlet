@@ -14,8 +14,9 @@ The recorded run has no generations. The Range is a grid with one small square p
 | Ink | #13232E | Text, primary buttons, icons |
 | Rule | #C9D3D9 | Borders, grid lines |
 | Breach | #C4352A | Breached attacks, critical severity |
-| Cleared | #1E7A68 | Fixed or passing |
+| Cleared | #186959 | Fixed or passing |
 | In flight | #D9962B | Running, pending approval |
+| In flight text | #8A5800 | Accessible text contrast on amber indicators |
 | Defended | #94A3B8 | Defended attacks, neutral baseline |
 Buttons are solid Ink with Panel text; there is no separate brand accent. Optional dark theme: invert surfaces to #0F1A22 / #16252F and keep the same three semantic colours, lightened for contrast.
 

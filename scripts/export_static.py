@@ -91,8 +91,17 @@ async def export_static(output_dir: Path | None = None) -> dict[str, int]:
 
     counts: dict[str, int] = {"endpoints": 0, "attacks_paged": 0, "traces": 0}
 
+    # Compute derived metrics from stored attacks in recorded_run.json
+    raw_run_data = load_recorded_run_data()
+    raw_attacks = raw_run_data.get("attacks", [])
+    standard_attacks = [a for a in raw_attacks if not a.get("is_probe")]
+    email_standard_attacks = [a for a in standard_attacks if a.get("channel") == "email"]
+    n_email = len(email_standard_attacks)
+
     # 1. Summary
     summary = await get_recorded_summary()
+    if "realistic_mode" in summary:
+        summary["realistic_mode"]["n_email"] = n_email
     required_summary_keys = (
         "naive_mode",
         "realistic_mode",
@@ -166,6 +175,8 @@ async def export_static(output_dir: Path | None = None) -> dict[str, int]:
         "model_roles": model_roles,
         "project_facts": facts,
     }
+    if "realistic_mode" in report_data:
+        report_data["realistic_mode"]["n_email"] = n_email
     write_json_safely(out_dir / "report.json", report_data)
     counts["endpoints"] += 1
 

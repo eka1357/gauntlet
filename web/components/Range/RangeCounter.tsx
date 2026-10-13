@@ -125,7 +125,7 @@ export function RangeCounter({
             </div>
             {/* Readable text at least 14px directly under large number */}
             <div className="font-sans text-[14px] sm:text-base text-[var(--ink)] mt-1.5 font-medium">
-              {displayCount} of {totalStandard}, 95% upper bound {stdHighPct}%
+              {displayCount} of {totalStandard} standard attacks, 95% upper bound {stdHighPct}%
             </div>
             <div className="font-sans text-xs text-[var(--ink-muted)] mt-1">
               95% Wilson CI: [{stdLowPct}%, {stdHighPct}%]

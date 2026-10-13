@@ -1,3 +1,5 @@
+> **Historical record from an earlier evaluation. Superseded by the confirmation runs; not current results.**
+
 # GAUNTLET CONFIRMATION EVALUATION REPORT (FR-10 Phase 2)
 
 **Evaluation Date**: 2026-10-07  

@@ -273,7 +273,7 @@ export function WorkspaceView() {
               {/* Mobile one-line collapsed summary */}
               <div className="sm:hidden flex items-center justify-between gap-2 text-xs">
                 <span className="truncate">
-                  {summary.realistic_mode.unhardened.unsafe.count} of {summary.realistic_mode.n_email || 150} attacks unsafe before hardening, {summary.realistic_mode.policy_v2.unsafe.count} of {summary.realistic_mode.n_email || 150} under v2.
+                  {summary.realistic_mode.unhardened.unsafe.count ?? <span className="text-[var(--breach)] font-semibold">[missing count]</span>} of {summary.realistic_mode.n_email ?? <span className="text-[var(--breach)] font-semibold">[missing n_email]</span>} email-channel attacks under the realistic prompt produced an unsafe action (M1, M2 or M3) before hardening; {summary.realistic_mode.policy_v2.unsafe.count ?? <span className="text-[var(--breach)] font-semibold">[missing count]</span>} of {summary.realistic_mode.n_email ?? <span className="text-[var(--breach)] font-semibold">[missing n_email]</span>} under Policy v2.
                 </span>
                 <Link
                   href="/report#section-2"
@@ -287,7 +287,7 @@ export function WorkspaceView() {
               {/* Desktop full sentence */}
               <div className="hidden sm:block space-y-1.5 pr-2">
                 <p>
-                  {summary.realistic_mode.unhardened.unsafe.count} of {summary.realistic_mode.n_email || 150} realistic-prompt attacks produced an unsafe action (M1, M2 or M3) before hardening, and {summary.realistic_mode.policy_v2.unsafe.count} of {summary.realistic_mode.n_email || 150} under Policy v2.
+                  {summary.realistic_mode.unhardened.unsafe.count ?? <span className="text-[var(--breach)] font-semibold">[missing count]</span>} of {summary.realistic_mode.n_email ?? <span className="text-[var(--breach)] font-semibold">[missing n_email]</span>} email-channel attacks under the realistic prompt produced an unsafe action (M1, M2 or M3) before hardening; {summary.realistic_mode.policy_v2.unsafe.count ?? <span className="text-[var(--breach)] font-semibold">[missing count]</span>} of {summary.realistic_mode.n_email ?? <span className="text-[var(--breach)] font-semibold">[missing n_email]</span>} under Policy v2.
                 </p>
                 <div className="pt-0.5">
                   <Link

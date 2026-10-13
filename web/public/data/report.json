@@ -1039,7 +1039,6 @@
   },
   "realistic_mode": {
     "n": 190,
-    "n_email": 150,
     "description": "Standard attacks (n=190) evaluated on Realistic target mode (unhardened baseline vs Policy v2)",
     "unhardened": {
       "n": 190,
@@ -1176,7 +1175,8 @@
           2.0
         ]
       }
-    }
+    },
+    "n_email": 150
   },
   "probe_set": {
     "n": 45,
@@ -1511,6 +1511,9 @@
   "project_facts": {
     "total_project_usage_usd": 12.4,
     "formatted_project_usage": "$12.40",
+    "live_run_cap_usd": 0.08,
+    "daily_cap_usd": 0.4,
+    "initial_spend_usd": 0.0,
     "source": "Token Factory console usage page, read manually on 2026-10-13",
     "description": "Total project usage per the Token Factory console across development, earlier experiments, failed runs, and confirmation runs."
   }

@@ -1,5 +1,7 @@
 # FEEDBACK.md — keep this updated as you build
 
+> **Historical record from an earlier evaluation. Superseded by the confirmation runs; not current results.**
+
 Devpost scores feedback on completeness, viability and impact. Be specific and name the tool.
 
 ## Nebius Token Factory
@@ -29,6 +31,7 @@ Notes on reasoning-field output, JSON adherence, latency under concurrency:
   - Nano: `reasoning` field (content empty).
   - Lightning: `content`, but the content is reasoning text.
 - Implication: small token budgets on Lightning/Nano spend everything on thinking. Bulk generation will need a larger max_tokens or reasoning turned off; must be verified before Prompt 3. (Resolved 2026-10-06, see below.)
+> **Historical record from an earlier evaluation. Superseded by the confirmation runs; not current results.**
 
 ### Reasoning-control experiment (2026-10-06)
 Raw data: `docs/experiments/reasoning_20261006T041444Z.json`, from `scripts/reasoning_experiment.py`.
@@ -83,6 +86,8 @@ Defaults chosen (in `config/models.yaml` `request_defaults`, overridable per cal
 
 ## Overall
 - Would I recommend this stack for agent security tooling:
+
+> **Historical record from an earlier evaluation. Superseded by the confirmation runs; not current results.**
 
 ## Build log
 

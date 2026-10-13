@@ -1,355 +1,122 @@
 # docs/audit_allowlist.txt — Allowlist for non-derivable empirical claims and historical figures
 # Format: <token> | <rationale> OR <file>:<token> | <rationale>
 
-# Standard statistical confidence and threshold parameters
+# Standard statistical confidence parameters
 95% | Standard two-sided Wilson score confidence interval level (alpha = 0.05, z = 1.96)
 85% | Statistical power benchmark for sample size sizing in metrics specification
-docs/metrics.md:1.5% | Pre-registered statistical significance threshold parameter in metric definition
 
-# docs/confirmation_report.md (Historical Confirmation Run 1 evaluated 2026-10-07)
-docs/confirmation_report.md:$0.2593 | Historical confirmation run 1 metric evaluated on 2026-10-07
-docs/confirmation_report.md:$2.5000 | Historical confirmation run 1 metric evaluated on 2026-10-07
-docs/confirmation_report.md:0.9% | Historical confirmation run 1 metric evaluated on 2026-10-07
-docs/confirmation_report.md:1.1% | Historical confirmation run 1 metric evaluated on 2026-10-07
-docs/confirmation_report.md:1.3% | Historical confirmation run 1 metric evaluated on 2026-10-07
-docs/confirmation_report.md:1.5% | Historical confirmation run 1 metric evaluated on 2026-10-07
-docs/confirmation_report.md:1.7% | Historical confirmation run 1 metric evaluated on 2026-10-07
-docs/confirmation_report.md:1.9% | Historical confirmation run 1 metric evaluated on 2026-10-07
-docs/confirmation_report.md:11.2% | Historical confirmation run 1 metric evaluated on 2026-10-07
-docs/confirmation_report.md:13.7% | Historical confirmation run 1 metric evaluated on 2026-10-07
-docs/confirmation_report.md:15.7% | Historical confirmation run 1 metric evaluated on 2026-10-07
-docs/confirmation_report.md:15.8% | Historical confirmation run 1 metric evaluated on 2026-10-07
-docs/confirmation_report.md:16.6% | Historical confirmation run 1 metric evaluated on 2026-10-07
-docs/confirmation_report.md:17.3% | Historical confirmation run 1 metric evaluated on 2026-10-07
-docs/confirmation_report.md:18.1% | Historical confirmation run 1 metric evaluated on 2026-10-07
-docs/confirmation_report.md:18.4% | Historical confirmation run 1 metric evaluated on 2026-10-07
-docs/confirmation_report.md:19.7% | Historical confirmation run 1 metric evaluated on 2026-10-07
-docs/confirmation_report.md:2.8% | Historical confirmation run 1 metric evaluated on 2026-10-07
-docs/confirmation_report.md:20.6% | Historical confirmation run 1 metric evaluated on 2026-10-07
-docs/confirmation_report.md:23.1% | Historical confirmation run 1 metric evaluated on 2026-10-07
-docs/confirmation_report.md:24.4% | Historical confirmation run 1 metric evaluated on 2026-10-07
-docs/confirmation_report.md:25.4% | Historical confirmation run 1 metric evaluated on 2026-10-07
-docs/confirmation_report.md:26.7% | Historical confirmation run 1 metric evaluated on 2026-10-07
-docs/confirmation_report.md:27.3% | Historical confirmation run 1 metric evaluated on 2026-10-07
-docs/confirmation_report.md:28.6% | Historical confirmation run 1 metric evaluated on 2026-10-07
-docs/confirmation_report.md:3.1% | Historical confirmation run 1 metric evaluated on 2026-10-07
-docs/confirmation_report.md:3.3% | Historical confirmation run 1 metric evaluated on 2026-10-07
-docs/confirmation_report.md:3.6% | Historical confirmation run 1 metric evaluated on 2026-10-07
-docs/confirmation_report.md:30.1% | Historical confirmation run 1 metric evaluated on 2026-10-07
-docs/confirmation_report.md:34.2% | Historical confirmation run 1 metric evaluated on 2026-10-07
-docs/confirmation_report.md:36.0% | Historical confirmation run 1 metric evaluated on 2026-10-07
-docs/confirmation_report.md:37.2% | Historical confirmation run 1 metric evaluated on 2026-10-07
-docs/confirmation_report.md:39.0% | Historical confirmation run 1 metric evaluated on 2026-10-07
-docs/confirmation_report.md:4.0% | Historical confirmation run 1 metric evaluated on 2026-10-07
-docs/confirmation_report.md:4.4% | Historical confirmation run 1 metric evaluated on 2026-10-07
-docs/confirmation_report.md:4.7% | Historical confirmation run 1 metric evaluated on 2026-10-07
-docs/confirmation_report.md:46.9% | Historical confirmation run 1 metric evaluated on 2026-10-07
-docs/confirmation_report.md:5.2% | Historical confirmation run 1 metric evaluated on 2026-10-07
-docs/confirmation_report.md:5.5% | Historical confirmation run 1 metric evaluated on 2026-10-07
-docs/confirmation_report.md:5.6% | Historical confirmation run 1 metric evaluated on 2026-10-07
-docs/confirmation_report.md:56.7% | Historical confirmation run 1 metric evaluated on 2026-10-07
-docs/confirmation_report.md:74.2% | Historical confirmation run 1 metric evaluated on 2026-10-07
-docs/confirmation_report.md:8.0% | Historical confirmation run 1 metric evaluated on 2026-10-07
-docs/confirmation_report.md:8.7% | Historical confirmation run 1 metric evaluated on 2026-10-07
 
-# docs/verification_report.md (Historical Exploratory Run 1 evaluated 2026-10-06)
-docs/verification_report.md:$4.1627 | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:1.0% | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:10.2% | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:110 | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:12.2% | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:12.8% | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:127 | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:14.6% | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:15.7% | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:17 | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:19.5% | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:2.4% | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:2.8% | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:207 | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:213 | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:22.5% | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:24.6% | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:26.8% | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:28.4% | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:28.9% | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:3.9% | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:33.4% | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:33.7% | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:34.0% | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:36 | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:36.5% | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:37 | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:38.3% | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:380 | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:4.5% | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:4.6% | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:41 | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:41.9% | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:49.4% | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:51.0% | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:51.2% | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:54.5% | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:56.1% | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:59.4% | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:6.4% | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:6.5% | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:6.9% | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:61.0% | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:65.7% | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:7.0% | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:77.5% | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:8.6% | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:8.9% | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:80 | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:81.4% | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:9.5% | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:9.8% | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:90.2% | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:96.1% | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
-docs/verification_report.md:98.4% | Historical exploratory run 1 benchmark metric evaluated on 2026-10-06
+# docs/confirmation_report.md (Multi-run confirmation metrics across runs 1 and 3)
+docs/confirmation_report.md:17.3% | Confirmation run 1 metrics Wilson CI bound
+docs/confirmation_report.md:19.7% | Confirmation run 1 metrics Wilson CI bound
+docs/confirmation_report.md:23.1% | Confirmation run 1 metrics Wilson CI bound
+docs/confirmation_report.md:24.4% | Confirmation run 1 metrics Wilson CI bound
+docs/confirmation_report.md:26.7% | Confirmation run 1 metrics Wilson CI bound
+docs/confirmation_report.md:28.6% | Confirmation run 1 metrics Wilson CI bound
+docs/confirmation_report.md:37.2% | Confirmation run 1 metrics Wilson CI bound
+docs/confirmation_report.md:39.0% | Confirmation run 1 metrics Wilson CI bound
+docs/confirmation_report.md:46.9% | Confirmation run 1 metrics Wilson CI bound
+docs/confirmation_report.md:56.7% | Confirmation run 1 metrics Wilson CI bound
+docs/confirmation_report.md:74.2% | Confirmation run 1 metrics Wilson CI bound
 
-# FEEDBACK.md (Historical inference experiments and Token Factory pricing from 2026-10-05)
-FEEDBACK.md:$0.00196 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:$0.00202 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:$0.00264 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:$0.00268 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:$0.00297 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:$0.01228 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:$0.03 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:$0.05 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:$0.06 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:$0.0921 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:$0.0977 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:$0.0980 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:$0.12 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:$0.15 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:$0.1773 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:$0.1893 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:$0.2128 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:$0.24 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:$0.2593 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:$0.2596 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:$0.2663 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:$0.2877 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:$0.2884 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:$0.2964 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:$0.30 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:$0.3445 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:$0.3462 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:$0.3475 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:$0.3476 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:$0.3526 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:$0.3763 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:$0.3798 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:$0.3879 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:$0.45 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:$0.50 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:$0.5794 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:$0.90 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:$1.00 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:$1.3939 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:$1.4885 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:$1.50 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:$2.00 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:$2.50 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:$3.00 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:$4.1627 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:0.3% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:0.6% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:0.9% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:1.0% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:1.1% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:1.3% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:1.5% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:1.6% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:1.7% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:1.8% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:1.9% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:10.1% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:10.2% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:10.9% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:100% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:100.0% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:1024 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:106 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:11.2% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:11.5% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:11.7% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:110 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:12.2% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:12.3% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:12.8% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:120 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:127 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:13 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:13.2% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:13.3% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:13.6% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:13.7% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:13.8% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:14.1% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:14.6% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:15.1% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:15.3% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:15.6% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:15.7% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:15.8% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:15.9% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:16.1% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:16.4% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:16.5% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:16.6% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:16.7% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:17 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:17.0% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:17.4% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:17.5% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:17.6% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:17.9% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:18.1% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:18.2% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:18.8% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:19.0% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:19.5% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:19.7% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:2.3% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:2.4% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:2.6% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:2.8% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:20.0% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:20.6% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:207 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:21.7% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:21.8% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:213 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:22.4% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:22.5% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:22.7% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:23.1% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:24.2% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:24.4% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:24.5% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:24.6% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:240 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:25.4% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:25.6% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:26.5% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:26.7% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:26.8% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:26.9% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:27 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:271 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:28 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:28.1% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:28.7% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:28.9% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:29.4% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:3.1% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:3.5% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:3.6% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:3.9% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:30 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:30.0% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:30.8% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:32.0% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:32.2% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:32.5% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:33.3% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:33.4% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:33.6% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:33.7% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:330 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:34.1% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:35.5% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:36 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:36.7% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:37 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:37.0% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:37.3% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:37.5% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:38.3% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:380 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:39.0% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:4.0% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:4.4% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:4.5% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:4.6% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:4.7% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:4.8% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:4.9% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:40 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:40.0% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:40.4% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:41 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:42.5% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:424 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:43.3% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:44 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:44.4% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:46.4% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:46.7% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:48.9% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:480 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:49.3% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:49.4% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:5.1% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:5.4% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:5.5% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:5.6% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:5.7% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:5.8% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:50.0% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:502 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:504 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:51 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:51.0% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:51.2% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:53.2% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:53.6% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:54.5% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:55.6% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:56.1% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:570 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:59 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:59.4% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:6.1% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:6.2% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:6.4% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:6.5% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:6.6% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:6.7% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:6.9% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:61.0% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:62.7% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:66.5% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:69.9% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:7.0% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:7.1% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:7.4% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:7.5% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:7.8% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:72 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:77.6% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:79.2% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:8.0% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:8.2% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:8.3% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:8.4% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:8.7% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:8.9% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:80 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:81.4% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:82.1% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:85.9% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:87 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:9 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:9.1% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:9.2% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:9.5% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:9.7% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:9.8% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:90 | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:90.2% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:97.0% | Historical model experimentation log and pricing rate table benchmark
-FEEDBACK.md:98.4% | Historical model experimentation log and pricing rate table benchmark
+# docs/verification_report.md (Historical confirmation run 1 full test suite: n=380, probes n=41)
+docs/verification_report.md:380 | Confirmation run 1 total evaluations denominator (pre-compaction suite)
+docs/verification_report.md:41 | Confirmation run 1 channel probe subset denominator
+docs/verification_report.md:80 | Confirmation run 1 benign task evaluations denominator
+docs/verification_report.md:17 | Confirmation run 1 observed metric count
+docs/verification_report.md:37 | Confirmation run 1 observed metric count
+docs/verification_report.md:207 | Confirmation run 1 observed metric count
+docs/verification_report.md:213 | Confirmation run 1 observed metric count
+docs/verification_report.md:19.5% | Confirmation run 1 metric percentage
+docs/verification_report.md:22.5% | Confirmation run 1 metric percentage
+docs/verification_report.md:24.6% | Confirmation run 1 metric percentage
+docs/verification_report.md:26.8% | Confirmation run 1 metric percentage
+docs/verification_report.md:28.4% | Confirmation run 1 metric percentage
+docs/verification_report.md:28.9% | Confirmation run 1 metric percentage
+docs/verification_report.md:38.3% | Confirmation run 1 metric percentage
+docs/verification_report.md:41.9% | Confirmation run 1 metric percentage
+docs/verification_report.md:51.0% | Confirmation run 1 metric percentage
+docs/verification_report.md:51.2% | Confirmation run 1 metric percentage
+docs/verification_report.md:54.5% | Confirmation run 1 metric percentage
+docs/verification_report.md:56.1% | Confirmation run 1 metric percentage
+docs/verification_report.md:59.4% | Confirmation run 1 metric percentage
+docs/verification_report.md:61.0% | Confirmation run 1 metric percentage
+docs/verification_report.md:65.7% | Confirmation run 1 metric percentage
+docs/verification_report.md:81.4% | Confirmation run 1 metric percentage
+docs/verification_report.md:96.1% | Confirmation run 1 metric percentage
+docs/verification_report.md:98.4% | Confirmation run 1 metric percentage
+
+# FEEDBACK.md (Inference experiments, token budgets, latency and prototype data from 2026-10-06)
+FEEDBACK.md:1024 | Max token budget parameter in reasoning control experiment
+FEEDBACK.md:17 | Prompt token count in hello world test
+FEEDBACK.md:28 | Token count in prompt experiment
+FEEDBACK.md:40 | Token count in prompt experiment
+FEEDBACK.md:44 | Token count in prompt experiment
+FEEDBACK.md:51 | Token count in prompt experiment
+FEEDBACK.md:59 | Token count in prompt experiment
+FEEDBACK.md:72 | Token count in prompt experiment
+FEEDBACK.md:87 | Token count in prompt experiment
+FEEDBACK.md:240 | Token count in prompt experiment
+FEEDBACK.md:271 | Token count in prompt experiment
+FEEDBACK.md:330 | Token count in prompt experiment
+FEEDBACK.md:424 | Token count in prompt experiment
+FEEDBACK.md:480 | Token count in prompt experiment
+FEEDBACK.md:570 | Token count in prompt experiment
+FEEDBACK.md:380 | Historical confirmation run 1 evaluations denominator
+FEEDBACK.md:41 | Historical confirmation run 1 probe evaluations denominator
+FEEDBACK.md:80 | Historical confirmation run 1 benign evaluations denominator
+FEEDBACK.md:37 | Historical confirmation run 1 numerator count
+FEEDBACK.md:207 | Historical confirmation run 1 numerator count
+FEEDBACK.md:213 | Historical confirmation run 1 numerator count
+FEEDBACK.md:17.0% | Model reasoning experiment percentage
+FEEDBACK.md:17.4% | Model reasoning experiment percentage
+FEEDBACK.md:17.5% | Model reasoning experiment percentage
+FEEDBACK.md:17.6% | Model reasoning experiment percentage
+FEEDBACK.md:17.9% | Model reasoning experiment percentage
+FEEDBACK.md:19.0% | Model reasoning experiment percentage
+FEEDBACK.md:19.5% | Model reasoning experiment percentage
+FEEDBACK.md:19.7% | Model reasoning experiment percentage
+FEEDBACK.md:22.4% | Model reasoning experiment percentage
+FEEDBACK.md:22.5% | Model reasoning experiment percentage
+FEEDBACK.md:22.7% | Model reasoning experiment percentage
+FEEDBACK.md:23.1% | Model reasoning experiment percentage
+FEEDBACK.md:24.2% | Model reasoning experiment percentage
+FEEDBACK.md:24.4% | Model reasoning experiment percentage
+FEEDBACK.md:24.5% | Model reasoning experiment percentage
+FEEDBACK.md:24.6% | Model reasoning experiment percentage
+FEEDBACK.md:26.5% | Model reasoning experiment percentage
+FEEDBACK.md:26.7% | Model reasoning experiment percentage
+FEEDBACK.md:26.8% | Model reasoning experiment percentage
+FEEDBACK.md:26.9% | Model reasoning experiment percentage
+FEEDBACK.md:28.1% | Model reasoning experiment percentage
+FEEDBACK.md:28.7% | Model reasoning experiment percentage
+FEEDBACK.md:28.9% | Model reasoning experiment percentage
+FEEDBACK.md:29.4% | Model reasoning experiment percentage
+FEEDBACK.md:37.0% | Model reasoning experiment percentage
+FEEDBACK.md:37.3% | Model reasoning experiment percentage
+FEEDBACK.md:37.5% | Model reasoning experiment percentage
+FEEDBACK.md:38.3% | Model reasoning experiment percentage
+FEEDBACK.md:39.0% | Model reasoning experiment percentage
+FEEDBACK.md:40.0% | Model reasoning experiment percentage
+FEEDBACK.md:40.4% | Model reasoning experiment percentage
+FEEDBACK.md:42.5% | Model reasoning experiment percentage
+FEEDBACK.md:43.3% | Model reasoning experiment percentage
+FEEDBACK.md:44.4% | Model reasoning experiment percentage
+FEEDBACK.md:46.4% | Model reasoning experiment percentage
+FEEDBACK.md:46.7% | Model reasoning experiment percentage
+FEEDBACK.md:51.0% | Model reasoning experiment percentage
+FEEDBACK.md:51.2% | Model reasoning experiment percentage
+FEEDBACK.md:53.2% | Model reasoning experiment percentage
+FEEDBACK.md:53.6% | Model reasoning experiment percentage
+FEEDBACK.md:54.5% | Model reasoning experiment percentage
+FEEDBACK.md:56.1% | Model reasoning experiment percentage
+FEEDBACK.md:59.4% | Model reasoning experiment percentage
+FEEDBACK.md:61.0% | Model reasoning experiment percentage
+FEEDBACK.md:62.7% | Model reasoning experiment percentage
+FEEDBACK.md:69.9% | Model reasoning experiment percentage
+FEEDBACK.md:79.2% | Model reasoning experiment percentage
+FEEDBACK.md:81.4% | Model reasoning experiment percentage
+FEEDBACK.md:82.1% | Model reasoning experiment percentage
+FEEDBACK.md:85.9% | Model reasoning experiment percentage
+FEEDBACK.md:97.0% | Model reasoning experiment percentage
+FEEDBACK.md:98.4% | Model reasoning experiment percentage

@@ -1,10 +1,8 @@
-
-# Historical Verification Report (Confirmation Run 1 Exploratory Benchmark, 2026-10-06)
+> **Historical record from an earlier evaluation. Superseded by the confirmation runs; not current results.**
 
 ================================================================================
-## GAUNTLET BEFORE / AFTER HARDENING VERIFICATION REPORT (HISTORICAL RUN 1)
+## GAUNTLET BEFORE / AFTER HARDENING VERIFICATION REPORT
 ================================================================================
-**Historical Status**: Exploratory Confirmation Run 1 (Pre-compaction benchmark evaluated 2026-10-06)
 **Elapsed Time**: 2407.0s | **Total Run Cost**: $4.1627
 
 ### 1. Training Exploits Replayed (Realistic Target Mode, n=41)

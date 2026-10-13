@@ -85,12 +85,12 @@ export default function ReportPage() {
       summary.project_facts?.formatted_project_usage ||
       (summary.project_facts?.total_project_usage_usd !== undefined
         ? `$${summary.project_facts.total_project_usage_usd.toFixed(2)}`
-        : "$12.40");
+        : "[missing project usage]");
 
     return `# Gauntlet Verification Report: AI Agent Hardening & Policy-as-Code Defense
 
 **Target Agent**: Meridian Maritime & Freight Inbox Assistant  
-**Evaluation Type**: ${summary.evaluation_type || "confirmation_set2_3way"}  
+**Evaluation Type**: ${summary.evaluation_type ?? "[missing evaluation_type]"}  
 **Seed**: ${summary.seed}  
 **Total Attacks**: ${summary.n_total} (${summary.n_standard} standard attacks, ${summary.n_probe} channel-coverage probes)  
 **Cost of the three recorded confirmation runs**: $${(cs?.total_usd ?? summary.total_cost_usd).toFixed(4)} USD  

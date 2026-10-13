@@ -449,6 +449,16 @@ async def get_recorded_summary() -> dict[str, Any]:
             response_data[k] = v
     response_data["model_roles"] = get_recorded_model_roles()
     response_data["project_facts"] = get_project_facts()
+    if "realistic_mode" in response_data and isinstance(response_data["realistic_mode"], dict):
+        try:
+            rdata = load_recorded_run_data()
+            std_email = [
+                a for a in rdata.get("attacks", [])
+                if not a.get("is_probe") and a.get("channel") == "email"
+            ]
+            response_data["realistic_mode"]["n_email"] = len(std_email)
+        except Exception:
+            pass
     return response_data
 
 
