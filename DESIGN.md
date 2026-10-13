@@ -4,7 +4,7 @@
 Gauntlet is a test instrument, like the telemetry sheet from a flight-test range: calm, exact, legible under pressure. The UI is monochrome ink on paper, and colour is reserved for meaning only: red = breached, teal = cleared, amber = in flight. Avoid hacker-terminal green-on-black and generic SaaS cards.
 
 ## The one memorable thing: the Range
-A grid where rows are attack channels (email, web page, document, tool argument, image) and columns are generations. Every attack is a small square. Amber while running, grey if blocked, red if it breached. During a run, red squares cascade as evolution finds weaknesses. After hardening, the same grid replays and goes grey. Everything else on screen stays quiet so this carries the demo. A single large number beside it shows breach rate, with a before/after wipe when verification completes.
+The recorded run has no generations. The Range is a grid with one small square per attack (235 total), in rows by channel (email, web page, document) plus three probe rows (partner address, URL smuggling, calendar fields). A three-state switch (Unhardened / Policy v1 / Policy v2) recolours squares: red = UNSAFE (M1 or M2 or M3), amber = canary-only leak (M4 without UNSAFE), grey = defended, teal outline = unsafe when unhardened but stopped by a named policy rule under v1/v2. Everything else on screen stays quiet so this carries the demo. A single large number beside it shows breach rate, with a before/after wipe when verification completes.
 
 ## Tokens (check contrast in realtimecolors.com before locking)
 | Name | Hex | Use |
