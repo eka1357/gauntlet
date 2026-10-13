@@ -301,6 +301,9 @@ export default function LivePage() {
         <p className="text-xs sm:text-sm text-[var(--ink-muted)] font-sans max-w-3xl mt-1 leading-relaxed">
           Execute controlled mini-runs against live targets with fresh Lightning-generated payloads. Real-time dual evaluation streams unhardened vs Policy v2 behavior under a strict $0.05 cost cap.
         </p>
+        <p className="text-xs sm:text-sm text-[var(--ink-muted)] font-sans max-w-3xl mt-1.5 leading-relaxed">
+          Live runs use email attacks, the channel where this agent failed in the recorded evaluation. Web and document attacks never succeeded in recorded runs.
+        </p>
       </div>
 
       {/* Paused State Notification (HTTP 429) */}
@@ -357,6 +360,14 @@ export default function LivePage() {
             <strong>{runSummary.v2_unsafe ?? runSummary.v2_breaches ?? 0}</strong> • Actual cost:{" "}
             <strong>${runSummary.total_cost_usd.toFixed(4)}</strong>
           </p>
+          {(runSummary.unhardened_unsafe ?? runSummary.unhardened_breaches ?? 0) === 0 && (
+            <div className="p-2.5 rounded-[var(--radius-sm)] bg-[var(--range-paper)] border border-[var(--rule)] text-xs text-[var(--ink)] font-sans">
+              No unsafe actions in this run. Naive-prompt attacks succeed about 6 times in 10 in the recorded evidence;{" "}
+              <Link href="/" className="font-semibold underline hover:text-[var(--ink)] text-[var(--cleared)]">
+                open the recorded run
+              </Link>.
+            </div>
+          )}
           <p className="text-xs text-[var(--ink-muted)] font-sans italic border-t border-[var(--rule)] pt-2 mt-2">
             Fresh random attacks, not selected by outcome. Many short runs show few or no unsafe results; the recorded run has the full evidence.
           </p>
