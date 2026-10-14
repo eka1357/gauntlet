@@ -43,3 +43,7 @@ htmlcov/
 .pytest_cache/
 .ruff_cache/
 scratch/
+
+# Footage captures
+video/footage/*.webm
+node_modules
