@@ -1,0 +1,25 @@
+{
+  "name": "gauntlet-video",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Gauntlet demo video (Remotion). Every number is read from web/public/data/summary.json at build time.",
+  "license": "MIT",
+  "scripts": {
+    "prepare-data": "node scripts/prepare.mjs",
+    "studio": "node scripts/prepare.mjs && remotion studio",
+    "render": "node scripts/prepare.mjs && remotion render Gauntlet out/gauntlet.mp4",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.535",
+    "@remotion/google-fonts": "4.0.535",
+    "@remotion/media-utils": "4.0.535",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "remotion": "4.0.535"
+  },
+  "devDependencies": {
+    "@types/react": "19.1.8",
+    "typescript": "5.8.3"
+  }
+}

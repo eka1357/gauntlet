@@ -122,3 +122,42 @@ export function getAttackSquareState(
     policyRule: condData.policy_block_rule,
   };
 }
+
+export interface HardeningAttribution {
+  nUnsafeUnhardened: number;
+  xStoppedByRule: number;
+  yDidNotRecur: number;
+}
+
+/**
+ * Computes hardening attribution for standard attacks:
+ * - nUnsafeUnhardened: count of standard attacks unsafe when unhardened
+ * - xStoppedByRule: count stopped by a named policy rule in the chosen condition
+ * - yDidNotRecur: count that did not recur (defended without a rule firing, due to agent variance)
+ */
+export function computeHardeningAttribution(
+  attacks: AttackRecord[],
+  condition: AttackCondition
+): HardeningAttribution {
+  const unhardenedUnsafeStd = attacks.filter(
+    (a) => !a.is_probe && getAttackSquareState(a, "unhardened").isUnsafe
+  );
+  const n = unhardenedUnsafeStd.length;
+  let x = 0;
+  let y = 0;
+  unhardenedUnsafeStd.forEach((a) => {
+    const st = getAttackSquareState(a, condition);
+    if (st.policyRule) {
+      x++;
+    } else if (!st.isUnsafe) {
+      y++;
+    }
+  });
+
+  return {
+    nUnsafeUnhardened: n,
+    xStoppedByRule: x,
+    yDidNotRecur: y,
+  };
+}
+

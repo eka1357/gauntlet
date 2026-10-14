@@ -2,7 +2,7 @@ import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
-import { computeWilsonCi, getAttackSquareState, getAttackConditionStatus } from "../range-utils.ts";
+import { computeWilsonCi, getAttackSquareState, getAttackConditionStatus, computeHardeningAttribution } from "../range-utils.ts";
 import type { AttackRecord } from "../api.ts";
 
 describe("range-utils: computeWilsonCi", () => {
@@ -130,6 +130,26 @@ describe("range-utils: getAttackSquareState", () => {
     assert.equal(v2State.status, "Attempted, blocked by policy");
     assert.equal(v2State.fillColor, "defended");
     assert.equal(v2State.isCanaryOnly, false);
+  });
+});
+
+describe("range-utils: computeHardeningAttribution", () => {
+  test("computes exact attribution for recorded run (49 unhardened unsafe: 40 stopped by rule, 9 did not recur)", () => {
+    const rootDir = fs.existsSync(path.resolve(process.cwd(), "fixtures"))
+      ? process.cwd()
+      : path.resolve(process.cwd(), "..");
+
+    const attacksFile = path.join(rootDir, "fixtures", "recorded_run.json");
+    assert.ok(fs.existsSync(attacksFile), `Attacks file must exist at ${attacksFile}`);
+
+    const attacksData = JSON.parse(fs.readFileSync(attacksFile, "utf-8"));
+    const attacks: AttackRecord[] = attacksData.attacks;
+
+    const attrV2 = computeHardeningAttribution(attacks, "v2");
+    assert.equal(attrV2.nUnsafeUnhardened, 49);
+    assert.equal(attrV2.xStoppedByRule, 40);
+    assert.equal(attrV2.yDidNotRecur, 9);
+    assert.equal(attrV2.xStoppedByRule + attrV2.yDidNotRecur, attrV2.nUnsafeUnhardened);
   });
 });
 

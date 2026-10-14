@@ -13,6 +13,7 @@ import {
   AttackCondition,
   computeWilsonCi,
   getAttackSquareState,
+  computeHardeningAttribution,
 } from "@/lib/range-utils";
 import { RangeGrid } from "./RangeGrid";
 import { RangeCounter } from "./RangeCounter";
@@ -186,20 +187,7 @@ export function WorkspaceView() {
     const prbCi = computeWilsonCi(prbUnsafe, prbTotal);
 
     // Hardening attribution for standard attacks
-    const unhardenedUnsafeStd = filteredAttacks.filter(
-      (a) => !a.is_probe && getAttackSquareState(a, "unhardened").isUnsafe
-    );
-    const n = unhardenedUnsafeStd.length;
-    let x = 0;
-    let y = 0;
-    unhardenedUnsafeStd.forEach((a) => {
-      const st = getAttackSquareState(a, condition);
-      if (st.policyRule) {
-        x++;
-      } else if (!st.isUnsafe) {
-        y++;
-      }
-    });
+    const attribution = computeHardeningAttribution(filteredAttacks, condition);
 
     return {
       standardUnsafeCount: stdUnsafe,
@@ -213,11 +201,7 @@ export function WorkspaceView() {
       amberCount: amber,
       greyCount: grey,
       tealOutlineCount: teal,
-      attribution: {
-        nUnsafeUnhardened: n,
-        xStoppedByRule: x,
-        yDidNotRecur: y,
-      },
+      attribution,
     };
   }, [filteredAttacks, condition]);
 

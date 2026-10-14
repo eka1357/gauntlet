@@ -46,4 +46,7 @@ scratch/
 
 # Footage captures
 video/footage/*.webm
+video/out/
+video/public/
 node_modules
+
