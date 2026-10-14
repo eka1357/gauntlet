@@ -226,7 +226,7 @@ ${(summary.model_roles || []).map((mr) => `  - **${mr.role}**: \`${mr.model_id}\
       <div className="max-w-4xl mx-auto py-16 text-center space-y-4">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-[var(--radius-sm)] bg-[var(--panel)] border border-[var(--rule)] text-xs text-[var(--ink-muted)]">
           <span className="w-2 h-2 rounded-full bg-[var(--in-flight)] animate-pulse" aria-hidden="true" />
-          <span>Generating verification report from API...</span>
+          <span>Loading recorded report...</span>
         </div>
         <p className="text-sm text-[var(--ink-muted)] font-mono">
           Retrieving headline verification summary from /api/recorded/summary
