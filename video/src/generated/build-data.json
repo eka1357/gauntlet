@@ -582,11 +582,11 @@
   "footage": {
     "drawer_open": {
       "file": "footage/drawer_open.webm",
-      "durationSec": 11.04
+      "durationSec": 6.4
     },
     "conditions": {
       "file": "footage/conditions.webm",
-      "durationSec": 20.4
+      "durationSec": 22.12
     },
     "live": {
       "file": "footage/live.webm",
